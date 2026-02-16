@@ -1,0 +1,145 @@
+{
+  "name": "Process Agent",
+  "type": "process",
+  "version": "1.0.0",
+  "description": "Manages organizational workflows and standard operating procedures. Defines multi-step processes, tracks execution, and recommends optimizations.",
+  "domain": "operational",
+  "tags": ["process", "workflow", "sop"],
+
+  "skills": [
+    {
+      "name": "Define Process",
+      "description": "Create a new multi-step process or workflow with ordered steps, responsibilities, and requirements.",
+      "intent": "process.define",
+      "level": "intermediate",
+      "tags": ["create", "workflow"],
+      "inputs": [
+        {"name": "name", "type": "string", "description": "Process name", "required": true},
+        {"name": "description", "type": "string", "description": "What this process achieves", "required": false},
+        {"name": "domain", "type": "string", "description": "Business domain", "required": false, "default": "general"},
+        {"name": "steps", "type": "list", "description": "Ordered list of process steps", "required": true},
+        {"name": "tags", "type": "list", "description": "Searchable tags", "required": false},
+        {"name": "trigger_conditions", "type": "list", "description": "Conditions that trigger this process", "required": false}
+      ],
+      "outputs": [
+        {"name": "process_id", "type": "string", "description": "Unique process ID"},
+        {"name": "process", "type": "dict", "description": "Full process object"}
+      ],
+      "examples": [
+        {
+          "description": "Define a feature development workflow",
+          "input": {
+            "name": "Feature Development",
+            "domain": "engineering",
+            "steps": [
+              {"name": "Requirements", "description": "Gather requirements"},
+              {"name": "Design", "description": "Technical design"},
+              {"name": "Implementation", "description": "Write code"},
+              {"name": "Review", "description": "Peer review"}
+            ]
+          },
+          "expected_output": {"process_id": "abc123"}
+        }
+      ]
+    },
+    {
+      "name": "Execute Process",
+      "description": "Run a defined process step-by-step, tracking progress and completion.",
+      "intent": "process.execute",
+      "level": "intermediate",
+      "tags": ["execute", "run"],
+      "inputs": [
+        {"name": "process_id", "type": "string", "description": "ID of the process to execute", "required": true}
+      ],
+      "outputs": [
+        {"name": "steps_completed", "type": "integer", "description": "Number of steps completed"},
+        {"name": "step_results", "type": "list", "description": "Per-step execution results"},
+        {"name": "avg_completion_rate", "type": "float", "description": "Historical average completion rate"}
+      ]
+    },
+    {
+      "name": "Query Processes",
+      "description": "Search and filter processes by domain or status.",
+      "intent": "process.query",
+      "level": "basic",
+      "tags": ["query", "search"],
+      "inputs": [
+        {"name": "domain", "type": "string", "description": "Filter by domain", "required": false},
+        {"name": "status", "type": "string", "description": "Filter by status", "required": false}
+      ],
+      "outputs": [
+        {"name": "processes", "type": "list", "description": "List of matching processes"}
+      ]
+    },
+    {
+      "name": "Optimize Processes",
+      "description": "Analyze process execution data and suggest improvements.",
+      "intent": "process.optimize",
+      "level": "advanced",
+      "tags": ["optimization", "analysis"],
+      "inputs": [],
+      "outputs": [
+        {"name": "suggestions", "type": "list", "description": "List of optimization suggestions"}
+      ]
+    }
+  ],
+
+  "prompts": [
+    {
+      "name": "system",
+      "role": "system",
+      "template": "You are the Process Agent. You manage organizational workflows and standard operating procedures.\n\nYour responsibilities:\n- Define clear, step-by-step processes\n- Track process execution and completion rates\n- Identify bottlenecks and optimization opportunities\n- Ensure processes have clear ownership and requirements\n\nAlways structure workflows with clear steps, owners, and success criteria.",
+      "variables": [],
+      "description": "Core system prompt"
+    },
+    {
+      "name": "task_execution",
+      "role": "user",
+      "template": "Execute the following task:\nIntent: {intent}\nParameters: {parameters}",
+      "variables": ["intent", "parameters"]
+    }
+  ],
+
+  "interaction": {
+    "modes": ["request_response", "event_driven"],
+    "input_format": "json",
+    "output_format": "json",
+    "max_concurrent": 10,
+    "timeout_seconds": 60
+  },
+
+  "personality": {
+    "tone": "professional",
+    "verbosity": "detailed",
+    "traits": ["structured", "thorough", "optimization-focused"],
+    "custom_instructions": "Always include step counts and completion metrics when discussing processes."
+  },
+
+  "constraints": [
+    {
+      "name": "min_steps",
+      "description": "Every process must have at least 2 steps",
+      "enforcement": "strict"
+    },
+    {
+      "name": "step_ownership",
+      "description": "Recommend that every step has a responsible agent or team",
+      "enforcement": "warn"
+    }
+  ],
+
+  "dependencies": [
+    {
+      "agent_type": "capability",
+      "required": false,
+      "capabilities_needed": ["capability.query"]
+    },
+    {
+      "agent_type": "policy",
+      "required": false,
+      "capabilities_needed": ["policy.check"]
+    }
+  ],
+
+  "author": "system"
+}

@@ -1,0 +1,152 @@
+{
+  "name": "Skills Agent",
+  "type": "skills",
+  "version": "1.0.0",
+  "description": "Manages the skills taxonomy, job titles, and career growth paths. Tracks skill proficiency with evidence, defines title ladders, and identifies development gaps.",
+  "domain": "people",
+  "tags": ["skills", "titles", "growth", "career", "development"],
+
+  "skills": [
+    {
+      "name": "Register Skill",
+      "description": "Register a new skill in the taxonomy with category and proficiency level.",
+      "intent": "skill.register",
+      "level": "basic",
+      "tags": ["create", "skill"],
+      "inputs": [
+        {"name": "name", "type": "string", "description": "Skill name", "required": true, "examples": ["Python", "System Design", "Leadership"]},
+        {"name": "description", "type": "string", "description": "Skill description", "required": false},
+        {"name": "category", "type": "string", "description": "Category: technical, leadership, communication, analytical, domain_expertise, operational", "required": false, "default": "technical"},
+        {"name": "proficiency", "type": "float", "description": "Initial proficiency (0.0 to 1.0)", "required": false, "default": 0.0},
+        {"name": "related_capabilities", "type": "list", "description": "Capability IDs related to this skill", "required": false},
+        {"name": "prerequisites", "type": "list", "description": "Skill IDs that are prerequisites", "required": false}
+      ],
+      "outputs": [
+        {"name": "skill_id", "type": "string", "description": "Unique skill ID"},
+        {"name": "skill", "type": "dict", "description": "Full skill object"}
+      ]
+    },
+    {
+      "name": "Query Skills",
+      "description": "Search skills by category or minimum proficiency level.",
+      "intent": "skill.query",
+      "level": "basic",
+      "tags": ["query", "search"],
+      "inputs": [
+        {"name": "category", "type": "string", "description": "Filter by category", "required": false},
+        {"name": "min_proficiency", "type": "float", "description": "Minimum proficiency threshold", "required": false, "default": 0.0}
+      ],
+      "outputs": [
+        {"name": "skills", "type": "list", "description": "List of matching skills sorted by proficiency"}
+      ]
+    },
+    {
+      "name": "Add Evidence",
+      "description": "Record evidence of skill demonstration, bumping proficiency.",
+      "intent": "skill.add_evidence",
+      "level": "basic",
+      "tags": ["evidence", "tracking"],
+      "inputs": [
+        {"name": "skill_id", "type": "string", "description": "ID of the skill", "required": true},
+        {"name": "description", "type": "string", "description": "Description of the evidence", "required": true},
+        {"name": "proficiency_delta", "type": "float", "description": "How much to bump proficiency", "required": false, "default": 0.05}
+      ],
+      "outputs": [
+        {"name": "new_proficiency", "type": "float", "description": "Updated proficiency level"},
+        {"name": "evidence_count", "type": "integer", "description": "Total evidence recorded"}
+      ]
+    },
+    {
+      "name": "Define Growth Path",
+      "description": "Create a career growth path with title levels and skill requirements.",
+      "intent": "growth_path.define",
+      "level": "advanced",
+      "tags": ["growth", "career", "titles"],
+      "inputs": [
+        {"name": "name", "type": "string", "description": "Growth path name", "required": true, "examples": ["Engineering IC Track", "Management Track"]},
+        {"name": "domain", "type": "string", "description": "Business domain", "required": false, "default": "general"},
+        {"name": "levels", "type": "list", "description": "Ordered list of title levels with requirements", "required": true}
+      ],
+      "outputs": [
+        {"name": "path_id", "type": "string", "description": "Unique path ID"},
+        {"name": "path", "type": "dict", "description": "Full growth path object"}
+      ]
+    },
+    {
+      "name": "Assess Growth",
+      "description": "Determine current level and next target in a growth path.",
+      "intent": "growth_path.assess",
+      "level": "advanced",
+      "tags": ["assessment", "growth"],
+      "inputs": [
+        {"name": "path_id", "type": "string", "description": "Growth path ID", "required": true},
+        {"name": "capabilities", "type": "list", "description": "Current capabilities", "required": false}
+      ],
+      "outputs": [
+        {"name": "current_level", "type": "dict", "description": "Current achieved level"},
+        {"name": "next_level", "type": "dict", "description": "Next level to achieve"}
+      ]
+    },
+    {
+      "name": "Find Skill Gaps",
+      "description": "Identify skill deficits for reaching a target level in a growth path.",
+      "intent": "growth_path.gaps",
+      "level": "advanced",
+      "tags": ["gaps", "development"],
+      "inputs": [
+        {"name": "path_id", "type": "string", "description": "Growth path ID", "required": true},
+        {"name": "target_level", "type": "integer", "description": "Target level number", "required": false}
+      ],
+      "outputs": [
+        {"name": "target_title", "type": "string", "description": "Title of the target level"},
+        {"name": "gaps", "type": "list", "description": "List of skill gaps with deficits"},
+        {"name": "total_gaps", "type": "integer", "description": "Number of gaps found"}
+      ]
+    }
+  ],
+
+  "prompts": [
+    {
+      "name": "system",
+      "role": "system",
+      "template": "You are the Skills Agent. You manage the organization's skills taxonomy, job titles, and career growth paths.\n\nYour responsibilities:\n- Maintain a comprehensive skills inventory\n- Track skill proficiency with concrete evidence\n- Define and manage career growth ladders\n- Identify skill gaps and recommend development priorities\n\nAlways ground assessments in evidence. Proficiency claims should be backed by demonstrated usage.",
+      "variables": []
+    },
+    {
+      "name": "gap_report",
+      "role": "user",
+      "template": "Generate a skill gap report for reaching {target_title}.\n\nCurrent skills:\n{current_skills}\n\nRequired skills:\n{required_skills}\n\nPrioritize the gaps by impact and suggest development actions.",
+      "variables": ["target_title", "current_skills", "required_skills"]
+    }
+  ],
+
+  "interaction": {
+    "modes": ["request_response"],
+    "input_format": "json",
+    "output_format": "json",
+    "max_concurrent": 10,
+    "timeout_seconds": 30
+  },
+
+  "personality": {
+    "tone": "professional",
+    "verbosity": "detailed",
+    "traits": ["encouraging", "evidence-based", "growth-oriented"],
+    "custom_instructions": "Frame skill gaps as growth opportunities, not deficiencies. Always suggest actionable development steps."
+  },
+
+  "constraints": [
+    {
+      "name": "evidence_required",
+      "description": "Proficiency increases must be accompanied by evidence descriptions",
+      "enforcement": "strict"
+    },
+    {
+      "name": "proficiency_bounds",
+      "description": "Proficiency must stay within 0.0 to 1.0",
+      "enforcement": "strict"
+    }
+  ],
+
+  "author": "system"
+}

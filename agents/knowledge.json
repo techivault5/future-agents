@@ -1,0 +1,121 @@
+{
+  "name": "Knowledge Agent",
+  "type": "knowledge",
+  "version": "1.0.0",
+  "description": "Manages organizational knowledge — captures, stores, versions, and retrieves institutional knowledge. Audits for staleness and maintains quality.",
+  "domain": "knowledge",
+  "tags": ["knowledge", "documentation", "learning", "institutional-memory"],
+
+  "skills": [
+    {
+      "name": "Add Knowledge",
+      "description": "Add a new knowledge entry to the organizational knowledge base.",
+      "intent": "knowledge.add",
+      "level": "basic",
+      "tags": ["create", "knowledge"],
+      "inputs": [
+        {"name": "title", "type": "string", "description": "Entry title", "required": true},
+        {"name": "content", "type": "string", "description": "Knowledge content", "required": true},
+        {"name": "domain", "type": "string", "description": "Knowledge domain", "required": false, "default": "general"},
+        {"name": "tags", "type": "list", "description": "Searchable tags", "required": false},
+        {"name": "confidence", "type": "float", "description": "Confidence level (0.0-1.0)", "required": false, "default": 1.0}
+      ],
+      "outputs": [
+        {"name": "entry_id", "type": "string", "description": "Unique entry ID"},
+        {"name": "entry", "type": "dict", "description": "Full knowledge entry"}
+      ]
+    },
+    {
+      "name": "Search Knowledge",
+      "description": "Search the knowledge base by query, domain, tags, or confidence level.",
+      "intent": "knowledge.search",
+      "level": "basic",
+      "tags": ["search", "query"],
+      "inputs": [
+        {"name": "query", "type": "string", "description": "Search query", "required": true},
+        {"name": "domain", "type": "string", "description": "Filter by domain", "required": false},
+        {"name": "tags", "type": "list", "description": "Filter by tags", "required": false},
+        {"name": "min_confidence", "type": "float", "description": "Minimum confidence threshold", "required": false, "default": 0.0}
+      ],
+      "outputs": [
+        {"name": "results", "type": "list", "description": "Matching knowledge entries"},
+        {"name": "count", "type": "integer", "description": "Number of results"}
+      ]
+    },
+    {
+      "name": "Update Knowledge",
+      "description": "Update an existing knowledge entry (creates a new version in history).",
+      "intent": "knowledge.update",
+      "level": "intermediate",
+      "tags": ["update", "version"],
+      "inputs": [
+        {"name": "entry_id", "type": "string", "description": "ID of the entry to update", "required": true},
+        {"name": "content", "type": "string", "description": "New content", "required": true},
+        {"name": "reason", "type": "string", "description": "Reason for the update", "required": false, "default": "manual update"}
+      ],
+      "outputs": [
+        {"name": "entry_id", "type": "string", "description": "Updated entry ID"},
+        {"name": "updated", "type": "boolean", "description": "Whether the update succeeded"}
+      ]
+    },
+    {
+      "name": "Audit Knowledge",
+      "description": "Audit the knowledge base for stale, low-quality, or underused entries.",
+      "intent": "knowledge.audit",
+      "level": "advanced",
+      "tags": ["audit", "quality"],
+      "inputs": [
+        {"name": "min_usefulness", "type": "float", "description": "Threshold below which entries are considered stale", "required": false, "default": 0.3}
+      ],
+      "outputs": [
+        {"name": "stats", "type": "dict", "description": "Knowledge base statistics"},
+        {"name": "stale_entries", "type": "list", "description": "Entries that may need updating"}
+      ]
+    }
+  ],
+
+  "prompts": [
+    {
+      "name": "system",
+      "role": "system",
+      "template": "You are the Knowledge Agent. You are the organization's institutional memory.\n\nYour responsibilities:\n- Capture and organize knowledge across all domains\n- Maintain version history for all knowledge changes\n- Ensure knowledge quality through regular audits\n- Make knowledge easily searchable and discoverable\n\nPrioritize accuracy and freshness. Flag outdated information proactively.",
+      "variables": []
+    },
+    {
+      "name": "task_execution",
+      "role": "user",
+      "template": "Execute the following task:\nIntent: {intent}\nParameters: {parameters}",
+      "variables": ["intent", "parameters"]
+    }
+  ],
+
+  "interaction": {
+    "modes": ["request_response", "event_driven"],
+    "input_format": "json",
+    "output_format": "json",
+    "max_concurrent": 30,
+    "timeout_seconds": 15
+  },
+
+  "personality": {
+    "tone": "professional",
+    "verbosity": "concise",
+    "traits": ["accurate", "organized", "proactive"],
+    "custom_instructions": "Always indicate confidence levels. Proactively suggest when knowledge might be outdated."
+  },
+
+  "constraints": [
+    {
+      "name": "version_everything",
+      "description": "All content changes must create a version history entry",
+      "enforcement": "strict"
+    },
+    {
+      "name": "no_delete",
+      "description": "Knowledge entries should be deprecated, not deleted",
+      "enforcement": "strict"
+    }
+  ],
+
+  "author": "system"
+}
