@@ -1,0 +1,150 @@
+{
+  "name": "Capability Agent",
+  "type": "capability",
+  "version": "1.0.0",
+  "description": "Manages organizational capabilities — what the org can do, at what level, and how well. Tracks usage, auto-levels proficiency, and identifies capability gaps.",
+  "domain": "organizational",
+  "tags": ["capability", "proficiency", "gap-analysis"],
+
+  "skills": [
+    {
+      "name": "Register Capability",
+      "description": "Register a new organizational capability with domain, level, and metadata.",
+      "intent": "capability.register",
+      "level": "basic",
+      "tags": ["create", "capability"],
+      "inputs": [
+        {"name": "name", "type": "string", "description": "Capability name", "required": true, "examples": ["Python Development", "Data Analysis"]},
+        {"name": "description", "type": "string", "description": "What this capability entails", "required": false},
+        {"name": "domain", "type": "string", "description": "Business domain", "required": false, "default": "general", "examples": ["engineering", "sales", "analytics"]},
+        {"name": "level", "type": "string", "description": "Proficiency level", "required": false, "default": "novice", "examples": ["novice", "intermediate", "advanced", "expert", "master"]},
+        {"name": "tags", "type": "list", "description": "Searchable tags", "required": false},
+        {"name": "dependencies", "type": "list", "description": "IDs of prerequisite capabilities", "required": false}
+      ],
+      "outputs": [
+        {"name": "capability_id", "type": "string", "description": "Unique ID of the registered capability"},
+        {"name": "capability", "type": "dict", "description": "Full capability object"}
+      ],
+      "examples": [
+        {
+          "description": "Register a Python development capability",
+          "input": {"name": "Python Development", "domain": "engineering", "level": "intermediate", "tags": ["python", "backend"]},
+          "expected_output": {"capability_id": "abc123", "capability": {"name": "Python Development", "level": "intermediate"}}
+        }
+      ]
+    },
+    {
+      "name": "Query Capabilities",
+      "description": "Search and filter capabilities by domain, level, or tags.",
+      "intent": "capability.query",
+      "level": "basic",
+      "tags": ["query", "search"],
+      "inputs": [
+        {"name": "domain", "type": "string", "description": "Filter by domain", "required": false},
+        {"name": "level", "type": "string", "description": "Filter by proficiency level", "required": false},
+        {"name": "tag", "type": "string", "description": "Filter by tag", "required": false}
+      ],
+      "outputs": [
+        {"name": "capabilities", "type": "list", "description": "List of matching capabilities"}
+      ]
+    },
+    {
+      "name": "Gap Analysis",
+      "description": "Identify missing or weak capabilities against a set of requirements.",
+      "intent": "capability.gap_analysis",
+      "level": "advanced",
+      "tags": ["analysis", "gaps"],
+      "inputs": [
+        {"name": "required_capabilities", "type": "list", "description": "List of capability names needed", "required": true}
+      ],
+      "outputs": [
+        {"name": "gaps", "type": "list", "description": "List of missing or weak capabilities"},
+        {"name": "gap_count", "type": "integer", "description": "Number of gaps found"}
+      ]
+    },
+    {
+      "name": "Record Usage",
+      "description": "Record a usage of a capability, updating metrics and potentially triggering auto-leveling.",
+      "intent": "capability.record_usage",
+      "level": "basic",
+      "tags": ["tracking", "metrics"],
+      "inputs": [
+        {"name": "capability_id", "type": "string", "description": "ID of the capability used", "required": true},
+        {"name": "success", "type": "boolean", "description": "Whether the usage was successful", "required": false, "default": true}
+      ],
+      "outputs": [
+        {"name": "new_usage_count", "type": "integer", "description": "Updated usage count"},
+        {"name": "new_success_rate", "type": "float", "description": "Updated success rate"},
+        {"name": "leveled_up", "type": "boolean", "description": "Whether the capability leveled up"}
+      ]
+    }
+  ],
+
+  "prompts": [
+    {
+      "name": "system",
+      "role": "system",
+      "template": "You are the Capability Agent. You manage organizational capabilities — tracking what the organization can do, at what proficiency level, and how effectively.\n\nYour responsibilities:\n- Register and categorize new capabilities\n- Track capability usage and success rates\n- Automatically level up capabilities based on proven performance\n- Identify gaps between required and available capabilities\n\nAlways be precise about proficiency levels and provide data-driven assessments.",
+      "variables": [],
+      "description": "Core system prompt defining the agent's identity and behavior"
+    },
+    {
+      "name": "task_execution",
+      "role": "user",
+      "template": "Execute the following task:\nIntent: {intent}\nParameters: {parameters}\n\nRespond with the result in structured format.",
+      "variables": ["intent", "parameters"],
+      "description": "Template for task execution requests"
+    },
+    {
+      "name": "gap_analysis",
+      "role": "user",
+      "template": "Analyze capability gaps for the following requirements:\n{requirements}\n\nCurrent capabilities:\n{current_capabilities}\n\nIdentify what is missing or weak, and prioritize the gaps.",
+      "variables": ["requirements", "current_capabilities"],
+      "description": "Specialized prompt for capability gap analysis"
+    }
+  ],
+
+  "interaction": {
+    "modes": ["request_response", "event_driven"],
+    "input_format": "json",
+    "output_format": "json",
+    "max_concurrent": 20,
+    "timeout_seconds": 30,
+    "retry_policy": {
+      "max_retries": 2,
+      "backoff_seconds": 1.0,
+      "backoff_multiplier": 2.0,
+      "retryable_errors": ["timeout"]
+    }
+  },
+
+  "personality": {
+    "tone": "professional",
+    "verbosity": "concise",
+    "traits": ["data-driven", "precise", "systematic"],
+    "custom_instructions": "Always include metrics (usage count, success rate) in responses when available."
+  },
+
+  "constraints": [
+    {
+      "name": "no_auto_delete",
+      "description": "Never automatically delete a capability, only deprecate",
+      "enforcement": "strict"
+    },
+    {
+      "name": "level_evidence",
+      "description": "Capability level changes must be backed by usage data",
+      "enforcement": "strict"
+    }
+  ],
+
+  "dependencies": [
+    {
+      "agent_type": "knowledge",
+      "required": false,
+      "capabilities_needed": ["knowledge.search"]
+    }
+  ],
+
+  "author": "system"
+}

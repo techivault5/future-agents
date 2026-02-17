@@ -1,0 +1,39 @@
+{
+  "system": {
+    "name": "future-agents",
+    "log_level": "INFO"
+  },
+  "sync_engine": {
+    "interval_seconds": 60,
+    "auto_apply_threshold": 0.5,
+    "max_feedback_buffer": 1000
+  },
+  "knowledge_store": {
+    "max_history_versions": 50,
+    "stale_threshold": 0.3
+  },
+  "metrics": {
+    "max_series_length": 10000
+  },
+  "agents": {
+    "capability": {
+      "auto_level_up": true,
+      "level_thresholds": {
+        "novice_to_intermediate": {"min_uses": 10, "min_success_rate": 0.6},
+        "intermediate_to_advanced": {"min_uses": 50, "min_success_rate": 0.7},
+        "advanced_to_expert": {"min_uses": 200, "min_success_rate": 0.8},
+        "expert_to_master": {"min_uses": 500, "min_success_rate": 0.9}
+      }
+    },
+    "policy": {
+      "default_scope": "global",
+      "auto_enforce": false
+    },
+    "process": {
+      "default_status": "active"
+    },
+    "skills": {
+      "default_proficiency_delta": 0.05
+    }
+  }
+}
