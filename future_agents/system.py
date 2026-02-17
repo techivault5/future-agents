@@ -196,6 +196,46 @@ class AgentSystem:
         result = await self.master.execute(context)
         return self._format_result(result)
 
+    async def profile(
+        self,
+        agent_type: str = "",
+        agent_id: str = "",
+        output_format: str = "full",
+    ) -> dict:
+        """Extract a structured profile for a single agent.
+
+        Returns all columns: identity, do's, don'ts, how to interact,
+        skills, soft skills, tools, prompts, dependencies, strengths,
+        weaknesses, metrics.
+        """
+        from future_agents.core.base_agent import TaskContext
+
+        context = TaskContext(
+            intent="master.profile",
+            parameters={
+                "agent_type": agent_type,
+                "agent_id": agent_id,
+                "format": output_format,
+            },
+        )
+        result = await self.master.execute(context)
+        return self._format_result(result)
+
+    async def profile_all(
+        self,
+        domain: str | None = None,
+        output_format: str = "full",
+    ) -> dict:
+        """Extract structured profiles for ALL agents in the system."""
+        from future_agents.core.base_agent import TaskContext
+
+        params: dict[str, Any] = {"format": output_format}
+        if domain:
+            params["domain"] = domain
+        context = TaskContext(intent="master.profile_all", parameters=params)
+        result = await self.master.execute(context)
+        return self._format_result(result)
+
     # ── Legacy interface (still works) ───────────────────────────
 
     async def handle(self, intent: str, parameters: dict | None = None) -> dict:

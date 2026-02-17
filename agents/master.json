@@ -77,6 +77,46 @@
         {"name": "metrics", "type": "dict", "description": "System-wide metrics"},
         {"name": "improvements", "type": "dict", "description": "Improvement status"}
       ]
+    },
+    {
+      "name": "Profile Agent",
+      "description": "Read any agent's definition and extract a structured profile with all columns: identity, do's, don'ts, how to interact, hard skills, soft skills, tools, prompts, dependencies, strengths, weaknesses, and metrics.",
+      "intent": "master.profile",
+      "level": "expert",
+      "tags": ["profile", "extraction", "analysis"],
+      "inputs": [
+        {"name": "agent_type", "type": "string", "description": "Type of agent to profile (e.g. 'capability', 'policy')", "required": false},
+        {"name": "agent_id", "type": "string", "description": "Specific agent ID to profile", "required": false},
+        {"name": "format", "type": "string", "description": "Output format: 'full' (JSON + table), 'table' (text table), 'columns' (JSON only)", "required": false}
+      ],
+      "outputs": [
+        {"name": "profile", "type": "dict", "description": "Structured profile with all columns"},
+        {"name": "table", "type": "string", "description": "Human-readable text table"}
+      ],
+      "examples": [
+        {
+          "description": "Profile the Capability Agent",
+          "input": {"agent_type": "capability", "format": "full"},
+          "expected_output": {"agent_type": "capability", "profile": {}, "table": "..."}
+        }
+      ]
+    },
+    {
+      "name": "Profile All Agents",
+      "description": "Extract structured profiles for every agent in the system. Returns a comprehensive report with all columns for each agent.",
+      "intent": "master.profile_all",
+      "level": "expert",
+      "tags": ["profile", "report", "all-agents"],
+      "inputs": [
+        {"name": "domain", "type": "string", "description": "Filter by domain (optional)", "required": false},
+        {"name": "format", "type": "string", "description": "Output format: 'full', 'table', 'columns'", "required": false}
+      ],
+      "outputs": [
+        {"name": "profiles", "type": "list", "description": "List of agent profiles"},
+        {"name": "count", "type": "integer", "description": "Number of agents profiled"},
+        {"name": "columns", "type": "list", "description": "Column names in each profile"},
+        {"name": "combined_table", "type": "string", "description": "All profiles as a single text report"}
+      ]
     }
   ],
 

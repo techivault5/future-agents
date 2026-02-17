@@ -22,6 +22,7 @@ from future_agents.core.protocol.messages import (
 )
 from future_agents.core.registry import AgentRegistry
 from future_agents.definitions.defined_agent import DefinedAgent
+from future_agents.definitions.profile import AgentProfile, ProfileExtractor
 from future_agents.infrastructure.metric_tracker import MetricTracker
 from future_agents.infrastructure.sync_engine import SyncEngine
 from future_agents.models.feedback import ExecutionOutcome
@@ -55,6 +56,7 @@ class MasterAgent(BaseAgent):
         self.sync_engine = sync_engine
         self.metrics = metrics or MetricTracker()
         self._conversation_history: list[AgentMessage] = []
+        self._profile_extractor = ProfileExtractor()
 
     @property
     def agent_type(self) -> str:
@@ -68,6 +70,8 @@ class MasterAgent(BaseAgent):
             "master.workflow",
             "master.ask",
             "master.status",
+            "master.profile",
+            "master.profile_all",
         ]
 
     # ── Core execution ──────────────────────────────────────────
@@ -79,6 +83,8 @@ class MasterAgent(BaseAgent):
             "master.workflow": self._execute_workflow,
             "master.ask": self._ask_agent,
             "master.status": self._system_status,
+            "master.profile": self._profile_agent,
+            "master.profile_all": self._profile_all_agents,
         }
 
         # If the intent doesn't start with "master.", try to route it
@@ -390,6 +396,154 @@ class MasterAgent(BaseAgent):
                 "metrics": self.metrics.summary(),
             },
         )
+
+    # ── Agent profiling ─────────────────────────────────────────
+
+    async def _profile_agent(self, context: TaskContext) -> TaskResult:
+        """Extract a structured profile for a single agent.
+
+        Reads the agent's definition and runtime metrics, then produces
+        a normalized profile with columns: do's, don'ts, how to interact,
+        hard skills, soft skills, tools, prompts, dependencies, strengths,
+        weaknesses, metrics.
+        """
+        agent_type = context.parameters.get("agent_type", "")
+        agent_id = context.parameters.get("agent_id", "")
+        output_format = context.parameters.get("format", "full")  # full, table, columns
+
+        # Find the target agent
+        target = None
+        if agent_id:
+            target = self.registry.get(agent_id)
+        elif agent_type:
+            agents = self.registry.find_by_type(agent_type)
+            agents = [a for a in agents if a.agent_id != self.agent_id]
+            target = agents[0] if agents else None
+
+        if not target:
+            return TaskResult(
+                task_id=context.task_id,
+                agent_id=self.agent_id,
+                outcome=ExecutionOutcome.FAILURE,
+                errors=[f"Agent not found: type='{agent_type}' id='{agent_id}'"],
+                suggestions=[
+                    f"Available types: {[a.agent_type for a in self.registry.agents.values() if a.agent_id != self.agent_id]}"
+                ],
+            )
+
+        profile = self._extract_profile(target)
+
+        # Choose output format
+        if output_format == "table":
+            data: dict[str, Any] = {
+                "agent_type": target.agent_type,
+                "table": profile.to_table(),
+            }
+        elif output_format == "columns":
+            data = {
+                "agent_type": target.agent_type,
+                "columns": profile.column_names(),
+                "profile": profile.to_dict(),
+            }
+        else:
+            data = {
+                "agent_type": target.agent_type,
+                "profile": profile.to_dict(),
+                "table": profile.to_table(),
+            }
+
+        return TaskResult(
+            task_id=context.task_id,
+            agent_id=self.agent_id,
+            outcome=ExecutionOutcome.SUCCESS,
+            data=data,
+        )
+
+    async def _profile_all_agents(self, context: TaskContext) -> TaskResult:
+        """Extract structured profiles for ALL agents in the system.
+
+        Returns a list of profiles, one per agent, each with all columns.
+        """
+        output_format = context.parameters.get("format", "full")
+        domain_filter = context.parameters.get("domain")
+
+        profiles: list[dict[str, Any]] = []
+        tables: list[str] = []
+
+        for agent_id, agent in self.registry.agents.items():
+            if agent_id == self.agent_id:
+                continue
+
+            # Apply domain filter
+            if domain_filter and isinstance(agent, DefinedAgent):
+                if agent.definition.domain != domain_filter:
+                    continue
+
+            profile = self._extract_profile(agent)
+
+            summary = {
+                "agent_type": agent.agent_type,
+                "agent_id": agent_id,
+                "profile": profile.to_dict(),
+            }
+
+            if output_format in ("full", "table"):
+                table_text = profile.to_table()
+                summary["table"] = table_text
+                tables.append(table_text)
+
+            profiles.append(summary)
+
+        return TaskResult(
+            task_id=context.task_id,
+            agent_id=self.agent_id,
+            outcome=ExecutionOutcome.SUCCESS,
+            data={
+                "profiles": profiles,
+                "count": len(profiles),
+                "columns": AgentProfile.model_fields.keys().__iter__().__class__.__name__
+                    if False else [  # Just list the column names
+                    "identity", "dos", "donts", "interaction", "skills",
+                    "soft_skills", "tools", "prompts", "dependencies",
+                    "strengths", "weaknesses", "metrics",
+                ],
+                "combined_table": "\n\n".join(tables) if tables else "",
+            },
+        )
+
+    def _extract_profile(self, agent: BaseAgent) -> AgentProfile:
+        """Extract an AgentProfile from any agent (defined or legacy)."""
+        runtime_metrics = {
+            "success_rate": agent.success_rate,
+            "execution_count": agent._execution_count,
+        }
+
+        if isinstance(agent, DefinedAgent):
+            return self._profile_extractor.extract(agent.definition, runtime_metrics)
+        else:
+            # For legacy agents without definitions, build a minimal definition
+            from future_agents.definitions.schema import (
+                AgentDefinition,
+                PersonalityDef,
+                SkillDef,
+                SkillLevel,
+            )
+            defn = AgentDefinition(
+                name=f"{agent.agent_type.title()} Agent",
+                type=agent.agent_type,
+                description=f"Legacy {agent.agent_type} agent (no definition file)",
+                skills=[
+                    SkillDef(
+                        name=cap.replace(".", " ").title(),
+                        description=f"Capability: {cap}",
+                        intent=cap,
+                        level=SkillLevel.INTERMEDIATE,
+                    )
+                    for cap in agent.capabilities
+                ],
+                personality=PersonalityDef(tone="professional", verbosity="concise"),
+            )
+            return self._profile_extractor.extract(defn, runtime_metrics)
 
     # ── Agent catalog (for prompts) ─────────────────────────────
 
