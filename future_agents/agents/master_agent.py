@@ -3,7 +3,7 @@
 The Master Agent is the single entry point for all external requests.
 It discovers available agents, understands their capabilities through
 their definitions, routes tasks intelligently, coordinates multi-agent
-workflows, and synthesizes results.
+workflows, synthesizes results, and now speaks/listens/learns.
 """
 
 from __future__ import annotations
@@ -11,6 +11,14 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from future_agents.capabilities.learn import LearnMixin, LearningEngine
+from future_agents.capabilities.listen import ListenFilter, ListenMixin
+from future_agents.capabilities.speech import (
+    ConversationLedger,
+    SpeechMixin,
+    SpeechType,
+    Utterance,
+)
 from future_agents.core.base_agent import BaseAgent, TaskContext, TaskResult
 from future_agents.core.events import EventBus
 from future_agents.core.protocol.messages import (
@@ -30,7 +38,7 @@ from future_agents.models.feedback import ExecutionOutcome
 logger = logging.getLogger(__name__)
 
 
-class MasterAgent(BaseAgent):
+class MasterAgent(BaseAgent, SpeechMixin, ListenMixin, LearnMixin):
     """The Master Agent — discovers, routes to, and coordinates all other agents.
 
     Capabilities:
@@ -40,6 +48,9 @@ class MasterAgent(BaseAgent):
     4. **Workflow** — Chains multiple agents for complex multi-step tasks
     5. **Synthesis** — Combines results from multiple agents
     6. **Monitoring** — Tracks system health and feeds the improvement loop
+    7. **Speech** — Can broadcast, announce, teach, ask, and report
+    8. **Listen** — Subscribes to agent speech and reacts
+    9. **Learn** — Learns from delegations, conversations, and patterns
 
     The Master Agent never executes domain logic itself — it always delegates.
     """
@@ -50,6 +61,7 @@ class MasterAgent(BaseAgent):
         sync_engine: SyncEngine | None = None,
         metrics: MetricTracker | None = None,
         event_bus: EventBus | None = None,
+        ledger: ConversationLedger | None = None,
     ) -> None:
         super().__init__(agent_id="master", event_bus=event_bus)
         self.registry = registry
@@ -57,6 +69,13 @@ class MasterAgent(BaseAgent):
         self.metrics = metrics or MetricTracker()
         self._conversation_history: list[AgentMessage] = []
         self._profile_extractor = ProfileExtractor()
+
+        # Initialize capabilities
+        self.init_listen()
+        self.init_learning()
+        if ledger:
+            self.attach_ledger(ledger)
+        self._ledger_ref = ledger
 
     @property
     def agent_type(self) -> str:
@@ -72,7 +91,25 @@ class MasterAgent(BaseAgent):
             "master.status",
             "master.profile",
             "master.profile_all",
+            "master.learn",
+            "master.teach",
+            "master.conversation",
         ]
+
+    async def initialize(self) -> None:
+        """Initialize the Master Agent with listening and learning."""
+        await super().initialize()
+        await self.start_listening(self.event_bus)
+
+        # Subscribe to all announcements so the master hears everything
+        self.subscribe_to(
+            filter_type=ListenFilter.TYPE,
+            filter_value=SpeechType.ANNOUNCE.value,
+        )
+        self.subscribe_to(
+            filter_type=ListenFilter.TYPE,
+            filter_value=SpeechType.REPORT.value,
+        )
 
     # ── Core execution ──────────────────────────────────────────
 
@@ -85,6 +122,9 @@ class MasterAgent(BaseAgent):
             "master.status": self._system_status,
             "master.profile": self._profile_agent,
             "master.profile_all": self._profile_all_agents,
+            "master.learn": self._trigger_learning,
+            "master.teach": self._teach_agent,
+            "master.conversation": self._get_conversation,
         }
 
         # If the intent doesn't start with "master.", try to route it
@@ -92,7 +132,17 @@ class MasterAgent(BaseAgent):
         if not handler:
             return await self._route_task(context)
 
-        return await handler(context)
+        result = await handler(context)
+
+        # Auto-learn from every execution
+        self.remember_execution(
+            intent=context.intent,
+            success=result.outcome == ExecutionOutcome.SUCCESS,
+            duration_ms=result.duration_ms,
+            errors=result.errors if result.errors else None,
+        )
+
+        return result
 
     # ── Discovery ───────────────────────────────────────────────
 
@@ -164,6 +214,13 @@ class MasterAgent(BaseAgent):
 
         self.metrics.increment("master.delegations", labels={"intent": intent})
 
+        # Announce the delegation
+        await self.broadcast(
+            text=f"Routing '{intent}' to {target.agent_id}",
+            topic="master.delegation",
+            tags=["routing", intent.split(".")[0]],
+        )
+
         # Delegate
         if isinstance(target, DefinedAgent):
             response = await self._delegate_to_defined(target, intent, parameters)
@@ -222,6 +279,12 @@ class MasterAgent(BaseAgent):
                 errors=["Workflow has no steps"],
             )
 
+        await self.broadcast(
+            text=f"Starting workflow '{workflow_name}' with {len(steps)} steps",
+            topic="master.workflow",
+            tags=["workflow", "start"],
+        )
+
         step_results: list[dict[str, Any]] = []
         all_success = True
         accumulated_data: dict[str, Any] = {}
@@ -267,7 +330,12 @@ class MasterAgent(BaseAgent):
                     "errors": response.errors if response else [],
                 })
                 all_success = False
-                # Continue workflow even if a step fails (best-effort)
+
+        await self.broadcast(
+            text=f"Workflow '{workflow_name}' {'completed' if all_success else 'finished with errors'}",
+            topic="master.workflow",
+            tags=["workflow", "complete" if all_success else "partial"],
+        )
 
         await self.emit("master.workflow_completed", {
             "name": workflow_name,
@@ -385,6 +453,14 @@ class MasterAgent(BaseAgent):
                 "total": len(imps),
             }
 
+        # Add conversation ledger stats
+        ledger_stats = {}
+        if self._ledger_ref:
+            ledger_stats = self._ledger_ref.stats()
+
+        # Add master's own learning stats
+        learning_stats = self.learning.memory.stats()
+
         return TaskResult(
             task_id=context.task_id,
             agent_id=self.agent_id,
@@ -394,24 +470,163 @@ class MasterAgent(BaseAgent):
                 "agent_count": len(agent_statuses),
                 "improvements": improvements,
                 "metrics": self.metrics.summary(),
+                "conversation": ledger_stats,
+                "master_learning": learning_stats,
+            },
+        )
+
+    # ── Learning & Teaching ─────────────────────────────────────
+
+    async def _trigger_learning(self, context: TaskContext) -> TaskResult:
+        """Trigger a learning cycle across all agents that support it."""
+        learning_results: list[dict[str, Any]] = []
+
+        # Master learns first
+        master_result = self.learn_cycle()
+        learning_results.append({"agent_id": self.agent_id, **master_result})
+
+        # Then trigger learning for all registered agents
+        for agent_id, agent in self.registry.agents.items():
+            if agent_id == self.agent_id:
+                continue
+
+            if isinstance(agent, LearnMixin):
+                result = agent.learn_cycle()
+                learning_results.append({"agent_id": agent_id, **result})
+
+        # Announce the learning results
+        total_insights = sum(r.get("new_insights", 0) for r in learning_results)
+        total_evolutions = sum(r.get("new_evolutions", 0) for r in learning_results)
+        if total_insights > 0 or total_evolutions > 0:
+            await self.announce(
+                text=(
+                    f"Learning cycle complete: {total_insights} new insights, "
+                    f"{total_evolutions} evolution proposals across "
+                    f"{len(learning_results)} agents"
+                ),
+                topic="master.learning",
+                content={
+                    "total_insights": total_insights,
+                    "total_evolutions": total_evolutions,
+                    "agents_learned": len(learning_results),
+                },
+                tags=["learning", "cycle"],
+            )
+
+        return TaskResult(
+            task_id=context.task_id,
+            agent_id=self.agent_id,
+            outcome=ExecutionOutcome.SUCCESS,
+            data={
+                "results": learning_results,
+                "agents_processed": len(learning_results),
+                "total_insights": total_insights,
+                "total_evolutions": total_evolutions,
+            },
+        )
+
+    async def _teach_agent(self, context: TaskContext) -> TaskResult:
+        """Teach a specific agent something — the Master shares knowledge."""
+        agent_type = context.parameters.get("agent_type", "")
+        text = context.parameters.get("text", "")
+        topic = context.parameters.get("topic", "")
+        content = context.parameters.get("content", {})
+
+        agents = self.registry.find_by_type(agent_type)
+        agents = [a for a in agents if a.agent_id != self.agent_id]
+
+        if not agents:
+            return TaskResult(
+                task_id=context.task_id,
+                agent_id=self.agent_id,
+                outcome=ExecutionOutcome.FAILURE,
+                errors=[f"No agent of type '{agent_type}' found to teach"],
+            )
+
+        target = agents[0]
+
+        # Use the speech system to teach
+        utterance = await self.teach(
+            recipient=target.agent_id,
+            text=text,
+            topic=topic,
+            content=content,
+            tags=["master_teaching"],
+        )
+
+        # If the target has learn capability, also directly absorb
+        if isinstance(target, LearnMixin):
+            from future_agents.capabilities.speech import Utterance as Utt
+            teaching_utt = Utt(
+                speaker=self.agent_id,
+                speech_type=SpeechType.TEACH,
+                recipient=target.agent_id,
+                topic=topic,
+                text=text,
+                content=content,
+                tags=["master_teaching"],
+            )
+            target.absorb_teaching(teaching_utt)
+
+        return TaskResult(
+            task_id=context.task_id,
+            agent_id=self.agent_id,
+            outcome=ExecutionOutcome.SUCCESS,
+            data={
+                "taught_to": target.agent_id,
+                "agent_type": target.agent_type,
+                "topic": topic,
+                "utterance_id": utterance.id,
+            },
+        )
+
+    async def _get_conversation(self, context: TaskContext) -> TaskResult:
+        """Get recent conversation from the shared ledger."""
+        limit = context.parameters.get("limit", 50)
+
+        if not self._ledger_ref:
+            return TaskResult(
+                task_id=context.task_id,
+                agent_id=self.agent_id,
+                outcome=ExecutionOutcome.SUCCESS,
+                data={"messages": [], "count": 0},
+            )
+
+        recent = self._ledger_ref.recent(limit)
+        messages = [
+            {
+                "id": u.id,
+                "speaker": u.speaker,
+                "type": u.speech_type.value,
+                "recipient": u.recipient,
+                "topic": u.topic,
+                "text": u.text,
+                "tags": u.tags,
+                "confidence": u.confidence,
+                "timestamp": u.timestamp.isoformat(),
+            }
+            for u in recent
+        ]
+
+        return TaskResult(
+            task_id=context.task_id,
+            agent_id=self.agent_id,
+            outcome=ExecutionOutcome.SUCCESS,
+            data={
+                "messages": messages,
+                "count": len(messages),
+                "stats": self._ledger_ref.stats(),
             },
         )
 
     # ── Agent profiling ─────────────────────────────────────────
 
     async def _profile_agent(self, context: TaskContext) -> TaskResult:
-        """Extract a structured profile for a single agent.
-
-        Reads the agent's definition and runtime metrics, then produces
-        a normalized profile with columns: do's, don'ts, how to interact,
-        hard skills, soft skills, tools, prompts, dependencies, strengths,
-        weaknesses, metrics.
-        """
+        """Extract a structured profile for a single agent."""
         agent_type = context.parameters.get("agent_type", "")
         agent_id = context.parameters.get("agent_id", "")
-        output_format = context.parameters.get("format", "full")  # full, table, columns
+        output_format = context.parameters.get("format", "full")
 
-        # Find the target agent
         target = None
         if agent_id:
             target = self.registry.get(agent_id)
@@ -433,7 +648,6 @@ class MasterAgent(BaseAgent):
 
         profile = self._extract_profile(target)
 
-        # Choose output format
         if output_format == "table":
             data: dict[str, Any] = {
                 "agent_type": target.agent_type,
@@ -460,10 +674,7 @@ class MasterAgent(BaseAgent):
         )
 
     async def _profile_all_agents(self, context: TaskContext) -> TaskResult:
-        """Extract structured profiles for ALL agents in the system.
-
-        Returns a list of profiles, one per agent, each with all columns.
-        """
+        """Extract structured profiles for ALL agents in the system."""
         output_format = context.parameters.get("format", "full")
         domain_filter = context.parameters.get("domain")
 
@@ -474,7 +685,6 @@ class MasterAgent(BaseAgent):
             if agent_id == self.agent_id:
                 continue
 
-            # Apply domain filter
             if domain_filter and isinstance(agent, DefinedAgent):
                 if agent.definition.domain != domain_filter:
                     continue
@@ -501,8 +711,7 @@ class MasterAgent(BaseAgent):
             data={
                 "profiles": profiles,
                 "count": len(profiles),
-                "columns": AgentProfile.model_fields.keys().__iter__().__class__.__name__
-                    if False else [  # Just list the column names
+                "columns": [
                     "identity", "dos", "donts", "interaction", "skills",
                     "soft_skills", "tools", "prompts", "dependencies",
                     "strengths", "weaknesses", "metrics",
@@ -521,7 +730,6 @@ class MasterAgent(BaseAgent):
         if isinstance(agent, DefinedAgent):
             return self._profile_extractor.extract(agent.definition, runtime_metrics)
         else:
-            # For legacy agents without definitions, build a minimal definition
             from future_agents.definitions.schema import (
                 AgentDefinition,
                 PersonalityDef,
@@ -639,7 +847,6 @@ class MasterAgent(BaseAgent):
             else:
                 all_intents.extend(agent.capabilities)
 
-        # Simple prefix matching
         prefix = intent.split(".")[0] if "." in intent else intent
         suggestions = [i for i in all_intents if i.startswith(prefix)]
         if not suggestions:
@@ -647,9 +854,13 @@ class MasterAgent(BaseAgent):
         return suggestions
 
     async def assess_self(self) -> dict[str, Any]:
+        learning_stats = self.learning.memory.stats()
         return {
-            "registered_agents": len(self.registry.agents) - 1,  # Exclude self
+            "registered_agents": len(self.registry.agents) - 1,
             "total_delegations": self.metrics.get_counter("master.delegations"),
             "conversation_length": len(self._conversation_history),
             "success_rate": self.success_rate,
+            "memories": learning_stats["total_memories"],
+            "insights": len(self.learning.insights),
+            "inbox_size": self.inbox.size,
         }

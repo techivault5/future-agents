@@ -5,6 +5,11 @@ Supports two modes:
    construct DefinedAgents via the factory, and route everything through
    the Master Agent.
 2. **Legacy** — Register plain Python agent classes directly (still works).
+
+Now includes speech, listen, and learn infrastructure:
+  - ConversationLedger — shared log of all agent speech
+  - Learning cycles — agents learn from executions and teachings
+  - SmartAgent base — agents that can speak/listen/learn out of the box
 """
 
 from __future__ import annotations
@@ -19,9 +24,11 @@ from future_agents.agents.master_agent import MasterAgent
 from future_agents.agents.policy_agent import PolicyAgent
 from future_agents.agents.process_agent import ProcessAgent
 from future_agents.agents.skills_agent import SkillsAgent
+from future_agents.capabilities.speech import ConversationLedger
 from future_agents.core.events import EventBus
 from future_agents.core.orchestrator import Orchestrator
 from future_agents.core.registry import AgentRegistry
+from future_agents.core.smart_agent import SmartAgent
 from future_agents.definitions.defined_agent import DefinedAgent
 from future_agents.definitions.factory import AgentFactory
 from future_agents.infrastructure.knowledge_store import KnowledgeStore
@@ -58,6 +65,9 @@ class AgentSystem:
         # System health via Master Agent
         status = await system.status()
 
+        # Trigger learning across all agents
+        learning = await system.learn()
+
         await system.stop()
     """
 
@@ -67,6 +77,7 @@ class AgentSystem:
         self.metrics = MetricTracker()
         self.knowledge_store = KnowledgeStore(event_bus=self.event_bus)
         self.registry = AgentRegistry(event_bus=self.event_bus)
+        self.conversation_ledger = ConversationLedger()
 
         # Sync engine (continuous improvement)
         self.sync_engine = SyncEngine(
@@ -94,6 +105,7 @@ class AgentSystem:
             sync_engine=self.sync_engine,
             metrics=self.metrics,
             event_bus=self.event_bus,
+            ledger=self.conversation_ledger,
         )
 
         self._definitions_dir = Path(definitions_dir) if definitions_dir else None
@@ -128,6 +140,7 @@ class AgentSystem:
             # Definition-driven mode
             self._defined_agents = self.factory.build_from_directory(self._definitions_dir)
             for agent in self._defined_agents:
+                self._attach_capabilities(agent)
                 await self.registry.register(agent)
             logger.info(
                 "Started %d definition-driven agents from %s",
@@ -136,16 +149,33 @@ class AgentSystem:
             )
         else:
             # Legacy mode — register plain implementations
-            await self.registry.register(CapabilityAgent())
-            await self.registry.register(ProcessAgent())
-            await self.registry.register(PolicyAgent())
-            await self.registry.register(SkillsAgent())
-            await self.registry.register(KnowledgeAgent(knowledge_store=self.knowledge_store))
+            legacy_agents = [
+                CapabilityAgent(),
+                ProcessAgent(),
+                PolicyAgent(),
+                SkillsAgent(),
+                KnowledgeAgent(knowledge_store=self.knowledge_store),
+            ]
+            for agent in legacy_agents:
+                self._attach_capabilities(agent)
+                await self.registry.register(agent)
             logger.info("Started 5 legacy agents")
 
         # Register the Master Agent last (so it can discover all others)
         await self.registry.register(self.master)
         logger.info("Master Agent registered — system ready")
+
+    def _attach_capabilities(self, agent: object) -> None:
+        """Attach conversation ledger and learning to agents that support it."""
+        # Attach ledger if the agent has speech capability
+        from future_agents.capabilities.speech import SpeechMixin
+        if isinstance(agent, SpeechMixin):
+            agent.attach_ledger(self.conversation_ledger)
+
+        # For DefinedAgents, also check the inner implementation
+        if isinstance(agent, DefinedAgent):
+            if isinstance(agent.implementation, SpeechMixin):
+                agent.implementation.attach_ledger(self.conversation_ledger)
 
     async def stop(self) -> None:
         """Shut down all agents and stop the sync engine."""
@@ -202,12 +232,7 @@ class AgentSystem:
         agent_id: str = "",
         output_format: str = "full",
     ) -> dict:
-        """Extract a structured profile for a single agent.
-
-        Returns all columns: identity, do's, don'ts, how to interact,
-        skills, soft skills, tools, prompts, dependencies, strengths,
-        weaknesses, metrics.
-        """
+        """Extract a structured profile for a single agent."""
         from future_agents.core.base_agent import TaskContext
 
         context = TaskContext(
@@ -233,6 +258,43 @@ class AgentSystem:
         if domain:
             params["domain"] = domain
         context = TaskContext(intent="master.profile_all", parameters=params)
+        result = await self.master.execute(context)
+        return self._format_result(result)
+
+    async def learn(self) -> dict:
+        """Trigger a learning cycle across all agents via the Master Agent."""
+        from future_agents.core.base_agent import TaskContext
+
+        context = TaskContext(intent="master.learn", parameters={})
+        result = await self.master.execute(context)
+        return self._format_result(result)
+
+    async def teach(
+        self, agent_type: str, text: str, topic: str = "", content: dict | None = None
+    ) -> dict:
+        """Teach an agent something via the Master Agent."""
+        from future_agents.core.base_agent import TaskContext
+
+        context = TaskContext(
+            intent="master.teach",
+            parameters={
+                "agent_type": agent_type,
+                "text": text,
+                "topic": topic,
+                "content": content or {},
+            },
+        )
+        result = await self.master.execute(context)
+        return self._format_result(result)
+
+    async def conversation(self, limit: int = 50) -> dict:
+        """Get recent conversation history from the ledger."""
+        from future_agents.core.base_agent import TaskContext
+
+        context = TaskContext(
+            intent="master.conversation",
+            parameters={"limit": limit},
+        )
         result = await self.master.execute(context)
         return self._format_result(result)
 

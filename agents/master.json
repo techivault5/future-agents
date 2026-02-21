@@ -1,10 +1,10 @@
 {
   "name": "Master Agent",
   "type": "master",
-  "version": "1.0.0",
-  "description": "The central orchestrating agent that can discover, understand, and delegate to any other agent in the system. Handles complex multi-agent workflows, intent resolution, and cross-agent coordination.",
+  "version": "2.0.0",
+  "description": "The central orchestrating agent that can discover, understand, and delegate to any other agent in the system. Handles complex multi-agent workflows, intent resolution, cross-agent coordination, and now speaks, listens, learns, and teaches.",
   "domain": "orchestration",
-  "tags": ["master", "orchestrator", "router", "coordinator"],
+  "tags": ["master", "orchestrator", "router", "coordinator", "speaker", "listener", "learner"],
 
   "skills": [
     {
@@ -116,6 +116,50 @@
         {"name": "count", "type": "integer", "description": "Number of agents profiled"},
         {"name": "columns", "type": "list", "description": "Column names in each profile"},
         {"name": "combined_table", "type": "string", "description": "All profiles as a single text report"}
+      ]
+    },
+    {
+      "name": "Trigger Learning",
+      "description": "Run a learning cycle across all agents — analyze memories, detect patterns, generate insights, and propose skill evolutions.",
+      "intent": "master.learn",
+      "level": "expert",
+      "tags": ["learning", "evolution", "self-improvement"],
+      "inputs": [],
+      "outputs": [
+        {"name": "results", "type": "list", "description": "Learning results per agent"},
+        {"name": "total_insights", "type": "integer", "description": "New insights discovered"},
+        {"name": "total_evolutions", "type": "integer", "description": "Skill evolution proposals"}
+      ]
+    },
+    {
+      "name": "Teach Agent",
+      "description": "Teach a specific agent new knowledge or strategies. The teaching is recorded in the agent's memory and influences future behavior.",
+      "intent": "master.teach",
+      "level": "intermediate",
+      "tags": ["teaching", "knowledge-sharing"],
+      "inputs": [
+        {"name": "agent_type", "type": "string", "description": "Type of agent to teach", "required": true},
+        {"name": "text", "type": "string", "description": "The teaching content", "required": true},
+        {"name": "topic", "type": "string", "description": "Topic of the teaching", "required": false},
+        {"name": "content", "type": "dict", "description": "Structured teaching data", "required": false}
+      ],
+      "outputs": [
+        {"name": "taught_to", "type": "string", "description": "ID of the agent that was taught"},
+        {"name": "utterance_id", "type": "string", "description": "ID of the speech act"}
+      ]
+    },
+    {
+      "name": "View Conversation",
+      "description": "Get recent conversation history from the shared conversation ledger — all speech acts between agents.",
+      "intent": "master.conversation",
+      "level": "basic",
+      "tags": ["conversation", "history", "speech"],
+      "inputs": [
+        {"name": "limit", "type": "integer", "description": "Number of recent messages to return", "required": false}
+      ],
+      "outputs": [
+        {"name": "messages", "type": "list", "description": "Recent speech acts"},
+        {"name": "stats", "type": "dict", "description": "Conversation statistics"}
       ]
     }
   ],
