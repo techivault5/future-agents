@@ -11,6 +11,7 @@
 
 # ── Configuration ──────────────────────────────────────────────
 IMAGE        := it-agents-guardrails
+VOICE_IMAGE  := it-agents-voice
 TAG          := latest
 ENGINE       := podman           # swap to 'docker' if needed
 COMPOSE      := podman-compose   # swap to 'docker compose' if needed
@@ -36,6 +37,12 @@ build:
 ## rebuild: Force rebuild with no cache
 rebuild:
 	$(ENGINE) build --no-cache -t $(IMAGE):$(TAG) -f Containerfile .
+
+## build-voice: Build voice-enabled image (adds resemblyzer + soundfile + ffmpeg)
+build-voice:
+	@echo "🔨 Building $(VOICE_IMAGE):$(TAG) (voice-enabled)..."
+	$(ENGINE) build --target voice -t $(VOICE_IMAGE):$(TAG) -f Containerfile .
+	@echo "✅ Voice image ready: $(VOICE_IMAGE):$(TAG)"
 
 # ── Guardrails commands ────────────────────────────────────────
 
@@ -151,6 +158,47 @@ compose-ci:
 	$(COMPOSE) run --rm ci
 
 # ── Cleanup ────────────────────────────────────────────────────
+
+## voice-create: Create a voice profile from a WAV sample
+##   Usage: make voice-create SAMPLE=recording.wav NAME="My Voice" PERSONA=friendly-helper
+SAMPLE  ?= sample.wav
+NAME    ?= My Voice
+PERSONA ?= custom
+VOICE_RUN_FLAGS := --rm \
+                   -v "$(WORKSPACE):/workspace:z" \
+                   -e VOICE_TARGET_SCORE=9.5
+voice-create:
+	$(ENGINE) run $(VOICE_RUN_FLAGS) $(VOICE_IMAGE):$(TAG) \
+	  voice-create /workspace/$(SAMPLE) "$(NAME)" $(PERSONA)
+
+## voice-list: List all registered voice profiles
+voice-list:
+	$(ENGINE) run $(VOICE_RUN_FLAGS) $(VOICE_IMAGE):$(TAG) voice-list
+
+## voice-search: Search voice profiles
+##   Usage: make voice-search TERM=executive
+voice-search:
+	$(ENGINE) run $(VOICE_RUN_FLAGS) $(VOICE_IMAGE):$(TAG) voice-search "$(TERM)"
+
+## voice-speak: Synthesise speech with a registered voice profile
+##   Usage: make voice-speak VID=vp-abc123 TEXT="Hello world"
+VID  ?= ""
+TEXT ?= "Hello, I am your IT assistant."
+voice-speak:
+	$(ENGINE) run $(VOICE_RUN_FLAGS) $(VOICE_IMAGE):$(TAG) \
+	  voice-speak "$(VID)" "$(TEXT)"
+
+## voice-export: Export a voice profile as a shareable .voicepack
+##   Usage: make voice-export VID=vp-abc123
+voice-export:
+	$(ENGINE) run $(VOICE_RUN_FLAGS) $(VOICE_IMAGE):$(TAG) voice-export "$(VID)"
+
+## voice-import: Import a .voicepack from another user
+##   Usage: make voice-import PACK=my-voice.voicepack
+PACK ?= ""
+voice-import:
+	$(ENGINE) run $(VOICE_RUN_FLAGS) -v "$(shell dirname $(PACK)):/packs:z" \
+	  $(VOICE_IMAGE):$(TAG) voice-import /packs/$(shell basename $(PACK))
 
 ## clean: Remove the container image and cache volumes
 clean:
