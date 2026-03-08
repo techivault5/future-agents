@@ -6,645 +6,740 @@
   <title>IT Agents Marketplace</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #00d4aa;
-      --text: #e2e8f0;
-      --muted: #8892a4;
-      --danger: #ef4444;
-      --warn: #f59e0b;
-      --success: #10b981;
-      --radius: 10px;
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --border:#2e3350;
+      --accent:#6c63ff; --accent2:#00d4aa; --text:#e2e8f0; --muted:#8892a4;
+      --danger:#ef4444; --warn:#f59e0b; --success:#10b981; --radius:10px;
+      --font:'Inter',system-ui,-apple-system,sans-serif;
     }
+    body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; display:flex; flex-direction:column; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+    /* Header */
+    header { background:var(--surface); border-bottom:1px solid var(--border); padding:0 16px; display:flex; align-items:center; gap:10px; height:54px; position:sticky; top:0; z-index:100; }
+    .logo { font-size:.95rem; font-weight:700; color:var(--accent); white-space:nowrap; }
+    .logo span { color:var(--accent2); }
+    .nav-tabs { display:flex; gap:2px; flex:1; overflow-x:auto; scrollbar-width:none; }
+    .nav-tab { padding:5px 12px; border-radius:7px; font-size:.78rem; font-weight:600; cursor:pointer; color:var(--muted); white-space:nowrap; transition:background .15s,color .15s; }
+    .nav-tab:hover { background:var(--surface2); color:var(--text); }
+    .nav-tab.active { background:var(--accent); color:#fff; }
+    .header-stats { display:flex; gap:8px; font-size:.72rem; color:var(--muted); }
+    .stat-pill { background:var(--surface2); padding:3px 7px; border-radius:20px; white-space:nowrap; }
+    .stat-pill strong { color:var(--accent2); }
 
-    /* ── Header ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      height: 60px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
-    .logo span { color: var(--accent2); }
-    .header-stats { display: flex; gap: 20px; margin-left: auto; font-size: 0.8rem; color: var(--muted); }
-    .stat-pill { background: var(--surface2); padding: 4px 10px; border-radius: 20px; }
-    .stat-pill strong { color: var(--accent2); }
+    /* Layout */
+    .layout { display:flex; flex:1; }
 
-    /* ── Layout ── */
-    .layout { display: flex; flex: 1; }
+    /* Sidebar */
+    .sidebar { width:230px; min-width:230px; background:var(--surface); border-right:1px solid var(--border); padding:14px 10px; overflow-y:auto; height:calc(100vh - 54px); position:sticky; top:54px; }
+    .sidebar h3 { font-size:.65rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px; }
+    .filter-group { margin-bottom:14px; }
+    .filter-group select, .filter-group input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:6px 8px; border-radius:var(--radius); font-size:.8rem; }
+    .filter-group select option { background:var(--surface2); }
 
-    /* ── Sidebar ── */
-    .sidebar {
-      width: 260px;
-      min-width: 260px;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      padding: 20px 16px;
-      overflow-y: auto;
-      height: calc(100vh - 60px);
-      position: sticky;
-      top: 60px;
-    }
-    .sidebar h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
-    .filter-group { margin-bottom: 20px; }
-    .filter-group select, .filter-group input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 7px 10px;
-      border-radius: var(--radius);
-      font-size: 0.85rem;
-    }
-    .filter-group select option { background: var(--surface2); }
-    .btn { cursor: pointer; border: none; border-radius: var(--radius); font-size: 0.85rem; padding: 8px 14px; font-weight: 600; transition: opacity .15s; }
-    .btn:hover { opacity: .85; }
-    .btn-primary { background: var(--accent); color: #fff; width: 100%; }
-    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
-    .btn-success { background: var(--success); color: #fff; }
-    .btn-warn { background: var(--warn); color: #000; }
-    .btn-accent2 { background: var(--accent2); color: #000; }
+    /* Buttons */
+    .btn { cursor:pointer; border:none; border-radius:var(--radius); font-size:.8rem; padding:6px 11px; font-weight:600; transition:opacity .15s; }
+    .btn:hover { opacity:.85; } .btn:disabled { opacity:.4; cursor:not-allowed; }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-ghost { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+    .btn-sm { padding:3px 8px; font-size:.72rem; }
+    .btn-accent2 { background:var(--accent2); color:#000; }
 
-    /* ── Category list ── */
-    .category-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 0.82rem;
-      transition: background .15s;
-    }
-    .category-item:hover { background: var(--surface2); }
-    .category-item.active { background: var(--accent); color: #fff; }
-    .cat-count { font-size: 0.72rem; background: rgba(255,255,255,.1); padding: 1px 6px; border-radius: 10px; }
+    /* Category list */
+    .category-item { display:flex; justify-content:space-between; align-items:center; padding:4px 6px; border-radius:5px; cursor:pointer; font-size:.76rem; transition:background .15s; }
+    .category-item:hover { background:var(--surface2); }
+    .category-item.active { background:var(--accent); color:#fff; }
+    .cat-count { font-size:.65rem; background:rgba(255,255,255,.1); padding:1px 5px; border-radius:10px; }
 
-    /* ── Main area ── */
-    main { flex: 1; padding: 24px; overflow-y: auto; }
+    /* Main */
+    main { flex:1; padding:18px; overflow-y:auto; }
+    .page { display:none; }
+    .page.active { display:block; }
 
-    /* ── Search bar ── */
-    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
-    .search-bar input {
-      flex: 1;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: var(--radius);
-      font-size: 0.9rem;
-    }
-    .search-bar input:focus { outline: 2px solid var(--accent); }
+    /* Recommend bar */
+    .recommend-bar { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:16px; }
+    .recommend-bar h3 { font-size:.82rem; font-weight:600; margin-bottom:7px; color:var(--accent2); }
+    .recommend-bar .row { display:flex; gap:7px; }
+    .recommend-bar input { flex:1; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:7px 10px; border-radius:var(--radius); font-size:.82rem; }
+    #recommendNote { font-size:.72rem; color:var(--muted); margin-top:5px; }
 
-    /* ── Agent grid ── */
-    .agent-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 14px;
-    }
-    .agent-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      cursor: pointer;
-      transition: border-color .2s, transform .15s;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .agent-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .card-title { font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
-    .badge {
-      font-size: 0.68rem; padding: 2px 7px; border-radius: 10px;
-      white-space: nowrap; font-weight: 600;
-    }
-    .badge-technical { background: rgba(108,99,255,.25); color: #a09cf7; }
-    .badge-non-technical { background: rgba(0,212,170,.2); color: var(--accent2); }
-    .badge-voice { background: rgba(245,158,11,.2); color: var(--warn); }
-    .badge-senior { background: rgba(16,185,129,.15); color: var(--success); }
-    .badge-junior { background: rgba(239,68,68,.15); color: var(--danger); }
-    .badge-mid { background: rgba(148,163,184,.15); color: var(--muted); }
-    .badge-intern { background: rgba(239,68,68,.1); color: #f87171; }
-    .badge-strict { background: rgba(239,68,68,.2); color: var(--danger); }
-    .badge-architect { background: rgba(139,92,246,.25); color: #c4b5fd; }
-    .badge-standard { background: rgba(148,163,184,.1); color: var(--muted); }
-    .card-meta { font-size: 0.75rem; color: var(--muted); }
-    .skill-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-    .chip { font-size: 0.68rem; background: var(--surface2); border: 1px solid var(--border); padding: 2px 7px; border-radius: 6px; color: var(--muted); }
-    .card-actions { display: flex; gap: 6px; margin-top: 4px; }
+    /* Search bar */
+    .search-bar { display:flex; gap:7px; margin-bottom:14px; }
+    .search-bar input { flex:1; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:8px 11px; border-radius:var(--radius); font-size:.85rem; }
+    .search-bar input:focus { outline:2px solid var(--accent); }
 
-    /* ── Pagination ── */
-    .pagination { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px; }
-    .page-info { font-size: 0.82rem; color: var(--muted); }
+    /* Agent grid */
+    .agent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:11px; }
+    .agent-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px; cursor:pointer; transition:border-color .2s,transform .15s; display:flex; flex-direction:column; gap:6px; }
+    .agent-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+    .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:5px; }
+    .card-title { font-size:.82rem; font-weight:600; line-height:1.3; }
+    .badge { font-size:.64rem; padding:2px 6px; border-radius:10px; white-space:nowrap; font-weight:600; }
+    .badge-technical { background:rgba(108,99,255,.25); color:#a09cf7; }
+    .badge-non-technical { background:rgba(0,212,170,.2); color:var(--accent2); }
+    .badge-voice { background:rgba(245,158,11,.2); color:var(--warn); }
+    .badge-senior,.badge-staff { background:rgba(16,185,129,.15); color:var(--success); }
+    .badge-junior,.badge-intern { background:rgba(239,68,68,.15); color:var(--danger); }
+    .badge-mid { background:rgba(148,163,184,.15); color:var(--muted); }
+    .badge-principal,.badge-architect,.badge-distinguished,.badge-fellow { background:rgba(139,92,246,.2); color:#c4b5fd; }
+    .badge-strict { background:rgba(239,68,68,.2); color:var(--danger); }
+    .badge-relaxed { background:rgba(16,185,129,.15); color:var(--success); }
+    .badge-standard { background:rgba(148,163,184,.1); color:var(--muted); }
+    .card-meta { font-size:.7rem; color:var(--muted); }
+    .skill-chips { display:flex; flex-wrap:wrap; gap:3px; }
+    .chip { font-size:.63rem; background:var(--surface2); border:1px solid var(--border); padding:1px 5px; border-radius:4px; color:var(--muted); }
+    .card-actions { display:flex; gap:4px; margin-top:1px; }
 
-    /* ── Modal overlay ── */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7);
-      z-index: 200; align-items: flex-start; justify-content: center; padding: 40px 16px;
-      overflow-y: auto;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      width: 100%;
-      max-width: 700px;
-      padding: 28px;
-      position: relative;
-    }
-    .modal-close {
-      position: absolute; top: 16px; right: 16px;
-      background: var(--surface2); border: none; color: var(--text);
-      width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem;
-    }
-    .modal h2 { font-size: 1.15rem; margin-bottom: 6px; }
-    .modal-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; }
-    .section-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-    .detail-item { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
-    .detail-item .label { font-size: 0.7rem; color: var(--muted); margin-bottom: 3px; }
-    .detail-item .value { font-size: 0.85rem; font-weight: 500; }
+    /* Pagination */
+    .pagination { display:flex; align-items:center; justify-content:center; gap:7px; margin-top:18px; }
+    .page-info { font-size:.76rem; color:var(--muted); }
 
-    /* ── Connector tabs ── */
-    .tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-    .tab {
-      padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
-      cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--text);
-      transition: background .15s;
-    }
-    .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    /* System agents */
+    .system-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:13px; }
+    .system-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:15px; cursor:pointer; transition:border-color .2s; }
+    .system-card:hover { border-color:var(--accent2); }
+    .system-card h3 { font-size:.9rem; font-weight:700; margin-bottom:4px; color:var(--accent2); }
+    .system-card p { font-size:.78rem; color:var(--muted); margin-bottom:9px; line-height:1.5; }
+    .intent-list { list-style:none; display:flex; flex-direction:column; gap:3px; }
+    .intent-item { display:flex; align-items:center; gap:5px; font-size:.72rem; background:var(--surface2); border-radius:4px; padding:3px 7px; }
+    .intent-code { font-family:monospace; color:var(--accent); }
 
-    /* ── Code blocks ── */
-    pre {
-      background: #0a0c14; border: 1px solid var(--border); border-radius: 8px;
-      padding: 14px; font-size: 0.78rem; overflow-x: auto; white-space: pre-wrap;
-      word-break: break-all; color: #a8b4c8; max-height: 340px; overflow-y: auto;
-      font-family: 'Fira Code', 'Consolas', monospace;
-    }
-    .copy-btn-wrap { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+    /* Guardrails */
+    .profile-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:11px; margin-bottom:20px; }
+    .profile-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px; cursor:pointer; transition:border-color .2s; }
+    .profile-card:hover { border-color:var(--accent); }
+    .profile-card h3 { font-size:.88rem; font-weight:700; margin-bottom:4px; }
+    .profile-card p { font-size:.76rem; color:var(--muted); }
+    .skill-list { display:flex; flex-direction:column; gap:7px; }
+    .skill-row { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:11px; cursor:pointer; }
+    .skill-row:hover { border-color:var(--accent); }
+    .skill-row h4 { font-size:.82rem; font-weight:600; margin-bottom:3px; }
+    .skill-row p { font-size:.75rem; color:var(--muted); }
 
-    /* ── Test panel ── */
-    .test-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); padding: 10px; font-size: 0.85rem; min-height: 80px; resize: vertical; font-family: var(--font); margin-bottom: 10px; }
-    .test-input:focus { outline: 2px solid var(--accent); }
-    .test-result { background: #0a0c14; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.82rem; color: #a8b4c8; min-height: 60px; white-space: pre-wrap; line-height: 1.6; }
-    .test-result strong { color: var(--accent2); }
-    .result-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    /* Templates */
+    .template-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:13px; }
+    .template-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:15px; cursor:pointer; transition:border-color .2s; }
+    .template-card:hover { border-color:var(--accent2); }
+    .template-card h3 { font-size:.88rem; font-weight:700; margin-bottom:3px; color:var(--accent2); }
+    .template-card p { font-size:.76rem; color:var(--muted); margin-bottom:9px; }
 
-    /* ── Toast ── */
-    #toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: var(--success); color: #fff;
-      padding: 10px 18px; border-radius: 8px;
-      font-size: 0.85rem; font-weight: 600;
-      opacity: 0; transition: opacity .3s; z-index: 999; pointer-events: none;
-    }
-    #toast.show { opacity: 1; }
+    /* Modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:200; align-items:flex-start; justify-content:center; padding:28px 12px; overflow-y:auto; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--surface); border:1px solid var(--border); border-radius:13px; width:100%; max-width:660px; padding:22px; position:relative; }
+    .modal-close { position:absolute; top:13px; right:13px; background:var(--surface2); border:none; color:var(--text); width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:.95rem; }
+    .modal h2 { font-size:1.05rem; margin-bottom:4px; }
+    .modal-meta { font-size:.75rem; color:var(--muted); margin-bottom:13px; }
+    .section-label { font-size:.65rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:4px; font-weight:600; }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:13px; }
+    .detail-item { background:var(--surface2); border-radius:6px; padding:8px 10px; }
+    .detail-item .label { font-size:.65rem; color:var(--muted); margin-bottom:2px; }
+    .detail-item .value { font-size:.8rem; font-weight:500; }
+    .tabs { display:flex; gap:4px; margin-bottom:11px; flex-wrap:wrap; }
+    .tab { padding:4px 10px; border-radius:6px; font-size:.76rem; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface2); color:var(--text); transition:background .15s; }
+    .tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+    pre { background:#0a0c14; border:1px solid var(--border); border-radius:6px; padding:11px; font-size:.72rem; overflow-x:auto; white-space:pre-wrap; word-break:break-all; color:#a8b4c8; max-height:300px; overflow-y:auto; font-family:'Fira Code','Consolas',monospace; }
+    .copy-btn-wrap { display:flex; justify-content:flex-end; margin-bottom:4px; }
+    .test-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:var(--radius); padding:8px; font-size:.8rem; min-height:65px; resize:vertical; font-family:var(--font); margin-bottom:7px; }
+    .test-input:focus { outline:2px solid var(--accent); }
+    .test-result { background:#0a0c14; border:1px solid var(--border); border-radius:6px; padding:11px; font-size:.78rem; color:#a8b4c8; min-height:40px; white-space:pre-wrap; line-height:1.6; }
+    .result-chips { display:flex; flex-wrap:wrap; gap:3px; margin-top:7px; }
+    .invoke-select { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:6px 8px; border-radius:var(--radius); font-size:.8rem; margin-bottom:7px; }
+    .invoke-params { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:var(--radius); padding:8px; font-size:.76rem; min-height:80px; resize:vertical; font-family:monospace; margin-bottom:7px; }
 
-    /* ── Loading ── */
-    .loading { text-align: center; color: var(--muted); padding: 40px; font-size: 0.9rem; }
-    .spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: middle; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Loading / empty */
+    .loading { text-align:center; color:var(--muted); padding:28px; font-size:.85rem; }
+    .spinner { display:inline-block; width:18px; height:18px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; margin-right:6px; vertical-align:middle; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .empty { text-align:center; padding:44px 20px; color:var(--muted); }
+    .empty h3 { font-size:.95rem; margin-bottom:6px; }
 
-    /* ── Empty state ── */
-    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
-    .empty h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    /* Toast */
+    #toast { position:fixed; bottom:18px; right:18px; background:var(--success); color:#fff; padding:8px 14px; border-radius:6px; font-size:.8rem; font-weight:600; opacity:0; transition:opacity .3s; z-index:999; pointer-events:none; }
+    #toast.show { opacity:1; }
 
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .detail-grid { grid-template-columns: 1fr; }
-      .header-stats { display: none; }
-    }
+    @media (max-width:768px) { .sidebar,.header-stats { display:none; } .detail-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
 
 <header>
   <div class="logo">IT Agents <span>Marketplace</span></div>
-  <div class="header-stats" id="headerStats">
-    <div class="stat-pill">Loading…</div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchPage('agents',this)">🏪 Agents</div>
+    <div class="nav-tab" onclick="switchPage('system',this)">⚙️ System Agents</div>
+    <div class="nav-tab" onclick="switchPage('guardrails',this)">🛡️ Guardrails</div>
+    <div class="nav-tab" onclick="switchPage('templates',this)">📁 Templates</div>
   </div>
+  <div class="header-stats" id="headerStats"><div class="stat-pill">Loading…</div></div>
 </header>
 
 <div class="layout">
-
-  <!-- Sidebar filters -->
-  <aside class="sidebar">
-    <div class="filter-group">
-      <h3>Type</h3>
+  <aside class="sidebar" id="sidebar">
+    <div class="filter-group"><h3>Type</h3>
       <select id="filterType" onchange="applyFilters()">
-        <option value="">All types</option>
-        <option value="technical">Technical</option>
-        <option value="non-technical">Non-Technical</option>
-        <option value="voice">Voice</option>
+        <option value="">All types</option><option value="technical">Technical</option>
+        <option value="non-technical">Non-Technical</option><option value="voice">Voice</option>
       </select>
     </div>
-    <div class="filter-group">
-      <h3>Seniority</h3>
+    <div class="filter-group"><h3>Seniority</h3>
       <select id="filterSeniority" onchange="applyFilters()">
-        <option value="">All levels</option>
-        <option value="intern">Intern</option>
-        <option value="junior">Junior</option>
-        <option value="mid">Mid</option>
-        <option value="senior">Senior</option>
-        <option value="staff">Staff</option>
-        <option value="principal">Principal</option>
-        <option value="architect">Architect</option>
-        <option value="distinguished">Distinguished</option>
-        <option value="fellow">Fellow</option>
+        <option value="">All levels</option><option value="intern">Intern</option>
+        <option value="junior">Junior</option><option value="mid">Mid</option>
+        <option value="senior">Senior</option><option value="staff">Staff</option>
+        <option value="principal">Principal</option><option value="architect">Architect</option>
       </select>
     </div>
-    <div class="filter-group">
-      <h3>Cloud</h3>
+    <div class="filter-group"><h3>Cloud</h3>
       <select id="filterCloud" onchange="applyFilters()">
-        <option value="">All clouds</option>
-        <option value="aws">AWS</option>
-        <option value="gcp">GCP</option>
-        <option value="azure">Azure</option>
+        <option value="">All clouds</option><option value="aws">AWS</option>
+        <option value="gcp">GCP</option><option value="azure">Azure</option>
       </select>
     </div>
-    <div class="filter-group">
-      <h3>Guardrails Profile</h3>
+    <div class="filter-group"><h3>Guardrails Profile</h3>
       <select id="filterProfile" onchange="applyFilters()">
-        <option value="">All profiles</option>
-        <option value="standard">Standard</option>
-        <option value="strict">Strict</option>
-        <option value="relaxed">Relaxed</option>
+        <option value="">All profiles</option><option value="standard">Standard</option>
+        <option value="strict">Strict</option><option value="relaxed">Relaxed</option>
         <option value="architect">Architect</option>
       </select>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="clearFilters()" style="width:100%;margin-bottom:24px;">Clear filters</button>
-
-    <div class="filter-group">
-      <h3>Role Categories</h3>
-      <div id="categoryList" style="max-height:300px;overflow-y:auto;"></div>
+    <div class="filter-group"><h3>Skills keyword</h3>
+      <input type="text" id="filterSkills" placeholder="e.g. kubernetes" oninput="debounceSearch()" />
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()" style="width:100%;margin-bottom:18px;">Clear filters</button>
+    <div class="filter-group"><h3>Role Categories</h3>
+      <div id="categoryList" style="max-height:260px;overflow-y:auto;"></div>
     </div>
   </aside>
 
-  <!-- Main content -->
   <main>
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Search agents by name or role…" oninput="debounceSearch()" />
-      <button class="btn btn-primary" onclick="applyFilters()">Search</button>
+    <!-- AGENTS PAGE -->
+    <div class="page active" id="page-agents">
+      <div class="recommend-bar">
+        <h3>✨ Find agents for your task</h3>
+        <div class="row">
+          <input type="text" id="recommendInput" placeholder="e.g. 'build a RAG pipeline on GCP using LangChain'" />
+          <button class="btn btn-accent2" onclick="runRecommend()">Find Agents</button>
+        </div>
+        <div id="recommendNote">Checking rich index status…</div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by name or role…" oninput="debounceSearch()" />
+        <button class="btn btn-primary" onclick="applyFilters()">Search</button>
+      </div>
+      <div id="agentGrid" class="agent-grid">
+        <div class="loading" style="grid-column:1/-1"><span class="spinner"></span>Loading agents…</div>
+      </div>
+      <div class="pagination" id="pagination"></div>
     </div>
 
-    <div id="agentGrid" class="agent-grid">
-      <div class="loading"><span class="spinner"></span>Loading agents…</div>
+    <!-- SYSTEM AGENTS PAGE -->
+    <div class="page" id="page-system">
+      <h2 style="margin-bottom:5px;font-size:.95rem;">⚙️ Live Orchestration Agents</h2>
+      <p style="color:var(--muted);font-size:.79rem;margin-bottom:16px;">6 built-in agents that power the platform. Each exposes callable intents you can invoke via REST or MCP.</p>
+      <div id="systemGrid" class="system-grid">
+        <div class="loading"><span class="spinner"></span>Loading…</div>
+      </div>
     </div>
 
-    <div class="pagination" id="pagination"></div>
+    <!-- GUARDRAILS PAGE -->
+    <div class="page" id="page-guardrails">
+      <h2 style="margin-bottom:5px;font-size:.95rem;">🛡️ Guardrails Profiles &amp; Skills</h2>
+      <p style="color:var(--muted);font-size:.79rem;margin-bottom:16px;">Every agent runs under a profile. Profiles define secret hygiene, package policies, and human escalation rules.</p>
+      <div id="guardrailsContent"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+    </div>
+
+    <!-- TEMPLATES PAGE -->
+    <div class="page" id="page-templates">
+      <h2 style="margin-bottom:5px;font-size:.95rem;">📁 Project Scaffold Templates</h2>
+      <p style="color:var(--muted);font-size:.79rem;margin-bottom:16px;">Each agent's <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:.72rem;">folder_structure_template</code> maps to one of these 6 scaffolds.</p>
+      <div id="templatesGrid" class="template-grid">
+        <div class="loading"><span class="spinner"></span>Loading…</div>
+      </div>
+    </div>
   </main>
 </div>
 
-<!-- Agent detail modal -->
+<!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBackdrop(event)">
-  <div class="modal" id="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div id="modalContent"></div>
-  </div>
+  <div class="modal"><button class="modal-close" onclick="closeModal()">✕</button><div id="modalContent"></div></div>
 </div>
-
 <div id="toast">Copied!</div>
 
 <script>
-  const API = '';  // same origin
-  let currentPage = 1;
-  let currentFilters = {};
-  let searchTimer = null;
-  let statsCache = null;
+const API = '';
+let currentPage = 1, currentFilters = {}, searchTimer = null, richReady = false;
 
-  // ── Initialise ────────────────────────────────────────────────
-  async function init() {
-    await Promise.all([loadStats(), loadCategories()]);
-    await loadAgents();
-  }
+async function init() {
+  await Promise.all([loadStats(), loadCategories()]);
+  await loadAgents();
+  pollRichIndex();
+}
 
-  async function loadStats() {
-    try {
-      const r = await fetch(`${API}/api/stats`);
-      statsCache = await r.json();
-      document.getElementById('headerStats').innerHTML = `
-        <div class="stat-pill"><strong>${statsCache.total_agents.toLocaleString()}</strong> agents</div>
-        <div class="stat-pill"><strong>${statsCache.technical.toLocaleString()}</strong> technical</div>
-        <div class="stat-pill"><strong>${statsCache.non_technical.toLocaleString()}</strong> non-technical</div>
-      `;
-    } catch (e) { console.error('Stats load failed', e); }
-  }
-
-  async function loadCategories() {
-    try {
-      const r = await fetch(`${API}/api/categories`);
-      const cats = await r.json();
-      const el = document.getElementById('categoryList');
-      el.innerHTML = cats.slice(0, 40).map(c => `
-        <div class="category-item" onclick="filterByCategory('${c.category}', '${c.type}')">
-          <span>${c.category.replace(/-/g,' ')}</span>
-          <span class="cat-count">${c.count}</span>
-        </div>
-      `).join('');
-    } catch (e) { console.error('Categories load failed', e); }
-  }
-
-  // ── Load + render agents ──────────────────────────────────────
-  async function loadAgents(page = 1) {
-    currentPage = page;
-    const grid = document.getElementById('agentGrid');
-    grid.innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
-
-    const params = new URLSearchParams({ page, page_size: 24 });
-    const q = document.getElementById('searchInput').value.trim();
-    if (q) params.set('q', q);
-    if (currentFilters.type) params.set('type', currentFilters.type);
-    if (currentFilters.seniority) params.set('seniority', currentFilters.seniority);
-    if (currentFilters.cloud) params.set('cloud', currentFilters.cloud);
-    if (currentFilters.profile) params.set('profile', currentFilters.profile);
-    if (currentFilters.role) params.set('role', currentFilters.role);
-
-    try {
-      const r = await fetch(`${API}/api/agents?${params}`);
-      const data = await r.json();
-      renderAgents(data);
-    } catch (e) {
-      grid.innerHTML = `<div class="empty"><h3>Failed to load agents</h3><p>${e.message}</p></div>`;
+async function pollRichIndex() {
+  try {
+    const d = await fetch(`${API}/api/health`).then(r=>r.json());
+    richReady = d.rich_index_ready;
+    const note = document.getElementById('recommendNote');
+    if (richReady) {
+      note.textContent = `✅ Rich index ready — ${d.rich_index_size.toLocaleString()} agents. Skill/cloud/industry/profile filters active.`;
+      note.style.color = 'var(--success)';
+    } else {
+      note.textContent = `⏳ Rich index building… (${d.rich_index_size.toLocaleString()} done). Skill/cloud/industry filters not yet active.`;
+      note.style.color = 'var(--warn)';
+      setTimeout(pollRichIndex, 5000);
     }
-  }
+  } catch(_) {}
+}
 
-  function renderAgents(data) {
-    const grid = document.getElementById('agentGrid');
-    if (!data.agents || data.agents.length === 0) {
-      grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><h3>No agents found</h3><p>Try different filters or search terms.</p></div>';
-      document.getElementById('pagination').innerHTML = '';
+function switchPage(name, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('sidebar').style.display = name==='agents' ? '' : 'none';
+  if (name==='system') loadSystemAgents();
+  if (name==='guardrails') loadGuardrails();
+  if (name==='templates') loadTemplates();
+}
+
+async function loadStats() {
+  try {
+    const s = await fetch(`${API}/api/stats`).then(r=>r.json());
+    document.getElementById('headerStats').innerHTML = `
+      <div class="stat-pill"><strong>${s.total_agents.toLocaleString()}</strong> agents</div>
+      <div class="stat-pill"><strong>${s.technical.toLocaleString()}</strong> technical</div>
+      <div class="stat-pill"><strong>${s.non_technical.toLocaleString()}</strong> non-tech</div>`;
+  } catch(e) {}
+}
+
+async function loadCategories() {
+  try {
+    const cats = await fetch(`${API}/api/categories`).then(r=>r.json());
+    document.getElementById('categoryList').innerHTML = cats.slice(0,50).map(c=>`
+      <div class="category-item" onclick="filterByCategory('${c.category}','${c.type}')">
+        <span>${c.category.replace(/-/g,' ')}</span><span class="cat-count">${c.count}</span>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function loadAgents(page=1) {
+  currentPage = page;
+  const grid = document.getElementById('agentGrid');
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><span class="spinner"></span>Loading…</div>';
+  const params = new URLSearchParams({page, page_size:24});
+  const q = document.getElementById('searchInput').value.trim();
+  if (q) params.set('q',q);
+  if (currentFilters.type) params.set('type',currentFilters.type);
+  if (currentFilters.seniority) params.set('seniority',currentFilters.seniority);
+  if (currentFilters.cloud) params.set('cloud',currentFilters.cloud);
+  if (currentFilters.profile) params.set('profile',currentFilters.profile);
+  if (currentFilters.role) params.set('role',currentFilters.role);
+  const sk = document.getElementById('filterSkills').value.trim();
+  if (sk) params.set('skills',sk);
+  try {
+    const data = await fetch(`${API}/api/agents?${params}`).then(r=>r.json());
+    renderAgents(data);
+  } catch(e) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>Error</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function agentCard(a) {
+  return `<div class="agent-card" onclick="openAgent('${a.id}')">
+    <div class="card-header"><div class="card-title">${a.name}</div><span class="badge badge-${(a.type||'').replace('-','-')}">${a.type||'?'}</span></div>
+    <div class="card-meta">${(a.role||'').replace(/-/g,' ')} · ${a.industry_focus||'general'}</div>
+    <div class="skill-chips">
+      <span class="badge badge-${a.seniority}">${a.seniority}</span>
+      ${a.primary_stack?`<span class="chip">${a.primary_stack}</span>`:''}
+      <span class="badge badge-${a.guardrails_profile||'standard'}">${a.guardrails_profile||'standard'}</span>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAgent('${a.id}')">Details</button>
+      <button class="btn btn-accent2 btn-sm" onclick="event.stopPropagation();openConnector('${a.id}')">Connector ↗</button>
+    </div>
+  </div>`;
+}
+
+function renderAgents(data) {
+  const grid = document.getElementById('agentGrid');
+  if (!data.agents?.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><h3>No agents found</h3><p>Try different filters.</p></div>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+  grid.innerHTML = data.agents.map(agentCard).join('');
+  const pag = document.getElementById('pagination');
+  if (data.pages <= 1) { pag.innerHTML=''; return; }
+  const p = data.page;
+  pag.innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="loadAgents(${p-1})" ${p<=1?'disabled':''}>← Prev</button>
+    <span class="page-info">Page ${p} of ${data.pages} (${data.total.toLocaleString()})</span>
+    <button class="btn btn-ghost btn-sm" onclick="loadAgents(${p+1})" ${p>=data.pages?'disabled':''}>Next →</button>`;
+}
+
+async function runRecommend() {
+  const task = document.getElementById('recommendInput').value.trim();
+  if (!task) return;
+  const grid = document.getElementById('agentGrid');
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1"><span class="spinner"></span>Finding best agents…</div>';
+  document.getElementById('pagination').innerHTML = '';
+  try {
+    const d = await fetch(`${API}/api/agents/recommend`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,limit:18})}).then(r=>r.json());
+    if (!d.agents?.length) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>No matches yet</h3><p>${d.note||'Try different keywords or wait for the rich index.'}</p></div>`;
       return;
     }
+    grid.innerHTML = `<div style="grid-column:1/-1;font-size:.78rem;color:var(--accent2);margin-bottom:3px;">✨ Top ${d.agents.length} for: <strong>"${escHtml(task)}"</strong> <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="loadAgents(1)">Show all</button></div>`
+      + d.agents.map(agentCard).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>Error</h3><p>${e.message}</p></div>`;
+  }
+}
 
-    grid.innerHTML = data.agents.map(a => `
-      <div class="agent-card" onclick="openAgent('${a.id}')">
-        <div class="card-header">
-          <div class="card-title">${a.name}</div>
-          <span class="badge badge-${a.type?.replace('-','-')}">${a.type || 'unknown'}</span>
+function applyFilters() {
+  currentFilters.type = document.getElementById('filterType').value;
+  currentFilters.seniority = document.getElementById('filterSeniority').value;
+  currentFilters.cloud = document.getElementById('filterCloud').value;
+  currentFilters.profile = document.getElementById('filterProfile').value;
+  loadAgents(1);
+}
+function clearFilters() {
+  ['filterType','filterSeniority','filterCloud','filterProfile','filterSkills'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('searchInput').value='';
+  currentFilters={};
+  document.querySelectorAll('.category-item').forEach(el=>el.classList.remove('active'));
+  loadAgents(1);
+}
+function filterByCategory(role,type) {
+  currentFilters.role=role; currentFilters.type=type;
+  document.getElementById('filterType').value=type;
+  document.querySelectorAll('.category-item').forEach(el=>el.classList.toggle('active',el.querySelector('span').textContent===role.replace(/-/g,' ')));
+  loadAgents(1);
+}
+function debounceSearch() { clearTimeout(searchTimer); searchTimer=setTimeout(()=>applyFilters(),350); }
+
+/* SYSTEM AGENTS */
+async function loadSystemAgents() {
+  const grid = document.getElementById('systemGrid');
+  if (grid.querySelector('.system-card')) return;
+  grid.innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
+  try {
+    const agents = await fetch(`${API}/api/system-agents`).then(r=>r.json());
+    grid.innerHTML = agents.map(a=>`
+      <div class="system-card" onclick="openSystemAgent('${a.id}')">
+        <h3>${a.name}</h3><p>${a.description}</p>
+        <div class="section-label" style="margin-bottom:5px;">Intents (${a.callable_intents.length})</div>
+        <ul class="intent-list">
+          ${a.callable_intents.slice(0,5).map(i=>`<li class="intent-item"><span class="intent-code">${i}</span></li>`).join('')}
+          ${a.callable_intents.length>5?`<li class="intent-item" style="color:var(--muted)">+${a.callable_intents.length-5} more…</li>`:''}
+        </ul>
+        <div style="margin-top:9px;display:flex;gap:5px;">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openSystemAgent('${a.id}')">Invoke</button>
+          <button class="btn btn-accent2 btn-sm" onclick="event.stopPropagation();openSystemMCP('${a.id}')">MCP Config</button>
         </div>
-        <div class="card-meta">${a.role?.replace(/-/g,' ')} · ${a.industry_focus || 'general'} · ${a.cloud_preference || 'any cloud'}</div>
-        <div class="skill-chips">
-          <span class="badge badge-${a.seniority}">${a.seniority}</span>
-          ${a.primary_stack ? `<span class="chip">${a.primary_stack}</span>` : ''}
-          <span class="badge badge-${a.guardrails_profile}">${a.guardrails_profile}</span>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openAgent('${a.id}')">Details</button>
-          <button class="btn btn-accent2 btn-sm" onclick="event.stopPropagation();openConnector('${a.id}')">Connector ↗</button>
-        </div>
+      </div>`).join('');
+  } catch(e) { grid.innerHTML=`<div class="empty"><h3>Error</h3><p>${e.message}</p></div>`; }
+}
+
+async function openSystemAgent(id) {
+  showModal('<div class="loading"><span class="spinner"></span>Loading…</div>');
+  const a = await fetch(`${API}/api/system-agents/${id}`).then(r=>r.json());
+  const skills = a.skills||[];
+  document.getElementById('modalContent').innerHTML = `
+    <h2>${a.name}</h2>
+    <div class="modal-meta">${a.type} · v${a.version||'1.0.0'}</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">${a.description||''}</p>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'sinvoke-${id}')">🚀 Invoke</div>
+      <div class="tab" onclick="switchTab(this,'sskills-${id}')">📋 Skills (${skills.length})</div>
+      <div class="tab" onclick="switchTab(this,'smcp-${id}')">🤖 MCP</div>
+    </div>
+    <div id="tab-sinvoke-${id}" class="tab-content active">
+      <select class="invoke-select" id="isel-${id}" onchange="fillParams('${id}')">
+        ${skills.map(s=>`<option value="${s.intent}" data-inputs='${JSON.stringify(s.inputs||[])}'>${s.name} — ${s.intent}</option>`).join('')}
+      </select>
+      <textarea class="invoke-params" id="ipar-${id}" placeholder="{}"></textarea>
+      <button class="btn btn-primary" onclick="invokeAgent('${id}')">Invoke</button>
+      <div id="ires-${id}" class="test-result" style="margin-top:9px;display:none;"></div>
+    </div>
+    <div id="tab-sskills-${id}" class="tab-content">
+      ${skills.map(s=>`<div style="background:var(--surface2);border-radius:6px;padding:9px 11px;margin-bottom:6px;">
+        <div style="font-size:.82rem;font-weight:600;">${s.name} <code style="font-size:.68rem;color:var(--accent);">${s.intent}</code></div>
+        <div style="font-size:.74rem;color:var(--muted);margin:3px 0 5px;">${s.description}</div>
+        <div class="skill-chips">${(s.inputs||[]).map(i=>`<span class="chip" title="${i.description}">${i.name}${i.required?'*':''}</span>`).join('')}</div>
+      </div>`).join('')}
+    </div>
+    <div id="tab-smcp-${id}" class="tab-content">
+      <div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="copyMCP('${id}')">Copy</button></div>
+      <div id="smcp-prev-${id}" style="color:var(--muted);font-size:.76rem;">Click to load…</div>
+      <button class="btn btn-ghost btn-sm" onclick="loadSMCP('${id}')" style="margin-top:5px;">Load Preview</button>
+    </div>`;
+  fillParams(id);
+}
+
+function fillParams(id) {
+  const sel = document.getElementById(`isel-${id}`);
+  if (!sel) return;
+  const inputs = JSON.parse(sel.options[sel.selectedIndex].dataset.inputs||'[]');
+  const ex={};
+  inputs.forEach(i=>{ if(i.required) ex[i.name]=i.examples?.[0]??`<${i.type}>`; });
+  document.getElementById(`ipar-${id}`).value=JSON.stringify(ex,null,2);
+}
+
+async function invokeAgent(id) {
+  const intent=document.getElementById(`isel-${id}`).value;
+  const res=document.getElementById(`ires-${id}`);
+  res.style.display='block'; res.innerHTML='<span class="spinner"></span>';
+  let parameters={};
+  try { parameters=JSON.parse(document.getElementById(`ipar-${id}`).value||'{}'); } catch(_) {}
+  try {
+    const d=await fetch(`${API}/api/system-agents/${id}/invoke`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({intent,parameters})}).then(r=>r.json());
+    res.innerHTML=`<pre>${escHtml(JSON.stringify(d,null,2))}</pre>`;
+  } catch(e) { res.innerHTML=`<span style="color:var(--danger)">${e.message}</span>`; }
+}
+
+async function loadSMCP(id) {
+  const el=document.getElementById(`smcp-prev-${id}`);
+  const text=await fetch(`${API}/api/system-agents/${id}/connector/mcp`).then(r=>r.text());
+  el.innerHTML=`<pre>${escHtml(text.slice(0,2800))}</pre>`;
+}
+async function copyMCP(id) {
+  const text=await fetch(`${API}/api/system-agents/${id}/connector/mcp`).then(r=>r.text());
+  await navigator.clipboard.writeText(text); showToast('MCP config copied!');
+}
+async function openSystemMCP(id) {
+  showModal('<div class="loading"><span class="spinner"></span></div>');
+  const text=await fetch(`${API}/api/system-agents/${id}/connector/mcp`).then(r=>r.text());
+  document.getElementById('modalContent').innerHTML=`<h2>MCP — ${id}</h2><div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText(${JSON.stringify(text)}).then(()=>showToast('Copied!'))">Copy</button></div><pre>${escHtml(text)}</pre>`;
+}
+
+/* GUARDRAILS */
+async function loadGuardrails() {
+  const el=document.getElementById('guardrailsContent');
+  if (el.querySelector('.profile-card')) return;
+  el.innerHTML='<div class="loading"><span class="spinner"></span>Loading…</div>';
+  try {
+    const d=await fetch(`${API}/api/guardrails`).then(r=>r.json());
+    const profiles=d.profiles||{}, skills=d.skills||[];
+    const pc={'standard':'var(--muted)','strict':'var(--danger)','relaxed':'var(--success)','architect':'#c4b5fd'};
+    el.innerHTML=`
+      <div class="section-label" style="margin-bottom:7px;">Profiles (${d.profile_count})</div>
+      <div class="profile-grid">
+        ${Object.entries(profiles).map(([n,c])=>`
+          <div class="profile-card" onclick="openProfile('${n}')">
+            <h3><span class="badge badge-${n}" style="color:${pc[n]||'var(--text)'}">${n}</span></h3>
+            <p style="margin-top:5px;">${c.description||''}</p>
+            ${c.inherits?.length?`<div style="font-size:.68rem;color:var(--muted);margin-top:5px;">Inherits: ${c.inherits.join(', ')}</div>`:''}
+            <div style="font-size:.68rem;color:var(--muted);margin-top:3px;">${Object.keys(c.overrides||{}).length} rule overrides</div>
+          </div>`).join('')}
       </div>
-    `).join('');
+      <div class="section-label" style="margin-bottom:7px;margin-top:18px;">Enforcement Skills (${d.skill_count})</div>
+      <div class="skill-list">
+        ${skills.map(s=>`
+          <div class="skill-row" onclick="openSkill('${s.id}')">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
+              <h4>${s.name}</h4>
+              <span class="badge badge-strict">${s.severity}</span>
+              <span class="badge badge-standard">${s.action}</span>
+              <span style="margin-left:auto;font-size:.68rem;color:var(--muted);">${s.pattern_count} patterns</span>
+            </div>
+            <p>${(s.description||'').slice(0,110)}…</p>
+          </div>`).join('')}
+      </div>`;
+  } catch(e) { el.innerHTML=`<div class="empty"><h3>Error</h3><p>${e.message}</p></div>`; }
+}
 
-    renderPagination(data);
-  }
+async function openProfile(name) {
+  showModal('<div class="loading"><span class="spinner"></span></div>');
+  const p=await fetch(`${API}/api/guardrails/profiles/${name}`).then(r=>r.json());
+  document.getElementById('modalContent').innerHTML=`
+    <h2>Profile: <span class="badge badge-${name}">${name}</span></h2>
+    <div class="modal-meta">${p.description||''}</div>
+    ${p.inherits?.length?`<p style="font-size:.78rem;color:var(--muted);margin-bottom:9px;">Inherits: ${p.inherits.join(', ')}</p>`:''}
+    <div class="section-label" style="margin-bottom:5px;">Rule Overrides</div>
+    <pre>${escHtml(JSON.stringify(p.overrides||{},null,2))}</pre>`;
+}
 
-  function renderPagination(data) {
-    const el = document.getElementById('pagination');
-    if (data.pages <= 1) { el.innerHTML = ''; return; }
-    const p = data.page;
-    el.innerHTML = `
-      <button class="btn btn-ghost btn-sm" onclick="loadAgents(${p-1})" ${p<=1?'disabled':''}>← Prev</button>
-      <span class="page-info">Page ${p} of ${data.pages} (${data.total.toLocaleString()} agents)</span>
-      <button class="btn btn-ghost btn-sm" onclick="loadAgents(${p+1})" ${p>=data.pages?'disabled':''}>Next →</button>
-    `;
-  }
+async function openSkill(id) {
+  showModal('<div class="loading"><span class="spinner"></span></div>');
+  const s=await fetch(`${API}/api/guardrails/skills/${id}`).then(r=>r.json());
+  const pats=s.patterns||[];
+  document.getElementById('modalContent').innerHTML=`
+    <h2>${s.name}</h2>
+    <div class="modal-meta">ID: ${s.id} · ${s.severity} · ${s.action}</div>
+    <p style="font-size:.79rem;color:var(--muted);margin-bottom:12px;">${s.description||''}</p>
+    <div class="section-label" style="margin-bottom:5px;">Config</div>
+    <pre style="margin-bottom:11px;">${escHtml(JSON.stringify(s.config||{},null,2))}</pre>
+    <div class="section-label" style="margin-bottom:5px;">Patterns (${pats.length})</div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      ${pats.map(p=>`<div style="background:var(--surface2);border-radius:5px;padding:7px 9px;">
+        <div style="font-size:.78rem;font-weight:600;">${p.description} <span style="font-size:.68rem;color:var(--danger);">[${p.severity}]</span></div>
+        <code style="font-size:.68rem;color:var(--muted);word-break:break-all;">${escHtml(p.pattern||'')}</code>
+      </div>`).join('')}
+    </div>`;
+}
 
-  // ── Filters ───────────────────────────────────────────────────
-  function applyFilters() {
-    currentFilters.type = document.getElementById('filterType').value;
-    currentFilters.seniority = document.getElementById('filterSeniority').value;
-    currentFilters.cloud = document.getElementById('filterCloud').value;
-    currentFilters.profile = document.getElementById('filterProfile').value;
-    loadAgents(1);
-  }
+/* TEMPLATES */
+async function loadTemplates() {
+  const grid=document.getElementById('templatesGrid');
+  if (grid.querySelector('.template-card')) return;
+  grid.innerHTML='<div class="loading"><span class="spinner"></span>Loading…</div>';
+  try {
+    const templates=await fetch(`${API}/api/templates`).then(r=>r.json());
+    grid.innerHTML=templates.map(t=>`
+      <div class="template-card" onclick="openTemplate('${t.name}')">
+        <h3>${t.name}</h3><p>${t.description}</p>
+        <div class="section-label" style="margin-bottom:5px;">${t.file_count} files</div>
+        <div class="use-case-chips">${(t.use_cases||[]).map(u=>`<span class="chip">${u}</span>`).join('')}</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:9px;width:100%;">View file tree</button>
+      </div>`).join('');
+  } catch(e) { grid.innerHTML=`<div class="empty"><h3>Error</h3><p>${e.message}</p></div>`; }
+}
 
-  function clearFilters() {
-    document.getElementById('filterType').value = '';
-    document.getElementById('filterSeniority').value = '';
-    document.getElementById('filterCloud').value = '';
-    document.getElementById('filterProfile').value = '';
-    document.getElementById('searchInput').value = '';
-    currentFilters = {};
-    document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
-    loadAgents(1);
-  }
+async function openTemplate(name) {
+  showModal('<div class="loading"><span class="spinner"></span></div>');
+  const t=await fetch(`${API}/api/templates/${name}`).then(r=>r.json());
+  document.getElementById('modalContent').innerHTML=`
+    <h2>📁 ${t.name}</h2>
+    <div class="modal-meta">${t.description}</div>
+    <div class="skill-chips" style="margin-bottom:12px;">${(t.use_cases||[]).map(u=>`<span class="chip">${u}</span>`).join('')}</div>
+    <div class="section-label" style="margin-bottom:5px;">File tree (${t.file_count} files)</div>
+    <pre>${escHtml((t.files||[]).slice(0,40).join('\n'))}</pre>`;
+}
 
-  function filterByCategory(role, type) {
-    currentFilters.role = role;
-    currentFilters.type = type;
-    document.getElementById('filterType').value = type;
-    document.querySelectorAll('.category-item').forEach(el => {
-      el.classList.toggle('active', el.querySelector('span').textContent === role.replace(/-/g,' '));
-    });
-    loadAgents(1);
-  }
-
-  function debounceSearch() {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => applyFilters(), 350);
-  }
-
-  // ── Agent detail modal ────────────────────────────────────────
-  async function openAgent(agentId) {
-    showModal('<div class="loading"><span class="spinner"></span>Loading agent…</div>');
-    try {
-      const r = await fetch(`${API}/api/agents/${agentId}`);
-      if (!r.ok) throw new Error('Agent not found');
-      const a = await r.json();
-      renderAgentModal(a);
-    } catch (e) {
-      document.getElementById('modalContent').innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`;
-    }
-  }
-
-  function renderAgentModal(a) {
-    document.getElementById('modalContent').innerHTML = `
+/* AGENT MODAL */
+async function openAgent(id) {
+  showModal('<div class="loading"><span class="spinner"></span>Loading…</div>');
+  try {
+    const a=await fetch(`${API}/api/agents/${id}`).then(r=>{if(!r.ok)throw new Error('Not found');return r.json();});
+    document.getElementById('modalContent').innerHTML=`
       <h2>${a.name}</h2>
-      <div class="modal-meta">
-        ${a.role?.replace(/-/g,' ')} · ${a.type} · ${a.industry_focus || 'general'} · ${a.cloud_preference || 'any cloud'}
-      </div>
-      ${a.description ? `<p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;">${a.description}</p>` : ''}
-
+      <div class="modal-meta">${(a.role||'').replace(/-/g,' ')} · ${a.type} · ${a.industry_focus||'general'} · ${a.cloud_preference||'any'}</div>
+      ${a.description?`<p style="font-size:.79rem;color:var(--muted);margin-bottom:12px;">${a.description}</p>`:''}
       <div class="detail-grid">
         <div class="detail-item"><div class="label">Seniority</div><div class="value">${a.seniority}</div></div>
-        <div class="detail-item"><div class="label">Primary Stack</div><div class="value">${a.primary_stack || 'N/A'}</div></div>
-        <div class="detail-item"><div class="label">Guardrails Profile</div><div class="value"><span class="badge badge-${a.guardrails_profile}">${a.guardrails_profile}</span></div></div>
-        <div class="detail-item"><div class="label">Human Escalation</div><div class="value">${a.human_input_required ? '⚠️ Required' : '✅ Automated'}</div></div>
+        <div class="detail-item"><div class="label">Primary Stack</div><div class="value">${a.primary_stack||'N/A'}</div></div>
+        <div class="detail-item"><div class="label">Guardrails</div><div class="value"><span class="badge badge-${a.guardrails_profile}">${a.guardrails_profile}</span></div></div>
+        <div class="detail-item"><div class="label">Human Escalation</div><div class="value">${a.human_input_required?'⚠️ Required':'✅ Automated'}</div></div>
       </div>
-
-      <div style="margin-bottom:16px;">
-        <div class="section-label">Skills</div>
-        <div class="skill-chips">${(a.skills||[]).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
-      </div>
-      <div style="margin-bottom:16px;">
-        <div class="section-label">Tools</div>
-        <div class="skill-chips">${(a.tools||[]).map(t=>`<span class="chip">${t}</span>`).join('')}</div>
-      </div>
-      <div style="margin-bottom:20px;">
-        <div class="section-label">Certifications</div>
-        <div class="skill-chips">${(a.certifications||[]).map(c=>`<span class="chip">${c}</span>`).join('') || '<span style="color:var(--muted);font-size:.8rem">None listed</span>'}</div>
-      </div>
-
+      <div style="margin-bottom:10px;"><div class="section-label">Skills</div><div class="skill-chips">${(a.skills||[]).map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>
+      <div style="margin-bottom:10px;"><div class="section-label">Tools</div><div class="skill-chips">${(a.tools||[]).map(t=>`<span class="chip">${t}</span>`).join('')}</div></div>
+      <div style="margin-bottom:14px;"><div class="section-label">Certifications</div><div class="skill-chips">${(a.certifications||[]).map(c=>`<span class="chip">${c}</span>`).join('')||`<span style="color:var(--muted);font-size:.74rem">None</span>`}</div></div>
       <div class="tabs">
-        <div class="tab active" onclick="switchTab('test','${a.id}')">🧪 Test Agent</div>
-        <div class="tab" onclick="switchTab('openapi','${a.id}')">📄 OpenAPI</div>
-        <div class="tab" onclick="switchTab('mcp','${a.id}')">🤖 MCP Config</div>
-        <div class="tab" onclick="switchTab('curl','${a.id}')">💻 cURL</div>
+        <div class="tab active" onclick="switchTab(this,'at-${id}')">🧪 Test</div>
+        <div class="tab" onclick="switchTab(this,'agr-${id}');loadAgentGR('${id}')">🛡️ Guardrails</div>
+        <div class="tab" onclick="switchTab(this,'atpl-${id}');loadAgentTPL('${id}')">📁 Template</div>
+        <div class="tab" onclick="switchTab(this,'aoa-${id}')">📄 OpenAPI</div>
+        <div class="tab" onclick="switchTab(this,'amcp-${id}')">🤖 MCP</div>
+        <div class="tab" onclick="switchTab(this,'acurl-${id}')">💻 cURL</div>
       </div>
-
-      <div id="tab-test" class="tab-content active">
-        <textarea class="test-input" id="testPrompt" placeholder="Ask the agent a question…"
-          >How would you approach a ${(a.role||'').replace(/-/g,' ')} challenge?</textarea>
-        <button class="btn btn-primary" onclick="runTest('${a.id}')">Run Test</button>
-        <div id="testResult" class="test-result" style="margin-top:12px;display:none;"></div>
+      <div id="tab-at-${id}" class="tab-content active">
+        <textarea class="test-input" id="tp-${id}">How would you approach a ${(a.role||'').replace(/-/g,' ')} challenge?</textarea>
+        <button class="btn btn-primary" onclick="runTest('${id}')">Run Test</button>
+        <div id="tr-${id}" class="test-result" style="margin-top:9px;display:none;"></div>
       </div>
-
-      <div id="tab-openapi" class="tab-content">
-        <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">
-          Import this URL into Postman, Insomnia, or any OpenAPI client:
-          <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:.78rem;">
-            /api/agents/${a.id}/connector/openapi
-          </code>
-        </p>
-        <div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="copyConnector('openapi','${a.id}')">Copy JSON</button></div>
-        <div id="openapi-preview-${a.id}" style="color:var(--muted);font-size:.8rem;">Click to load preview…</div>
-        <button class="btn btn-ghost btn-sm" onclick="loadConnectorPreview('openapi','${a.id}')" style="margin-top:8px;">Load Preview</button>
+      <div id="tab-agr-${id}" class="tab-content"><div class="loading" id="gr-${id}"><span class="spinner"></span></div></div>
+      <div id="tab-atpl-${id}" class="tab-content"><div class="loading" id="tpl-${id}"><span class="spinner"></span></div></div>
+      <div id="tab-aoa-${id}" class="tab-content">
+        <p style="font-size:.75rem;color:var(--muted);margin-bottom:7px;">Import URL: <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;">/api/agents/${id}/connector/openapi</code></p>
+        <div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="copyC('openapi','${id}')">Copy JSON</button></div>
+        <div id="oa-${id}" style="color:var(--muted);font-size:.74rem;">Click to load…</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadPrev('openapi','${id}')" style="margin-top:5px;">Load Preview</button>
       </div>
-
-      <div id="tab-mcp" class="tab-content">
-        <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">
-          Add this to your <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;">~/.config/claude/claude_desktop_config.json</code>
-          to use this agent as an MCP tool in Claude Desktop.
-        </p>
-        <div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="copyConnector('mcp','${a.id}')">Copy JSON</button></div>
-        <div id="mcp-preview-${a.id}" style="color:var(--muted);font-size:.8rem;">Click to load preview…</div>
-        <button class="btn btn-ghost btn-sm" onclick="loadConnectorPreview('mcp','${a.id}')" style="margin-top:8px;">Load Preview</button>
+      <div id="tab-amcp-${id}" class="tab-content">
+        <p style="font-size:.75rem;color:var(--muted);margin-bottom:7px;">Add to <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;">claude_desktop_config.json</code></p>
+        <div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="copyC('mcp','${id}')">Copy JSON</button></div>
+        <div id="mc-${id}" style="color:var(--muted);font-size:.74rem;">Click to load…</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadPrev('mcp','${id}')" style="margin-top:5px;">Load Preview</button>
       </div>
+      <div id="tab-acurl-${id}" class="tab-content">
+        <div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="copyC('curl','${id}')">Copy Script</button></div>
+        <div id="cu-${id}" style="color:var(--muted);font-size:.74rem;">Click to load…</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadPrev('curl','${id}')" style="margin-top:5px;">Load Preview</button>
+      </div>`;
+  } catch(e) { document.getElementById('modalContent').innerHTML=`<p style="color:var(--danger)">${e.message}</p>`; }
+}
 
-      <div id="tab-curl" class="tab-content">
-        <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">
-          Copy-paste these commands to test from any terminal.
-        </p>
-        <div class="copy-btn-wrap"><button class="btn btn-ghost btn-sm" onclick="copyConnector('curl','${a.id}')">Copy Script</button></div>
-        <div id="curl-preview-${a.id}" style="color:var(--muted);font-size:.8rem;">Click to load preview…</div>
-        <button class="btn btn-ghost btn-sm" onclick="loadConnectorPreview('curl','${a.id}')" style="margin-top:8px;">Load Preview</button>
+async function loadAgentGR(id) {
+  const el=document.getElementById(`gr-${id}`);
+  if (!el||el.dataset.loaded) return;
+  el.dataset.loaded='1';
+  try {
+    const d=await fetch(`${API}/api/guardrails/agents/${id}`).then(r=>r.json());
+    el.innerHTML=`
+      <div class="detail-grid" style="margin-bottom:9px;">
+        <div class="detail-item"><div class="label">Profile</div><div class="value"><span class="badge badge-${d.profile}">${d.profile}</span></div></div>
+        <div class="detail-item"><div class="label">Package Policy</div><div class="value">${d.package_policy||'N/A'}</div></div>
+        <div class="detail-item"><div class="label">Human Input</div><div class="value">${d.human_input_required?'⚠️ Required':'✅ Automated'}</div></div>
+        <div class="detail-item"><div class="label">Inherits</div><div class="value">${d.inherits?.join(', ')||'none'}</div></div>
       </div>
-    `;
-  }
+      <div class="section-label" style="margin-bottom:4px;">Effective Rules</div>
+      <pre style="margin-bottom:9px;">${escHtml(JSON.stringify(d.effective_rules||{},null,2))}</pre>
+      <div class="section-label" style="margin-bottom:4px;">Skills Applied</div>
+      <div class="skill-chips">${(d.skills_applied||[]).map(s=>`<span class="chip">${s}</span>`).join('')}</div>`;
+  } catch(e) { el.innerHTML=`<span style="color:var(--danger)">${e.message}</span>`; }
+}
 
-  // ── Tab switching ─────────────────────────────────────────────
-  function switchTab(name, agentId) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById(`tab-${name}`).classList.add('active');
-  }
+async function loadAgentTPL(id) {
+  const el=document.getElementById(`tpl-${id}`);
+  if (!el||el.dataset.loaded) return;
+  el.dataset.loaded='1';
+  try {
+    const d=await fetch(`${API}/api/templates/for-agent/${id}`).then(r=>r.json());
+    if (!d.template) { el.innerHTML=`<p style="color:var(--muted);font-size:.79rem;">No template mapped (${d.template_ref||'none'})</p>`; return; }
+    el.innerHTML=`
+      <div style="font-size:.78rem;margin-bottom:8px;">Template: <strong style="color:var(--accent2)">${d.template_name}</strong> · ${d.template.file_count} files</div>
+      <pre style="margin-bottom:9px;">${escHtml((d.template.files||[]).slice(0,25).join('\n'))}</pre>
+      ${d.scaffold_command?`<div class="section-label" style="margin-bottom:3px;">Scaffold command</div><code style="background:var(--surface2);padding:5px 9px;border-radius:5px;display:block;font-size:.72rem;">${escHtml(d.scaffold_command)}</code>`:''}`;
+  } catch(e) { el.innerHTML=`<span style="color:var(--danger)">${e.message}</span>`; }
+}
 
-  // ── Test agent ────────────────────────────────────────────────
-  async function runTest(agentId) {
-    const prompt = document.getElementById('testPrompt').value.trim();
-    if (!prompt) return;
-    const resultEl = document.getElementById('testResult');
-    resultEl.style.display = 'block';
-    resultEl.innerHTML = '<span class="spinner"></span> Thinking…';
+async function runTest(id) {
+  const prompt=document.getElementById(`tp-${id}`).value.trim();
+  if (!prompt) return;
+  const res=document.getElementById(`tr-${id}`);
+  res.style.display='block'; res.innerHTML='<span class="spinner"></span>';
+  try {
+    const d=await fetch(`${API}/api/agents/${id}/test`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})}).then(r=>r.json());
+    res.innerHTML=`<div style="line-height:1.7;margin-bottom:9px;">${d.response.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
+      <div class="section-label">Relevant Skills</div><div class="result-chips">${(d.relevant_skills||[]).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
+      <div class="section-label" style="margin-top:7px;">Recommended Tools</div><div class="result-chips">${(d.recommended_tools||[]).map(t=>`<span class="chip">${t}</span>`).join('')}</div>
+      <div style="margin-top:9px;font-size:.7rem;color:var(--muted);">Profile: <span class="badge badge-${d.guardrails_profile}">${d.guardrails_profile}</span>${d.human_escalation_required?' · ⚠️ Human escalation':''}</div>`;
+  } catch(e) { res.innerHTML=`<span style="color:var(--danger)">${e.message}</span>`; }
+}
 
-    try {
-      const r = await fetch(`${API}/api/agents/${agentId}/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      const d = await r.json();
-      resultEl.innerHTML = `
-        <div style="margin-bottom:10px;line-height:1.7;">${d.response.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>
-        <div class="section-label" style="margin-top:12px;">Relevant Skills</div>
-        <div class="result-chips">${(d.relevant_skills||[]).map(s=>`<span class="chip">${s}</span>`).join('')}</div>
-        <div class="section-label" style="margin-top:10px;">Recommended Tools</div>
-        <div class="result-chips">${(d.recommended_tools||[]).map(t=>`<span class="chip">${t}</span>`).join('')}</div>
-        <div style="margin-top:12px;font-size:.75rem;color:var(--muted);">
-          Profile: <span class="badge badge-${d.guardrails_profile}">${d.guardrails_profile}</span>
-          ${d.human_escalation_required ? ' · ⚠️ Human escalation required' : ''}
-        </div>
-      `;
-    } catch (e) {
-      resultEl.innerHTML = `<span style="color:var(--danger)">Error: ${e.message}</span>`;
-    }
-  }
+async function loadPrev(type, id) {
+  const elId={'openapi':`oa-${id}`,'mcp':`mc-${id}`,'curl':`cu-${id}`}[type];
+  const el=document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML='<span class="spinner"></span>';
+  const text=await fetch(`${API}/api/agents/${id}/connector/${type}`).then(r=>r.text());
+  el.innerHTML=`<pre>${escHtml(text.slice(0,3000))}${text.length>3000?'\n…':''}</pre>`;
+}
+async function copyC(type, id) {
+  const text=await fetch(`${API}/api/agents/${id}/connector/${type}`).then(r=>r.text());
+  await navigator.clipboard.writeText(text); showToast('Copied!');
+}
+async function openConnector(id) { window.open(`${API}/api/agents/${id}/connector`,'_blank'); }
 
-  // ── Connector preview + copy ──────────────────────────────────
-  async function loadConnectorPreview(type, agentId) {
-    const el = document.getElementById(`${type}-preview-${agentId}`);
-    el.innerHTML = '<span class="spinner"></span> Loading…';
-    try {
-      const r = await fetch(`${API}/api/agents/${agentId}/connector/${type}`);
-      const text = await r.text();
-      el.innerHTML = `<pre>${escHtml(text.slice(0, 4000))}${text.length>4000?'\n…(truncated)':''}</pre>`;
-    } catch (e) {
-      el.innerHTML = `<span style="color:var(--danger)">Error: ${e.message}</span>`;
-    }
-  }
+function switchTab(el, id) {
+  const modal=document.getElementById('modal');
+  modal.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  modal.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(`tab-${id}`).classList.add('active');
+}
 
-  async function copyConnector(type, agentId) {
-    const r = await fetch(`${API}/api/agents/${agentId}/connector/${type}`);
-    const text = await r.text();
-    await navigator.clipboard.writeText(text);
-    showToast('Copied to clipboard!');
-  }
+function showModal(html) { document.getElementById('modalContent').innerHTML=html; document.getElementById('modalOverlay').classList.add('open'); }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModalOnBackdrop(e) { if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+function showToast(msg='Done!') { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  async function openConnector(agentId) {
-    window.open(`${API}/api/agents/${agentId}/connector`, '_blank');
-  }
-
-  // ── Modal helpers ─────────────────────────────────────────────
-  function showModal(html) {
-    document.getElementById('modalContent').innerHTML = html;
-    document.getElementById('modalOverlay').classList.add('open');
-  }
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-  }
-  function closeModalOnBackdrop(e) {
-    if (e.target === document.getElementById('modalOverlay')) closeModal();
-  }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-  // ── Toast ─────────────────────────────────────────────────────
-  function showToast(msg = 'Done!') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2200);
-  }
-
-  // ── Utils ─────────────────────────────────────────────────────
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  // ── Boot ──────────────────────────────────────────────────────
-  init();
+init();
 </script>
 </body>
 </html>

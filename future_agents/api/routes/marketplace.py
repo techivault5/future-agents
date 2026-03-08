@@ -1,8 +1,9 @@
-"""Marketplace discovery endpoints — stats, categories, testing."""
+"""Marketplace discovery endpoints — stats, categories, testing, recommendations."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 from future_agents.api import loader
 from future_agents.api.schemas import (
@@ -15,11 +16,54 @@ from future_agents.api.schemas import (
 router = APIRouter(prefix="/api", tags=["marketplace"])
 
 
+class RecommendRequest(BaseModel):
+    task: str
+    limit: int = 10
+
+
 @router.get("/health")
 def health() -> dict:
-    """Health check."""
+    """Health check — includes rich index readiness."""
     index = loader.load_index()
-    return {"status": "ok", "agents_loaded": len(index)}
+    return {
+        "status": "ok",
+        "agents_loaded": len(index),
+        "rich_index_ready": loader._rich_index_ready.is_set(),
+        "rich_index_size": len(loader._rich_index),
+    }
+
+
+@router.post("/agents/recommend")
+def recommend_agents(body: RecommendRequest) -> dict:
+    """Recommend the best agents for a given task description.
+
+    Uses the rich index to score agents by skill/tool/role relevance.
+    Returns an empty list with a hint if the rich index isn't built yet.
+    """
+    if not loader._rich_index_ready.is_set():
+        return {
+            "task": body.task,
+            "agents": [],
+            "note": "Rich index is still building (10–20 s after startup). Try again shortly.",
+        }
+
+    matches = loader.recommend_agents(body.task, limit=body.limit)
+    return {
+        "task": body.task,
+        "agents": [
+            {
+                "id": a.get("id", ""),
+                "name": a.get("name", ""),
+                "role": a.get("role", ""),
+                "seniority": a.get("seniority", ""),
+                "primary_stack": a.get("primary_stack", ""),
+                "skills": a.get("skills", [])[:6],
+                "tools": a.get("tools", [])[:4],
+                "guardrails_profile": a.get("guardrails_profile", "standard"),
+            }
+            for a in matches
+        ],
+    }
 
 
 @router.get("/stats", response_model=MarketplaceStats)

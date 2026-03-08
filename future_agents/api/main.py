@@ -4,11 +4,24 @@ Start with:
     uvicorn future_agents.api.main:app --reload --host 0.0.0.0 --port 8000
 
 Then open http://localhost:8000 in a browser.
+
+API surface:
+    /api/agents            — browse/search 10,000 role agents
+    /api/agents/{id}/test  — test an agent with a prompt
+    /api/agents/recommend  — recommend agents by task description
+    /api/agents/{id}/connector/{openapi|mcp|curl}
+    /api/system-agents     — 6 live orchestration agents (callable intents)
+    /api/guardrails        — guardrails profiles and enforcement skills
+    /api/templates         — project scaffold templates
+    /api/stats             — marketplace statistics
+    /api/categories        — role categories
+    /docs                  — Swagger UI
 """
 
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -16,24 +29,42 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
+from future_agents.api import loader
 from future_agents.api.routes.agents import router as agents_router
 from future_agents.api.routes.connectors import router as connectors_router
+from future_agents.api.routes.guardrails_api import router as guardrails_router
 from future_agents.api.routes.marketplace import router as marketplace_router
+from future_agents.api.routes.system_agents import router as system_agents_router
+from future_agents.api.routes.templates import router as templates_router
 
 logger = logging.getLogger(__name__)
 
 _STATIC_DIR = Path(__file__).parent.parent.parent / "static"
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Start background tasks on launch."""
+    # Build rich in-memory index from 10,000 YAML files in a background thread.
+    # Filters for industry/cloud/stack/profile/skills become available once done.
+    loader.start_rich_index_build()
+    logger.info("Rich index build started in background")
+    yield
+
 
 app = FastAPI(
     title="IT Agents Marketplace",
     description=(
         "Browse, search, and test 10,000 IT agent role definitions. "
         "Generate OpenAPI connectors, MCP configs, and cURL snippets to integrate "
-        "any agent into your AI toolchain."
+        "any agent into your AI toolchain.\n\n"
+        "**Also exposes:** 6 live orchestration agents, guardrails profiles/skills, "
+        "and project scaffold templates."
     ),
-    version="1.0.0",
+    version="1.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -47,6 +78,9 @@ app.add_middleware(
 app.include_router(marketplace_router)
 app.include_router(agents_router)
 app.include_router(connectors_router)
+app.include_router(system_agents_router)
+app.include_router(guardrails_router)
+app.include_router(templates_router)
 
 
 # ── Static files (marketplace UI) ────────────────────────────────────────────
