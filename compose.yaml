@@ -68,6 +68,39 @@ services:
     command: agents
     restart: "no"
 
+  # ── AI Agents Marketplace (browser UI + API) ─────────────────
+  # Access at http://localhost:8000
+  # Swagger docs at http://localhost:8000/docs
+  marketplace:
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: runtime
+    image: it-agents-marketplace:latest
+    container_name: it-agents-marketplace
+    ports:
+      - "${MARKETPLACE_PORT:-8000}:8000"
+    volumes:
+      - .:/app:z
+      - guardrails-cache:/app/.cache
+    environment:
+      PLATFORM_ENV: ${PLATFORM_ENV:-development}
+      AGENTS_PATH: /app/agents
+      MARKETPLACE_PORT: ${MARKETPLACE_PORT:-8000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    command: >
+      uvicorn future_agents.api.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
 volumes:
   guardrails-cache:
     driver: local
