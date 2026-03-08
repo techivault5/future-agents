@@ -73,6 +73,31 @@ class TestSecretsScanner:
         findings = self.scanner.scan_directory(str(tmp_path))
         assert any(f["rule_id"] == "DB_CONNECTION_STRING" for f in findings)
 
+    def test_detects_sqlserver_url(self, tmp_path):
+        (tmp_path / "db.py").write_text(
+            'CONN = "mssql+pyodbc://sa:Str0ngPass!@sqlprod:1433/mydb"'
+        )
+        findings = self.scanner.scan_directory(str(tmp_path))
+        assert any(f["rule_id"] == "DB_CONNECTION_STRING" for f in findings)
+
+    def test_detects_sqlserver_ado_connstr(self, tmp_path):
+        (tmp_path / "appsettings.json").write_text(
+            '{"ConnectionStrings": {"Default": "Server=prod.sql;Database=app;User Id=sa;Password=Str0ngPass!;Encrypt=True"}}'
+        )
+        findings = self.scanner.scan_directory(str(tmp_path))
+        assert any(f["rule_id"] in ("SQLSERVER_ADO_CONNSTR", "SQLSERVER_SA_PASS") for f in findings)
+
+    def test_detects_mssql_sa_password_env(self, tmp_path):
+        (tmp_path / "deploy.sh").write_text('export MSSQL_SA_PASSWORD=Str0ngPass123!')
+        findings = self.scanner.scan_directory(str(tmp_path))
+        assert any(f["rule_id"] in ("MSSQL_SA_PASSWORD", "DB_PASSWORD_INLINE") for f in findings)
+
+    def test_ignores_sqlserver_env_example(self, tmp_path):
+        (tmp_path / ".env.example").write_text("MSSQL_SA_PASSWORD=REPLACE_ME\n")
+        findings = self.scanner.scan_directory(str(tmp_path))
+        critical = [f for f in findings if f["severity"] == "critical"]
+        assert len(critical) == 0
+
 
 # ─────────────────────────────────────────────────────────────────
 # PACKAGE MANAGER

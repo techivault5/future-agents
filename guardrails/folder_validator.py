@@ -202,6 +202,48 @@ STRUCTURES = {
         "forbidden": [".env", "credentials.json", "*.key", "data/raw/*.csv"]
     },
 
+    "sqlserver-service": {
+        "detect": ["*.csproj", "*.sln"],
+        "detect_any": True,
+        "required": [
+            "src/",
+            "tests/",
+            "migrations/",
+            "docs/",
+            ".github/workflows/",
+            ".env.example",
+            "README.md",
+            ".gitignore",
+            "docker-compose.yml",
+        ],
+        "recommended": [
+            "src/db/",
+            "src/db/migrations/",
+            "src/models/",
+            "src/repositories/",
+            "src/services/",
+            "tests/unit/",
+            "tests/integration/",
+            "scripts/",
+            "docs/data-dictionary.md",
+            "docs/architecture.md",
+            "Dockerfile",
+            "CHANGELOG.md",
+            "Makefile",
+        ],
+        "naming_rules": [
+            {"pattern": r"^V\d{3}__.*\.sql$", "applies_to": "migrations/**/*.sql",
+             "description": "Migration scripts must follow Flyway naming: V001__description.sql"},
+        ],
+        "forbidden": [
+            ".env",
+            "credentials.json",
+            "appsettings.Production.json",  # secrets belong in KV / env vars
+            "*.pfx",
+            "*.key",
+        ]
+    },
+
     "generic-project": {
         "detect": [],
         "detect_any": True,

@@ -137,8 +137,20 @@ skills:
         pattern: 'eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}'
         severity: high
       - id: DB_CONNECTION_STRING
-        description: Database connection string with embedded password
-        pattern: '(?i)(postgres|mysql|mongodb|redis|mssql|oracle)://[^:]+:[^@]+@[^/]+'
+        description: Database connection string with embedded password (all drivers)
+        pattern: '(?i)(postgres(?:ql)?|mysql|mongodb|redis|mssql|sqlserver|oracle)://[^:@\s]+:[^@\s]+@[^\s/]+'
+        severity: critical
+      - id: SQLSERVER_ADO_CONNSTR
+        description: SQL Server ADO.NET connection string with inline password
+        pattern: '(?i)(Server|Data Source)=[^;]+;.*?Password\s*=[^;]{4,}'
+        severity: critical
+      - id: SQLSERVER_SA_PASS
+        description: SQL Server SA / user login with inline password
+        pattern: '(?i)(User Id|UID)\s*=\s*\w+\s*;\s*Password\s*=\s*[^;\"'']{4,}'
+        severity: critical
+      - id: MSSQL_SA_PASSWORD
+        description: SQL Server SA password environment variable with real value
+        pattern: '(?i)(MSSQL_SA_PASSWORD|SA_PASSWORD)\s*=\s*[^${\s]{4,}'
         severity: critical
       - id: GENERIC_SECRET
         description: Generic secret/password/token assignment

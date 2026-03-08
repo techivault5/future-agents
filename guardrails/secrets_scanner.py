@@ -39,9 +39,13 @@ SECRET_PATTERNS = [
 
     # Database connection strings
     ("DB_CONNECTION_STRING", "Database Connection String with Password",
-     r"(?i)(postgres(?:ql)?|mysql|mongodb|redis|mssql|oracle)://[^:@\s]+:[^@\s]+@[^\s/]+", "critical"),
+     r"(?i)(postgres(?:ql)?|mysql|mongodb|redis|mssql(?:\+\w+)?|sqlserver|oracle(?:\+\w+)?)://[^:@\s]+:[^@\s]+@[^\s/]+", "critical"),
+    ("SQLSERVER_ADO_CONNSTR", "SQL Server ADO.NET Connection String with Password",
+     r"(?i)(Server|Data Source)=[^;]+;.*?Password\s*=[^;]{4,}", "critical"),
+    ("SQLSERVER_SA_PASS",    "SQL Server SA / Trusted Connection with inline password",
+     r"(?i)(User Id|UID)\s*=\s*\w+\s*;\s*Password\s*=\s*[^;\"']{4,}", "critical"),
     ("DB_PASSWORD_INLINE",   "Database Password in Config",
-     r"(?i)(db_pass|database_password|db_password|PGPASSWORD)\s*[=:]\s*['\"]?[^'\"]{6,}['\"]?", "critical"),
+     r"(?i)(db_pass|database_password|db_password|PGPASSWORD|MSSQL_SA_PASSWORD|SA_PASSWORD)\s*[=:]\s*['\"]?[^'\"]{6,}['\"]?", "critical"),
 
     # Generic credentials
     ("GENERIC_SECRET",      "Generic Secret Assignment",
