@@ -4,7 +4,6 @@ Folder Structure Validator
 Enforces standard industry project structures. Detects missing required paths,
 wrong file placements, and naming convention violations.
 """
-import os
 import re
 from pathlib import Path
 from typing import Optional

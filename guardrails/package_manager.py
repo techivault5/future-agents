@@ -9,12 +9,11 @@ Enforces package versioning policies:
 """
 import json
 import re
-import subprocess
 import urllib.request
 import urllib.error
 from pathlib import Path
 from typing import Optional
-from packaging.version import Version, InvalidVersion
+from packaging.version import Version
 
 
 SEMVER_RANGE_MAP = {

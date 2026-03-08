@@ -5,9 +5,7 @@ Detects hard-coded secrets, credentials, API keys, tokens, and sensitive values
 in source code, config files, and environment files.
 """
 import re
-import os
 from pathlib import Path
-from typing import Optional
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -41,7 +39,7 @@ SECRET_PATTERNS = [
 
     # Database connection strings
     ("DB_CONNECTION_STRING", "Database Connection String with Password",
-     r"(?i)(postgres|mysql|mongodb|redis|mssql|oracle)://[^:]+:[^@]+@[^/]+", "critical"),
+     r"(?i)(postgres(?:ql)?|mysql|mongodb|redis|mssql|oracle)://[^:@\s]+:[^@\s]+@[^\s/]+", "critical"),
     ("DB_PASSWORD_INLINE",   "Database Password in Config",
      r"(?i)(db_pass|database_password|db_password|PGPASSWORD)\s*[=:]\s*['\"]?[^'\"]{6,}['\"]?", "critical"),
 
@@ -136,7 +134,7 @@ class SecretsScanner:
         for rule_id, desc, pattern, severity in SECRET_PATTERNS:
             try:
                 compiled.append((rule_id, desc, re.compile(pattern, re.MULTILINE), severity))
-            except re.error as e:
+            except re.error:
                 pass  # skip bad patterns
         for extra in self.extra_patterns:
             try:
@@ -237,7 +235,6 @@ class SecretsScanner:
     def scan_string(self, content: str, source_name: str = "<string>") -> list:
         """Scan a string directly (e.g., from environment variable or stdin)."""
         findings = []
-        lines = content.splitlines()
 
         for rule_id, desc, pattern, severity in self.patterns:
             for match in pattern.finditer(content):

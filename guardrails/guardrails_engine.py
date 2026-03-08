@@ -9,10 +9,8 @@ import sys
 import json
 import yaml
 import logging
-import subprocess
 from pathlib import Path
 from datetime import datetime
-from typing import Optional
 
 from secrets_scanner import SecretsScanner
 from package_manager import PackageManager

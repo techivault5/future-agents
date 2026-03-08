@@ -12,8 +12,6 @@ import uuid
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Optional
 
 
 class HumanInputHandler:
@@ -60,7 +58,7 @@ class HumanInputHandler:
         print(f"\n  Reason: {reason}")
 
         if context:
-            print(f"\n  Context:")
+            print("\n  Context:")
             for k, v in context.items():
                 if k not in ("rule_id", "is_example_file"):
                     print(f"    {k}: {v}")
@@ -91,7 +89,7 @@ class HumanInputHandler:
             "skip":    "Skip guardrail for this item only (log reason)"
         }
 
-        print(f"\n  Options:")
+        print("\n  Options:")
         for i, opt in enumerate(options, 1):
             print(f"    [{i}] {opt.upper()} — {hints.get(opt, opt)}")
 
@@ -130,7 +128,7 @@ class HumanInputHandler:
         if not choices:
             return self._ask_approval(reason, context)
 
-        print(f"\n  Select an option:")
+        print("\n  Select an option:")
         for i, choice in enumerate(choices, 1):
             label = choice if isinstance(choice, str) else choice.get("label", str(choice))
             desc = "" if isinstance(choice, str) else choice.get("description", "")
