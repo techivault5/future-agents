@@ -15,6 +15,16 @@ API surface:
     /api/templates         — project scaffold templates
     /api/stats             — marketplace statistics
     /api/categories        — role categories
+
+Workflow automation (n8n-like):
+    /api/workflows         — CRUD for workflow definitions
+    /api/workflows/templates       — built-in workflow templates
+    /api/workflows/node-types      — node type reference + expression syntax
+    /api/workflows/{id}/execute    — run a workflow manually
+    /api/workflows/{id}/executions — execution history
+    /api/executions/{id}           — full execution detail with per-node results
+    /api/webhooks/{workflow_id}    — HTTP webhook trigger
+
     /docs                  — Swagger UI
 """
 
@@ -36,6 +46,7 @@ from future_agents.api.routes.guardrails_api import router as guardrails_router
 from future_agents.api.routes.marketplace import router as marketplace_router
 from future_agents.api.routes.system_agents import router as system_agents_router
 from future_agents.api.routes.templates import router as templates_router
+from future_agents.api.routes.workflows import router as workflows_router
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +70,10 @@ app = FastAPI(
         "Generate OpenAPI connectors, MCP configs, and cURL snippets to integrate "
         "any agent into your AI toolchain.\n\n"
         "**Also exposes:** 6 live orchestration agents, guardrails profiles/skills, "
-        "and project scaffold templates."
+        "project scaffold templates, and **n8n-like workflow automation** with "
+        "triggers, agent nodes, HTTP requests, branching, loops, and execution history."
     ),
-    version="1.1.0",
+    version="1.2.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
@@ -81,6 +93,7 @@ app.include_router(connectors_router)
 app.include_router(system_agents_router)
 app.include_router(guardrails_router)
 app.include_router(templates_router)
+app.include_router(workflows_router)
 
 
 # ── Static files (marketplace UI) ────────────────────────────────────────────
