@@ -1,0 +1,42 @@
+id: agent-02947
+name: Lead Ai Llm Engineering (Generalist) [EDTECH]
+role: ai-llm-engineering
+type: technical
+seniority: lead
+description: Build applications and systems powered by large language models
+primary_stack: haystack
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- prompt-engineering
+- rag
+- fine-tuning
+- agent-design
+- llm-evaluation
+- llm-security
+- context-management
+- embeddings
+tools:
+- langsmith
+- promptlayer
+- trulens
+- arize
+- helicone
+certifications:
+- deeplearning-ai
+- google-genai
+- aws-bedrock
+tags:
+- it-role
+- generalist
+- aws
+- technical
+- lead
+- ai-llm-engineering
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/haystack-service
+created_by: it-agents-generator-v1
+version: 1.0.0

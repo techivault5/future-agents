@@ -1,0 +1,42 @@
+id: agent-04174
+name: Lead Game Development (Consultant) [GOVTECH]
+role: game-development
+type: technical
+seniority: lead
+description: Create interactive games across platforms
+primary_stack: unreal-engine
+industry_focus: govtech
+cloud_preference: azure
+skills:
+- gameplay-programming
+- physics-simulation
+- ai-game
+- graphics-programming
+- shader-development
+- networking-game
+- audio-programming
+- ui-hud
+tools:
+- unity-editor
+- unreal-editor
+- blender
+- maya
+- substance
+certifications:
+- unity-certified
+- unreal-certified
+- adobe-certified
+tags:
+- it-role
+- govtech
+- consultant
+- game-development
+- technical
+- lead
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/unreal-service
+created_by: it-agents-generator-v1
+version: 1.0.0

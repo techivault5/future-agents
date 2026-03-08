@@ -1,0 +1,553 @@
+# ════════════════════════════════════════════════════════════════════════════
+# COMBINED GUARDRAILS SKILLS FILE
+# IT Agents Guardrails — v1.0.0
+#
+# Purpose:
+#   Central guardrails definition for all 10,000 IT agent types.
+#   Enforces secrets hygiene, package policies, folder structure standards,
+#   human escalation flows, and connective configuration.
+#
+# Usage:
+#   Referenced by agents via 'guardrails_profile' field.
+#   Loaded by guardrails_engine.py at runtime.
+# ════════════════════════════════════════════════════════════════════════════
+
+metadata:
+  name: combined-it-guardrails
+  version: "1.0.0"
+  description: >
+    Unified guardrails skill set covering secrets protection, package management,
+    folder structure enforcement, and human oversight for all IT agent types.
+  author: IT Agents Platform
+  last_updated: "2026-03-08"
+  applies_to: all-agents
+
+# ────────────────────────────────────────────────────────────────────────────
+# PROFILE DEFINITIONS
+# Agents reference a profile by name in their agent YAML.
+# ────────────────────────────────────────────────────────────────────────────
+profiles:
+  standard:
+    description: Default guardrails for most IT roles
+    inherits: []
+    overrides:
+      packages.auto_upgrade: true
+      human_input.interactive: true
+      folder_structure.check_recommended: false
+
+  strict:
+    description: Strict guardrails for regulated/security-sensitive roles
+    inherits: [standard]
+    overrides:
+      secrets.block_on_any: true
+      packages.check_vulnerabilities: true
+      packages.auto_upgrade: false          # human approval required
+      folder_structure.check_recommended: true
+      human_input.non_interactive_default: deny
+
+  relaxed:
+    description: Lighter guardrails for development/sandbox environments
+    inherits: [standard]
+    overrides:
+      secrets.severity_downgrade: true      # lower severity for example files
+      packages.check_outdated: false
+      folder_structure.check_recommended: false
+      human_input.non_interactive_default: approve
+
+  architect:
+    description: Extended oversight for principal/architect-level agents
+    inherits: [strict]
+    overrides:
+      human_input.required_for_all_violations: true
+      packages.require_change_rationale: true
+      folder_structure.enforce_all: true
+
+# ────────────────────────────────────────────────────────────────────────────
+# SKILL: NO_SECRETS
+# Block hard-coded credentials, tokens, keys from entering the codebase.
+# ────────────────────────────────────────────────────────────────────────────
+skills:
+  - id: NO_SECRETS
+    name: Secrets Protection
+    description: >
+      Detect and block hard-coded secrets, API keys, tokens, database passwords,
+      private keys, and any sensitive credentials from being committed to source control.
+    enabled: true
+    severity: critical
+    action: block                           # block | warn | log
+    ask_human_on_violation: true
+    config:
+      max_file_size_kb: 500
+      skip_example_files: true             # .env.example, *.sample files get severity downgrade
+      allowlist_values:                    # Placeholder values to ignore
+        - "example"
+        - "your-secret-here"
+        - "changeme"
+        - "placeholder"
+        - "REPLACE_ME"
+        - "YOUR_KEY_HERE"
+        - "INSERT_KEY"
+        - "<your-key>"
+        - "${{"
+        - "#{{"
+        - "$(("
+        - "%{{"
+        - "xxxxxxxx"
+        - "00000000"
+        - "password123"
+        - "secret123"
+      allowlist_files: []                  # Files to exclude entirely
+      extra_patterns:                      # Custom patterns to add per-org
+        []
+    patterns:
+      - id: AWS_ACCESS_KEY
+        description: AWS Access Key ID
+        pattern: '(?i)(AKIA|AGPA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}'
+        severity: critical
+      - id: AWS_SECRET_KEY
+        description: AWS Secret Access Key
+        pattern: '(?i)aws.{0,20}secret.{0,20}[''"][0-9a-zA-Z/+]{40}[''"]'
+        severity: critical
+      - id: GCP_API_KEY
+        description: Google Cloud API Key
+        pattern: 'AIza[0-9A-Za-z\-_]{35}'
+        severity: critical
+      - id: GITHUB_TOKEN
+        description: GitHub Personal Access Token
+        pattern: 'gh[pousr]_[A-Za-z0-9_]{36,}'
+        severity: critical
+      - id: OPENAI_KEY
+        description: OpenAI API Key
+        pattern: 'sk-[A-Za-z0-9]{32,}'
+        severity: critical
+      - id: ANTHROPIC_KEY
+        description: Anthropic API Key
+        pattern: 'sk-ant-[A-Za-z0-9\-_]{40,}'
+        severity: critical
+      - id: STRIPE_KEY
+        description: Stripe Secret Key
+        pattern: 'sk_(live|test)_[A-Za-z0-9]{24,}'
+        severity: critical
+      - id: PRIVATE_KEY
+        description: Private Key Block
+        pattern: '-----BEGIN (RSA |EC |DSA |OPENSSH |PGP )?PRIVATE KEY'
+        severity: critical
+      - id: JWT_TOKEN
+        description: Hardcoded JWT Token
+        pattern: 'eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}'
+        severity: high
+      - id: DB_CONNECTION_STRING
+        description: Database connection string with embedded password
+        pattern: '(?i)(postgres|mysql|mongodb|redis|mssql|oracle)://[^:]+:[^@]+@[^/]+'
+        severity: critical
+      - id: GENERIC_SECRET
+        description: Generic secret/password/token assignment
+        pattern: '(?i)(secret|password|passwd|pwd|token|api[_-]?key)\s*[=:]\s*[''"][^''\"]{8,}[''"]'
+        severity: high
+    human_escalation:
+      trigger: any_critical_violation
+      message: >
+        A secret was detected in your code. This credential must be:
+        1. Removed from the codebase immediately
+        2. Rotated in the issuing service
+        3. Added to secrets manager (Vault, AWS Secrets Manager, Azure Key Vault)
+        4. Referenced via environment variable or secrets injection
+      questions:
+        - id: secret_confirm_rotation
+          question: "Have you rotated the exposed credential?"
+          type: confirm
+          required: true
+        - id: secret_new_approach
+          question: "How will you provide this credential going forward?"
+          type: select
+          options:
+            - label: "Environment variable (.env, CI secrets)"
+              description: "Store in .env locally, secrets in CI/CD pipeline"
+            - label: "Secrets manager (Vault, AWS SM, Azure KV)"
+              description: "Use a secrets management service"
+            - label: "Config file (encrypted at rest)"
+              description: "Encrypted config with SOPS or similar"
+          required: true
+
+# ────────────────────────────────────────────────────────────────────────────
+# SKILL: PACKAGE_MANAGEMENT
+# Enforce semver policies, flag outdated/vulnerable packages, manage upgrades.
+# ────────────────────────────────────────────────────────────────────────────
+  - id: PACKAGE_MANAGEMENT
+    name: Package Version Policy
+    description: >
+      Enforce semantic versioning best practices. Prevent exact pinning without
+      justification. Auto-upgrade minor/patch versions. Require human approval
+      for major version bumps. Block vulnerable packages.
+    enabled: true
+    severity: warning
+    action: warn
+    ask_human_on_violation: true
+    config:
+      version_policy: minor               # exact | patch | minor | compatible
+      auto_upgrade: true
+      auto_upgrade_policy:
+        patch: auto                       # auto | ask | block
+        minor: auto
+        major: ask                        # Always ask for major upgrades
+      check_vulnerabilities: true
+      check_outdated: true
+      offline_mode: false
+      pinned_exceptions:                  # Packages allowed to be exact-pinned
+        - setuptools
+        - pip
+        - wheel
+        - certifi
+      upgrade_excludes:                   # Packages never auto-upgraded
+        - []
+      vulnerability_sources:
+        - osv_dev                         # OSV.dev API
+        - github_advisory                 # GitHub Advisory Database
+    ecosystems:
+      python:
+        manifest_files: ["requirements.txt", "requirements*.txt", "pyproject.toml", "Pipfile"]
+        lock_files: ["requirements.lock", "Pipfile.lock", "poetry.lock"]
+        upgrade_command: "pip install --upgrade {package}"
+      nodejs:
+        manifest_files: ["package.json"]
+        lock_files: ["package-lock.json", "yarn.lock", "pnpm-lock.yaml"]
+        upgrade_command: "npm update {package}"
+        forbidden_versions: ["*", "latest", "x"]
+      go:
+        manifest_files: ["go.mod"]
+        lock_files: ["go.sum"]
+        upgrade_command: "go get -u {package}"
+      ruby:
+        manifest_files: ["Gemfile"]
+        lock_files: ["Gemfile.lock"]
+        upgrade_command: "bundle update {package}"
+      java_maven:
+        manifest_files: ["pom.xml"]
+        forbidden_versions: ["LATEST", "RELEASE"]
+      java_gradle:
+        manifest_files: ["build.gradle", "build.gradle.kts"]
+        upgrade_command: "./gradlew dependencyUpdates"
+    human_escalation:
+      trigger: major_version_bump_or_vulnerable
+      questions:
+        - id: pkg_major_bump_reason
+          question: "Why do you need to upgrade to a new major version?"
+          type: text
+          required: true
+        - id: pkg_breaking_changes_reviewed
+          question: "Have you reviewed the changelog for breaking changes?"
+          type: confirm
+          required: true
+        - id: pkg_tests_passing
+          question: "Are all tests passing after the upgrade?"
+          type: confirm
+          required: true
+        - id: pkg_vulnerable_action
+          question: "For vulnerable packages, what is your remediation plan?"
+          type: select
+          options:
+            - label: "Upgrade immediately"
+            - label: "Apply patch/workaround"
+            - label: "Accept risk (document justification)"
+            - label: "Remove dependency"
+          required: true
+
+# ────────────────────────────────────────────────────────────────────────────
+# SKILL: FOLDER_STRUCTURE
+# Enforce standard industry project layouts.
+# ────────────────────────────────────────────────────────────────────────────
+  - id: FOLDER_STRUCTURE
+    name: Standard Folder Structure
+    description: >
+      Enforce industry-standard project layouts for Python services, Node services,
+      fullstack apps, data pipelines, ML projects, Terraform infra, and more.
+      Auto-detect project type and validate required paths.
+    enabled: true
+    severity: error
+    action: warn                           # warn in check mode, block in block mode
+    ask_human_on_violation: false
+    config:
+      check_recommended: false            # Recommended paths generate warnings only
+      auto_create_missing_dirs: true      # In fix mode, create missing directories
+      project_type: auto                  # auto-detect or specify: python-service, node-service, etc.
+      enforce_all: false                  # If true, ALL required + recommended must exist
+    templates:
+      python-service:
+        required:
+          - src/
+          - tests/
+          - docs/
+          - .github/workflows/
+          - Dockerfile
+          - .env.example
+          - README.md
+          - pyproject.toml
+          - .gitignore
+          - .pre-commit-config.yaml
+        recommended:
+          - tests/unit/
+          - tests/integration/
+          - tests/conftest.py
+          - docs/architecture.md
+          - CHANGELOG.md
+          - CONTRIBUTING.md
+          - Makefile
+          - .dockerignore
+        forbidden:
+          - .env
+          - credentials.json
+          - secrets.json
+          - id_rsa
+          - id_ed25519
+        naming_rules:
+          - pattern: '^[a-z][a-z0-9_]*$'
+            applies_to: "src/**/"
+            description: "Python package directories must use snake_case"
+          - pattern: '^test_.*\.py$'
+            applies_to: "tests/**/*.py"
+            description: "Test files must start with test_"
+      node-service:
+        required:
+          - src/
+          - tests/
+          - package.json
+          - tsconfig.json
+          - .env.example
+          - Dockerfile
+          - README.md
+          - .gitignore
+          - .eslintrc.js
+          - .github/workflows/
+        recommended:
+          - src/routes/
+          - src/controllers/
+          - src/services/
+          - src/models/
+          - src/middlewares/
+          - src/config/
+          - src/utils/
+          - tests/unit/
+          - tests/integration/
+          - .prettierrc
+          - jest.config.js
+          - CHANGELOG.md
+        forbidden:
+          - .env
+          - credentials.json
+          - private.key
+      ml-project:
+        required:
+          - src/
+          - data/
+          - models/
+          - notebooks/
+          - tests/
+          - configs/
+          - docs/
+          - README.md
+          - .gitignore
+          - .env.example
+          - Dockerfile
+          - .github/workflows/
+        recommended:
+          - data/raw/
+          - data/processed/
+          - data/features/
+          - models/trained/
+          - models/evaluation/
+          - notebooks/exploration/
+          - notebooks/experiments/
+          - src/features/
+          - src/models/
+          - src/evaluation/
+          - src/serving/
+          - docs/model-card.md
+          - docs/data-sheet.md
+        forbidden:
+          - .env
+          - credentials.json
+          - data/raw/*.csv            # Raw data should not be committed
+        naming_rules:
+          - pattern: '^\d{4}-\d{2}-\d{2}-.*\.ipynb$'
+            applies_to: "notebooks/**/*.ipynb"
+            description: "Notebooks must start with YYYY-MM-DD date prefix"
+      data-pipeline:
+        required:
+          - dags/
+          - models/
+          - tests/
+          - docs/
+          - config/
+          - README.md
+          - .gitignore
+          - .env.example
+          - requirements.txt
+          - .github/workflows/
+        recommended:
+          - models/staging/
+          - models/marts/
+          - models/intermediate/
+          - tests/unit/
+          - tests/integration/
+          - docs/data-dictionary.md
+          - CHANGELOG.md
+          - Makefile
+        forbidden:
+          - .env
+          - credentials.json
+        naming_rules:
+          - pattern: '^[a-z][a-z0-9_]*\.py$'
+            applies_to: "dags/**/*.py"
+            description: "DAG files must use snake_case"
+          - pattern: '^[a-z][a-z0-9_]*\.sql$'
+            applies_to: "models/**/*.sql"
+            description: "dbt model files must use snake_case"
+      infra-terraform:
+        required:
+          - modules/
+          - environments/
+          - main.tf
+          - variables.tf
+          - outputs.tf
+          - versions.tf
+          - README.md
+          - .gitignore
+          - .terraform.lock.hcl
+          - .github/workflows/
+        recommended:
+          - environments/dev/
+          - environments/staging/
+          - environments/prod/
+          - docs/architecture.md
+          - CHANGELOG.md
+          - Makefile
+        forbidden:
+          - "*.tfstate"
+          - "*.tfvars"
+          - terraform.tfvars
+    human_escalation:
+      trigger: critical_structure_violation
+      questions:
+        - id: structure_deviation_reason
+          question: "Why does your project deviate from the standard structure?"
+          type: text
+          required: true
+        - id: structure_exception_approved
+          question: "Has this structural exception been approved by your team lead?"
+          type: confirm
+          required: true
+
+# ────────────────────────────────────────────────────────────────────────────
+# SKILL: HUMAN_INPUT
+# Manage escalations, approvals, and human-in-the-loop workflows.
+# ────────────────────────────────────────────────────────────────────────────
+  - id: HUMAN_INPUT
+    name: Human-in-the-Loop Oversight
+    description: >
+      Route guardrail violations and critical decisions to human reviewers.
+      Supports interactive CLI, Slack notifications, and webhook-based approval flows.
+    enabled: true
+    config:
+      interactive: true                   # Enable interactive CLI prompts
+      non_interactive_default: deny       # Default when no human is available
+      approval_timeout_secs: 300          # 5 minutes before timeout
+      required_for_all_violations: false  # If true, every violation needs human sign-off
+      log_file: .guardrails-human-log.jsonl
+      channels:
+        slack:
+          enabled: false
+          webhook_url: "${GUARDRAILS_SLACK_WEBHOOK}"
+          notify_on: [critical, high]
+        webhook:
+          enabled: false
+          url: "${GUARDRAILS_WEBHOOK_URL}"
+          method: POST
+          headers:
+            Authorization: "Bearer ${GUARDRAILS_WEBHOOK_TOKEN}"
+          notify_on: [critical, high, medium]
+        email:
+          enabled: false
+          smtp_host: "${GUARDRAILS_SMTP_HOST}"
+          to: "${GUARDRAILS_ALERT_EMAIL}"
+          notify_on: [critical]
+    escalation_matrix:
+      secrets_violation:
+        required_approvers: [security-team, tech-lead]
+        sla_minutes: 30
+        auto_block: true
+      major_package_upgrade:
+        required_approvers: [tech-lead]
+        sla_minutes: 240
+        auto_block: false
+      structure_deviation:
+        required_approvers: [tech-lead]
+        sla_minutes: 480
+        auto_block: false
+      vulnerable_dependency:
+        required_approvers: [security-team]
+        sla_minutes: 60
+        auto_block: false
+
+# ────────────────────────────────────────────────────────────────────────────
+# SKILL: CI_CD_INTEGRATION
+# Integrate guardrails into CI/CD pipelines.
+# ────────────────────────────────────────────────────────────────────────────
+  - id: CI_CD_INTEGRATION
+    name: CI/CD Pipeline Integration
+    description: >
+      Pre-configured integration points for GitHub Actions, GitLab CI,
+      Jenkins, CircleCI, and Azure DevOps.
+    enabled: true
+    config:
+      fail_fast: false                    # Stop on first violation
+      exit_code_on_failure: 1
+      report_format: json                 # json | sarif | junit
+      report_file: .guardrails-report.json
+      sarif_file: .guardrails.sarif       # For GitHub Code Scanning
+    integrations:
+      github_actions:
+        workflow_template: templates/ci/github-actions-guardrails.yml
+        upload_sarif: true
+        pr_comment: true
+      gitlab_ci:
+        job_template: templates/ci/gitlab-ci-guardrails.yml
+        mr_comment: true
+      pre_commit:
+        config_template: templates/ci/pre-commit-guardrails.yaml
+      jenkins:
+        pipeline_template: templates/ci/Jenkinsfile-guardrails
+
+# ────────────────────────────────────────────────────────────────────────────
+# SKILL: COMPLIANCE
+# Map guardrails to regulatory/compliance frameworks.
+# ────────────────────────────────────────────────────────────────────────────
+  - id: COMPLIANCE
+    name: Compliance Framework Mapping
+    description: >
+      Map guardrail rules to NIST CSF, SOC 2, ISO 27001, PCI DSS, HIPAA,
+      and GDPR controls for audit and reporting purposes.
+    enabled: false
+    config:
+      frameworks:
+        - nist_csf
+        - soc2_type2
+        - iso27001
+        - pci_dss
+        - hipaa
+      report_template: templates/compliance/compliance-report.yaml
+    mappings:
+      NO_SECRETS:
+        nist_csf: [PR.AC-1, PR.DS-5, DE.CM-7]
+        soc2: [CC6.1, CC6.7]
+        iso27001: [A.9.4, A.10.1, A.12.6]
+        pci_dss: [6.3, 8.3]
+        hipaa: [164.312(a)(2)]
+      PACKAGE_MANAGEMENT:
+        nist_csf: [PR.IP-12, ID.RA-1]
+        soc2: [CC7.1, CC8.1]
+        iso27001: [A.12.6, A.14.2]
+        pci_dss: [6.3.3, 11.3]
+      FOLDER_STRUCTURE:
+        nist_csf: [PR.IP-1, PR.IP-3]
+        soc2: [CC8.1]
+        iso27001: [A.14.1, A.14.2]

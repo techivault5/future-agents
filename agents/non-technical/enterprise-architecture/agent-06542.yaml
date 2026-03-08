@@ -1,0 +1,41 @@
+id: agent-06542
+name: Lead Enterprise Architecture (Generalist) [EDTECH]
+role: enterprise-architecture
+type: non-technical
+seniority: lead
+description: Design and govern enterprise-wide technology architecture
+primary_stack: feaf
+industry_focus: edtech
+cloud_preference: cloud-agnostic
+skills:
+- business-architecture
+- application-architecture
+- data-architecture
+- technology-architecture
+- security-architecture
+- architecture-governance
+- pattern-design
+- roadmapping
+tools:
+- archimate
+- sparx-ea
+- bizzdesign
+- leanix
+- ardoq
+certifications:
+- togaf
+- dodaf
+- feac
+tags:
+- it-role
+- non-technical
+- generalist
+- enterprise-architecture
+- lead
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,100 @@
+# ════════════════════════════════════════════════════════════════
+# AGENT TEMPLATE
+# Copy this file, rename it, and fill in the values.
+# ════════════════════════════════════════════════════════════════
+
+# Unique identifier — use kebab-case, e.g. "senior-backend-engineer-fintech"
+id: "agent-XXXXX"
+
+# Display name shown in dashboards and reports
+name: "Senior Backend Engineer [FinTech]"
+
+# Role slug — must match a category in agent registry
+# Examples: frontend-development, devops-engineering, data-science, it-project-management
+role: "backend-development"
+
+# Agent classification
+type: technical                          # technical | non-technical
+
+# Career level
+seniority: senior                        # intern | junior | mid | senior | lead |
+                                         # principal | staff | architect | distinguished | fellow
+
+# One-line description of this agent's purpose
+description: >
+  Designs and builds high-performance, secure REST APIs and microservices
+  for financial transaction systems using Python FastAPI and Go.
+
+# Primary technology stack (must be one supported by this role)
+primary_stack: python-fastapi
+
+# Industry focus (use cross-industry for generalist agents)
+industry_focus: fintech                  # fintech | healthtech | edtech | govtech | cross-industry | etc.
+
+# Cloud platform preference
+cloud_preference: aws                    # aws | azure | gcp | multi-cloud | cloud-agnostic | on-prem
+
+# ────────────────────────────────────────────────────────────────
+# CAPABILITIES
+# ────────────────────────────────────────────────────────────────
+skills:
+  - rest-api
+  - microservices
+  - event-driven
+  - auth-authz
+  - caching
+  - message-queues
+
+tools:
+  - docker
+  - kubernetes
+  - redis
+  - kafka
+  - postgresql
+
+certifications:
+  - aws-saa
+  - cka
+
+# ────────────────────────────────────────────────────────────────
+# TAGS
+# Used for routing, filtering, and profile assignment.
+# ────────────────────────────────────────────────────────────────
+tags:
+  - senior
+  - backend-development
+  - fintech
+  - aws
+  - technical
+
+# ────────────────────────────────────────────────────────────────
+# GUARDRAILS
+# ────────────────────────────────────────────────────────────────
+
+# Guardrails profile to apply (defined in combined_guardrails.yaml)
+# Options: standard | strict | relaxed | architect
+guardrails_profile: standard
+
+# If true, this agent's actions always require human sign-off
+human_input_required: false
+
+# Package upgrade policy for this agent
+# Options: semver-patch-auto-upgrade | semver-minor-auto-upgrade | manual-only
+package_policy: semver-minor-auto-upgrade
+
+# ────────────────────────────────────────────────────────────────
+# PROJECT STRUCTURE
+# ────────────────────────────────────────────────────────────────
+
+# Template to use when scaffolding new projects
+# Options: python-service | node-service | fullstack-app | data-pipeline |
+#          ml-project | infra-terraform | microservice-docker | generic-project
+folder_structure_template: templates/project-structures/python-service
+
+# ────────────────────────────────────────────────────────────────
+# METADATA
+# ────────────────────────────────────────────────────────────────
+created_by: "it-agents-generator-v1"
+version: "1.0.0"
+created_at: "2026-03-08"
+updated_at: "2026-03-08"

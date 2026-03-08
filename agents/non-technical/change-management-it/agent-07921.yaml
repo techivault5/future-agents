@@ -1,0 +1,39 @@
+id: agent-07921
+name: Staff Change Management It
+role: change-management-it
+type: non-technical
+seniority: staff
+description: Manage organizational change driven by technology transformation
+primary_stack: kotter
+industry_focus: cross-industry
+cloud_preference: cloud-agnostic
+skills:
+- change-impact-assessment
+- stakeholder-engagement
+- training-design
+- communication-planning
+- resistance-management
+- adoption-measurement
+- sponsorship-alignment
+- sustainment
+tools:
+- prosci-tools
+- whatfix
+- walkme
+- pendo
+- appcues
+certifications:
+- prosci-pct
+- ccm
+- acmp
+tags:
+- staff
+- it-role
+- non-technical
+- change-management-it
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-09098
+name: Principal Customer Success Tech (Specialist) [GOVTECH]
+role: customer-success-tech
+type: non-technical
+seniority: principal
+description: Ensure technology customers achieve their desired outcomes
+primary_stack: qbr
+industry_focus: govtech
+cloud_preference: gcp
+skills:
+- onboarding
+- adoption-strategy
+- churn-prevention
+- upselling
+- technical-escalation
+- success-planning
+- advocacy
+- renewal-management
+tools:
+- gainsight
+- totango
+- churnzero
+- catalyst
+- salesforce
+certifications:
+- csm-certified
+- ccsm
+- pcsm
+tags:
+- it-role
+- govtech
+- non-technical
+- principal
+- gcp
+- specialist
+- customer-success-tech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

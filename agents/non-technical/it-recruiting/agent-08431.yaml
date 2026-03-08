@@ -1,0 +1,41 @@
+id: agent-08431
+name: Intern It Recruiting [FINTECH]
+role: it-recruiting
+type: non-technical
+seniority: intern
+description: Source, assess and hire technology talent
+primary_stack: structured-interviewing
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- sourcing-strategy
+- technical-screening
+- interview-design
+- candidate-experience
+- employer-branding
+- offer-management
+- talent-pipeline
+- hiring-analytics
+tools:
+- greenhouse
+- lever
+- workday
+- ashby
+- linkedin-recruiter
+certifications:
+- shrm-cp
+- phr
+- airs-cdr
+tags:
+- it-role
+- non-technical
+- azure
+- it-recruiting
+- intern
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

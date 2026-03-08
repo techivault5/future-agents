@@ -1,0 +1,41 @@
+id: agent-02779
+name: Senior Ml Engineering (Consultant)
+role: ml-engineering
+type: technical
+seniority: senior
+description: Build and deploy production machine learning systems
+primary_stack: torchserve
+industry_focus: cross-industry
+cloud_preference: gcp
+skills:
+- model-training
+- feature-engineering
+- hyperparameter-tuning
+- model-evaluation
+- model-serving
+- mlops
+- monitoring-drift
+- explainability
+tools:
+- mlflow
+- wandb
+- dvc
+- feast
+- tecton
+certifications:
+- aws-mls
+- gcp-mle
+- databricks-ml
+tags:
+- senior
+- it-role
+- consultant
+- gcp
+- technical
+- ml-engineering
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/torchserve-service
+created_by: it-agents-generator-v1
+version: 1.0.0

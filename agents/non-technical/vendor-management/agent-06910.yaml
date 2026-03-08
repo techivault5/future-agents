@@ -1,0 +1,42 @@
+id: agent-06910
+name: Architect Vendor Management (Contractor) [EDTECH]
+role: vendor-management
+type: non-technical
+seniority: architect
+description: Manage technology vendor relationships and performance
+primary_stack: iso20000
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- contract-negotiation
+- vendor-selection
+- sla-management
+- performance-monitoring
+- relationship-management
+- spend-optimization
+- risk-assessment
+- sourcing-strategy
+tools:
+- coupa
+- ariba
+- servicenow
+- apttus
+- ivalua
+certifications:
+- ctpe
+- cppm
+- vm-certification
+tags:
+- it-role
+- architect
+- contractor
+- non-technical
+- vendor-management
+- aws
+- edtech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-07594
+name: Senior Compliance Management (Consultant) [FINTECH]
+role: compliance-management
+type: non-technical
+seniority: senior
+description: Ensure adherence to regulatory requirements and standards
+primary_stack: fedramp
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- regulatory-mapping
+- gap-assessment
+- policy-development
+- training-programs
+- audit-preparation
+- incident-reporting
+- data-privacy
+- third-party-compliance
+tools:
+- servicenow-grc
+- vanta
+- drata
+- secureframe
+- tugboat-logic
+certifications:
+- cipp
+- cipm
+- cipt
+tags:
+- senior
+- it-role
+- non-technical
+- compliance-management
+- fintech
+- consultant
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

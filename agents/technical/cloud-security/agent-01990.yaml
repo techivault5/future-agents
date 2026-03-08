@@ -1,0 +1,40 @@
+id: agent-01990
+name: Staff Cloud Security (Contractor) [EDTECH]
+role: cloud-security
+type: technical
+seniority: staff
+description: Secure cloud infrastructure and workloads
+primary_stack: gcp-security
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- cloud-iam
+- cloud-networking-security
+- data-security-cloud
+- compliance-cloud
+- incident-response-cloud
+- threat-detection
+tools:
+- prisma-cloud
+- wiz
+- orca
+- lacework
+- aquasec
+certifications:
+- ccsp
+- aws-security
+- azure-security
+tags:
+- it-role
+- contractor
+- staff
+- aws
+- cloud-security
+- technical
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/gcp-service
+created_by: it-agents-generator-v1
+version: 1.0.0

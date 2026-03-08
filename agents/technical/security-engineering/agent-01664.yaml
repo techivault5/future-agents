@@ -1,0 +1,41 @@
+id: agent-01664
+name: Senior Security Engineering (Consultant) [RETAILTECH]
+role: security-engineering
+type: technical
+seniority: senior
+description: Design and implement security controls and processes
+primary_stack: sase
+industry_focus: retailtech
+cloud_preference: cloud-agnostic
+skills:
+- threat-modeling
+- security-architecture
+- iam
+- pki
+- encryption
+- key-management
+- network-security
+- endpoint-security
+tools:
+- splunk
+- qradar
+- sentinel
+- crowdstrike
+- paloalto
+certifications:
+- cissp
+- cism
+- cisa
+tags:
+- senior
+- it-role
+- retailtech
+- consultant
+- technical
+- security-engineering
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/sase-service
+created_by: it-agents-generator-v1
+version: 1.0.0

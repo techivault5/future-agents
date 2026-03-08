@@ -1,0 +1,41 @@
+id: agent-04296
+name: Principal Game Development [GOVTECH]
+role: game-development
+type: technical
+seniority: principal
+description: Create interactive games across platforms
+primary_stack: phaser
+industry_focus: govtech
+cloud_preference: gcp
+skills:
+- gameplay-programming
+- physics-simulation
+- ai-game
+- graphics-programming
+- shader-development
+- networking-game
+- audio-programming
+- ui-hud
+tools:
+- unity-editor
+- unreal-editor
+- blender
+- maya
+- substance
+certifications:
+- unity-certified
+- unreal-certified
+- adobe-certified
+tags:
+- it-role
+- govtech
+- principal
+- gcp
+- game-development
+- technical
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/phaser-service
+created_by: it-agents-generator-v1
+version: 1.0.0

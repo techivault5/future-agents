@@ -1,0 +1,40 @@
+id: agent-09603
+name: Intern Digital Transformation (Specialist)
+role: digital-transformation
+type: non-technical
+seniority: intern
+description: Lead organizational digital transformation initiatives
+primary_stack: agile-transformation
+industry_focus: cross-industry
+cloud_preference: cloud-agnostic
+skills:
+- transformation-strategy
+- innovation-management
+- cultural-change
+- capability-building
+- ecosystem-design
+- data-strategy
+- customer-journey
+- operating-model-design
+tools:
+- miro
+- mural
+- aha
+- planview
+- servicenow
+certifications:
+- dta-certified
+- togaf
+- prosci-pct
+tags:
+- it-role
+- non-technical
+- digital-transformation
+- specialist
+- intern
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

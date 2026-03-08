@@ -1,0 +1,41 @@
+id: agent-01145
+name: Fellow Sre Engineering (Contractor) [EDTECH]
+role: sre-engineering
+type: technical
+seniority: fellow
+description: Ensure reliability, scalability and performance of production systems
+primary_stack: honeycomb
+industry_focus: edtech
+cloud_preference: cloud-agnostic
+skills:
+- slo-sla-sli
+- incident-management
+- chaos-engineering
+- capacity-planning
+- on-call-management
+- post-mortem
+- toil-reduction
+- observability
+tools:
+- pagerduty
+- opsgenie
+- statuspage
+- runbooks
+- gamechanger
+certifications:
+- google-sre
+- aws-sap
+- cka
+tags:
+- fellow
+- it-role
+- contractor
+- technical
+- sre-engineering
+- edtech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/honeycomb-service
+created_by: it-agents-generator-v1
+version: 1.0.0

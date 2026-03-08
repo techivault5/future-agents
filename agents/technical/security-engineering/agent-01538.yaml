@@ -1,0 +1,42 @@
+id: agent-01538
+name: Mid Security Engineering (Specialist) [GOVTECH]
+role: security-engineering
+type: technical
+seniority: mid
+description: Design and implement security controls and processes
+primary_stack: dlp
+industry_focus: govtech
+cloud_preference: gcp
+skills:
+- threat-modeling
+- security-architecture
+- iam
+- pki
+- encryption
+- key-management
+- network-security
+- endpoint-security
+tools:
+- splunk
+- qradar
+- sentinel
+- crowdstrike
+- paloalto
+certifications:
+- cissp
+- cism
+- cisa
+tags:
+- it-role
+- govtech
+- gcp
+- specialist
+- technical
+- security-engineering
+- mid
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/dlp-service
+created_by: it-agents-generator-v1
+version: 1.0.0

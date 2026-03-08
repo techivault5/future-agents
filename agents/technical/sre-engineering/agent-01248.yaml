@@ -1,0 +1,42 @@
+id: agent-01248
+name: Intern Sre Engineering (Specialist) [HEALTHTECH]
+role: sre-engineering
+type: technical
+seniority: intern
+description: Ensure reliability, scalability and performance of production systems
+primary_stack: zipkin
+industry_focus: healthtech
+cloud_preference: aws
+skills:
+- slo-sla-sli
+- incident-management
+- chaos-engineering
+- capacity-planning
+- on-call-management
+- post-mortem
+- toil-reduction
+- observability
+tools:
+- pagerduty
+- opsgenie
+- statuspage
+- runbooks
+- gamechanger
+certifications:
+- google-sre
+- aws-sap
+- cka
+tags:
+- it-role
+- aws
+- specialist
+- healthtech
+- intern
+- technical
+- sre-engineering
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/zipkin-service
+created_by: it-agents-generator-v1
+version: 1.0.0

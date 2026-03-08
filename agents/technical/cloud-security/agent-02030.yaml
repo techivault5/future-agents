@@ -1,0 +1,40 @@
+id: agent-02030
+name: Staff Cloud Security (Contractor) [RETAILTECH]
+role: cloud-security
+type: technical
+seniority: staff
+description: Secure cloud infrastructure and workloads
+primary_stack: aws-security
+industry_focus: retailtech
+cloud_preference: aws
+skills:
+- cloud-iam
+- cloud-networking-security
+- data-security-cloud
+- compliance-cloud
+- incident-response-cloud
+- threat-detection
+tools:
+- prisma-cloud
+- wiz
+- orca
+- lacework
+- aquasec
+certifications:
+- ccsp
+- aws-security
+- azure-security
+tags:
+- it-role
+- contractor
+- retailtech
+- staff
+- aws
+- cloud-security
+- technical
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/aws-service
+created_by: it-agents-generator-v1
+version: 1.0.0

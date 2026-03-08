@@ -1,0 +1,41 @@
+id: agent-00186
+name: Junior Frontend Development [EDTECH]
+role: frontend-development
+type: technical
+seniority: junior
+description: Build user-facing web interfaces and experiences
+primary_stack: css-in-js
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- ui-design
+- accessibility
+- performance
+- seo
+- pwa
+- micro-frontends
+- design-systems
+- testing
+tools:
+- webpack
+- vite
+- storybook
+- playwright
+- cypress
+certifications:
+- google-ux
+- aws-clf
+- meta-frontend
+tags:
+- it-role
+- aws
+- technical
+- junior
+- frontend-development
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/css-service
+created_by: it-agents-generator-v1
+version: 1.0.0

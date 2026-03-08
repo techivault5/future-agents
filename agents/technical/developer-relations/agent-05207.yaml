@@ -1,0 +1,40 @@
+id: agent-05207
+name: Senior Developer Relations (Generalist) [HEALTHTECH]
+role: developer-relations
+type: technical
+seniority: senior
+description: Bridge engineering teams with developer communities
+primary_stack: developer-portals
+industry_focus: healthtech
+cloud_preference: aws
+skills:
+- community-building
+- technical-blogging
+- conference-speaking
+- sdk-design
+- developer-experience
+- feedback-loops
+- content-creation
+- hackathon-organization
+tools:
+- devrel-studio
+- common-room
+- orbit
+- github
+- discord
+certifications:
+- devrel-certified
+tags:
+- senior
+- it-role
+- developer-relations
+- generalist
+- aws
+- healthtech
+- technical
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/developer-service
+created_by: it-agents-generator-v1
+version: 1.0.0

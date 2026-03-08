@@ -1,0 +1,41 @@
+id: agent-04284
+name: Principal Game Development (Consultant) [GOVTECH]
+role: game-development
+type: technical
+seniority: principal
+description: Create interactive games across platforms
+primary_stack: three-js
+industry_focus: govtech
+cloud_preference: cloud-agnostic
+skills:
+- gameplay-programming
+- physics-simulation
+- ai-game
+- graphics-programming
+- shader-development
+- networking-game
+- audio-programming
+- ui-hud
+tools:
+- unity-editor
+- unreal-editor
+- blender
+- maya
+- substance
+certifications:
+- unity-certified
+- unreal-certified
+- adobe-certified
+tags:
+- it-role
+- govtech
+- principal
+- consultant
+- game-development
+- technical
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/three-service
+created_by: it-agents-generator-v1
+version: 1.0.0

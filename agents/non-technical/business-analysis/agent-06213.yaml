@@ -1,0 +1,42 @@
+id: agent-06213
+name: Junior Business Analysis (Specialist) [GOVTECH]
+role: business-analysis
+type: non-technical
+seniority: junior
+description: Bridge business needs and technical solutions through analysis
+primary_stack: babok
+industry_focus: govtech
+cloud_preference: azure
+skills:
+- requirements-elicitation
+- process-modeling
+- gap-analysis
+- use-case-writing
+- user-story-mapping
+- bpml
+- data-analysis
+- stakeholder-facilitation
+tools:
+- lucidchart
+- visio
+- miro
+- confluence
+- jira
+certifications:
+- cbap
+- ccba
+- ecba
+tags:
+- business-analysis
+- it-role
+- govtech
+- non-technical
+- specialist
+- junior
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

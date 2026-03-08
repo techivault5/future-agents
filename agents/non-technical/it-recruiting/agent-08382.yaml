@@ -1,0 +1,41 @@
+id: agent-08382
+name: Fellow It Recruiting (Generalist) [RETAILTECH]
+role: it-recruiting
+type: non-technical
+seniority: fellow
+description: Source, assess and hire technology talent
+primary_stack: competency-based
+industry_focus: retailtech
+cloud_preference: cloud-agnostic
+skills:
+- sourcing-strategy
+- technical-screening
+- interview-design
+- candidate-experience
+- employer-branding
+- offer-management
+- talent-pipeline
+- hiring-analytics
+tools:
+- greenhouse
+- lever
+- workday
+- ashby
+- linkedin-recruiter
+certifications:
+- shrm-cp
+- phr
+- airs-cdr
+tags:
+- fellow
+- it-role
+- non-technical
+- generalist
+- retailtech
+- it-recruiting
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

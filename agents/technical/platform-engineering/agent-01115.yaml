@@ -1,0 +1,42 @@
+id: agent-01115
+name: Fellow Platform Engineering (Contractor) [FINTECH]
+role: platform-engineering
+type: technical
+seniority: fellow
+description: Build internal developer platforms and golden paths
+primary_stack: configure8
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- idp-design
+- developer-experience
+- self-service-infra
+- golden-paths
+- platform-apis
+- service-catalog
+- cost-optimization
+- capacity-planning
+tools:
+- backstage
+- argocd
+- vault
+- consul
+- boundary
+certifications:
+- cka
+- ckad
+- cks
+tags:
+- fellow
+- it-role
+- contractor
+- platform-engineering
+- azure
+- technical
+- fintech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/configure8-service
+created_by: it-agents-generator-v1
+version: 1.0.0

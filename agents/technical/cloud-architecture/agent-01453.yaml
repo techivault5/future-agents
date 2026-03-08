@@ -1,0 +1,41 @@
+id: agent-01453
+name: Mid Cloud Architecture (Specialist)
+role: cloud-architecture
+type: technical
+seniority: mid
+description: Design scalable, secure, and cost-efficient cloud solutions
+primary_stack: oracle-cloud
+industry_focus: cross-industry
+cloud_preference: azure
+skills:
+- well-architected
+- cost-optimization
+- security-design
+- high-availability
+- disaster-recovery
+- multi-region
+- serverless
+- containers
+tools:
+- aws-cdk
+- pulumi
+- terraform
+- cloudformation
+- arm-templates
+certifications:
+- aws-sap
+- aws-saa
+- azure-architect
+tags:
+- it-role
+- cloud-architecture
+- specialist
+- technical
+- mid
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/oracle-service
+created_by: it-agents-generator-v1
+version: 1.0.0

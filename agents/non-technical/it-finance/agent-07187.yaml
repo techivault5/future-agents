@@ -1,0 +1,42 @@
+id: agent-07187
+name: Fellow It Finance (Generalist) [RETAILTECH]
+role: it-finance
+type: non-technical
+seniority: fellow
+description: Manage IT financial planning, budgeting and cost optimization
+primary_stack: activity-based-costing
+industry_focus: retailtech
+cloud_preference: aws
+skills:
+- it-budgeting
+- cost-allocation
+- financial-forecasting
+- chargeback-showback
+- roi-analysis
+- cloud-cost-management
+- capex-opex
+- financial-reporting
+tools:
+- apptio
+- cloudhealth
+- cloudability
+- finout
+- vantage
+certifications:
+- cfm
+- tbm-council
+- finops-practitioner
+tags:
+- fellow
+- it-role
+- non-technical
+- generalist
+- retailtech
+- aws
+- it-finance
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-02238
+name: Distinguished Penetration Testing (Specialist) [EDTECH]
+role: penetration-testing
+type: technical
+seniority: distinguished
+description: Ethically test systems for security vulnerabilities
+primary_stack: cobalt-strike
+industry_focus: edtech
+cloud_preference: gcp
+skills:
+- web-pentest
+- network-pentest
+- red-teaming
+- social-engineering
+- physical-security
+- wireless-pentest
+- cloud-pentest
+- mobile-pentest
+tools:
+- metasploit
+- burpsuite
+- nmap
+- wireshark
+- hashcat
+certifications:
+- oscp
+- osce
+- osep
+tags:
+- it-role
+- gcp
+- distinguished
+- specialist
+- penetration-testing
+- technical
+- edtech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/cobalt-service
+created_by: it-agents-generator-v1
+version: 1.0.0

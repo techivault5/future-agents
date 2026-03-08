@@ -1,0 +1,115 @@
+# ════════════════════════════════════════════════════════════════
+# SKILL TEMPLATE
+# Define a custom skill/guardrail check for your organization.
+# Add this file to skills/custom/ and reference it in connective_config.yaml.
+# ════════════════════════════════════════════════════════════════
+
+metadata:
+  id: MY_CUSTOM_SKILL                    # Unique uppercase identifier
+  name: "My Custom Skill"
+  description: >
+    Describe what this skill checks or enforces and why it matters
+    for your organization's standards.
+  version: "1.0.0"
+  author: "Your Team"
+  applies_to: all-agents                 # all-agents | technical | non-technical | role:backend-development
+
+# ────────────────────────────────────────────────────────────────
+# TRIGGER
+# When should this skill run?
+# ────────────────────────────────────────────────────────────────
+trigger:
+  on_commit: true
+  on_pr: true
+  on_push: true
+  on_schedule: false
+  schedule_cron: ""                      # "0 8 * * 1-5" for weekdays at 8am
+
+# ────────────────────────────────────────────────────────────────
+# CHECK CONFIGURATION
+# ────────────────────────────────────────────────────────────────
+config:
+  enabled: true
+  severity: warning                      # critical | high | medium | low | warning | info
+  action: warn                           # block | warn | log | fix
+
+# ────────────────────────────────────────────────────────────────
+# RULES
+# Define what to check. Supports file pattern matching,
+# regex content checks, and custom script execution.
+# ────────────────────────────────────────────────────────────────
+rules:
+  - id: RULE_001
+    name: "Rule Display Name"
+    description: "What this rule checks"
+    type: regex                          # regex | file_exists | file_missing | script
+    pattern: 'your-regex-pattern-here'
+    applies_to: "**/*.py"               # Glob pattern for files to scan
+    severity: warning
+
+  - id: RULE_002
+    name: "Required File Check"
+    description: "Ensure a required file exists"
+    type: file_exists
+    path: "SECURITY.md"
+    severity: error
+
+  - id: RULE_003
+    name: "Custom Script Check"
+    description: "Run a custom validation script"
+    type: script
+    script: "scripts/my_validation.py"
+    args: ["--strict"]
+    severity: warning
+
+# ────────────────────────────────────────────────────────────────
+# HUMAN ESCALATION
+# What questions to ask humans when this skill is violated.
+# ────────────────────────────────────────────────────────────────
+human_escalation:
+  trigger: any_violation                 # any_violation | critical_only | custom
+  ask_human_on_violation: true
+  questions:
+    - id: question_001
+      question: "Why does this violation exist?"
+      type: text                         # text | confirm | select
+      required: true
+    - id: question_002
+      question: "Is this an approved exception?"
+      type: confirm
+      required: true
+    - id: question_003
+      question: "What is your remediation plan?"
+      type: select
+      options:
+        - label: "Fix immediately"
+          description: "Will fix before merging"
+        - label: "Create ticket"
+          description: "Track in issue tracker"
+        - label: "Document exception"
+          description: "Accept risk with justification"
+      required: true
+
+# ────────────────────────────────────────────────────────────────
+# AUTO-FIX
+# Actions to take automatically when allowed.
+# ────────────────────────────────────────────────────────────────
+auto_fix:
+  enabled: false
+  actions:
+    - id: fix_001
+      description: "Auto-fix description"
+      type: create_file                  # create_file | delete_file | modify_file | run_command
+      template: "templates/SECURITY.md.template"
+      target: "SECURITY.md"
+
+# ────────────────────────────────────────────────────────────────
+# REPORTING
+# ────────────────────────────────────────────────────────────────
+reporting:
+  include_in_summary: true
+  include_in_sarif: true
+  compliance_mappings:
+    nist_csf: []
+    soc2: []
+    iso27001: []
