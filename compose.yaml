@@ -1,0 +1,73 @@
+# ═══════════════════════════════════════════════════════════════
+# IT Agents Guardrails — Compose File
+# Compatible with: podman-compose, docker compose
+#
+# Quick start:
+#   podman-compose run --rm guardrails check
+#   podman-compose run --rm guardrails fix
+#   podman-compose run --rm guardrails test
+# ═══════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Main guardrails service ─────────────────────────────────
+  guardrails:
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: runtime
+    image: it-agents-guardrails:latest
+    container_name: it-agents-guardrails
+    # Mount your project directory for scanning.
+    # Override WORKSPACE_PATH in .env to point at any directory.
+    volumes:
+      - ${WORKSPACE_PATH:-.}:/workspace:z   # :z sets SELinux label (Podman rootless)
+      - guardrails-cache:/app/.cache
+    environment:
+      WORKSPACE: /workspace
+      GUARDRAILS_MODE: ${GUARDRAILS_MODE:-check}
+      PLATFORM_ENV: ${PLATFORM_ENV:-development}
+      # Slack webhook for human escalation (optional)
+      GUARDRAILS_SLACK_WEBHOOK: ${GUARDRAILS_SLACK_WEBHOOK:-}
+      GUARDRAILS_WEBHOOK_URL: ${GUARDRAILS_WEBHOOK_URL:-}
+    # Default: run a check when no command is given
+    command: check
+    # Do not restart automatically — this is a one-shot scanner
+    restart: "no"
+    # Read-only root makes the container more secure;
+    # /workspace is writable when fix mode writes scaffold files
+    # tmpfs for writable system dirs
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  # ── CI/CD block mode ──────────────────────────────────────
+  # Exits 1 if any guardrail violation is found.
+  # Use in pipelines: podman-compose run --rm ci
+  ci:
+    extends:
+      service: guardrails
+    container_name: it-agents-ci
+    command: block
+    restart: "no"
+
+  # ── Test runner ───────────────────────────────────────────
+  test:
+    extends:
+      service: guardrails
+    container_name: it-agents-test
+    command: test
+    restart: "no"
+
+  # ── Agent search / explore ────────────────────────────────
+  agents:
+    extends:
+      service: guardrails
+    container_name: it-agents-index
+    command: agents
+    restart: "no"
+
+volumes:
+  guardrails-cache:
+    driver: local
