@@ -65,29 +65,90 @@ _INTENT_KEYWORDS: dict[str, list[str]] = {
 }
 
 _DOMAIN_KEYWORDS: dict[str, list[str]] = {
+    # Frontend: specific frameworks/tools only, NO generic 2-3-char words
     "frontend":   ["react", "vue", "angular", "svelte", "nextjs", "nuxt", "html",
                    "css", "sass", "webpack", "vite", "tailwind", "browser", "dom",
-                   "spa", "ssr", "ui", "ux", "accessibility", "a11y", "component"],
-    "backend":    ["api", "rest", "graphql", "grpc", "server", "python", "django",
-                   "fastapi", "flask", "node", "express", "java", "spring", "go",
-                   "rust", "ruby", "rails", "php", "laravel", "endpoint", "service"],
+                   "spa", "ssr", "accessibility", "a11y", "component", "storybook",
+                   "figma", "typescript frontend", "jamstack"],
+    # Backend: languages/frameworks — word-boundary enforced by _extract_domains for short ones
+    "backend":    ["django", "fastapi", "flask", "express", "spring", "rails", "laravel",
+                   "graphql", "grpc", "dotnet", "asp.net", "gin", "actix", "fiber",
+                   "python", "java", "golang", "node.js", "nodejs", "ruby", "php",
+                   "rest api", "microservice", "monolith"],
+    # DevOps: infra/pipeline tools — more specific terms
     "devops":     ["docker", "kubernetes", "k8s", "helm", "terraform", "ansible",
                    "jenkins", "github actions", "gitlab ci", "argocd", "monitoring",
-                   "prometheus", "grafana", "sre", "observability", "infrastructure"],
+                   "prometheus", "grafana", "sre", "observability", "infrastructure",
+                   "eks", "aks", "gke", "ecs", "fargate", "circleci", "tekton",
+                   "gitops", "flux", "crossplane", "pulumi", "packer"],
+    # Security: more specific terms including "vulnerability", "injection"
     "security":   ["owasp", "pentest", "sast", "dast", "cve", "zero-day", "firewall",
                    "iam", "rbac", "mfa", "tls", "ssl", "certificate", "hsm", "soc2",
-                   "iso27001", "gdpr", "compliance"],
+                   "iso27001", "gdpr", "compliance", "vulnerability", "injection",
+                   "xss", "csrf", "ssrf", "sqli", "devsecops", "sonarqube", "snyk",
+                   "burp suite", "nmap", "metasploit", "appsec"],
+    # Data: databases and pipeline tools
     "data":       ["sql", "postgres", "mysql", "mongodb", "redis", "elasticsearch",
                    "kafka", "spark", "airflow", "dbt", "bigquery", "snowflake",
-                   "databricks", "pandas", "etl", "warehouse", "lake"],
+                   "databricks", "pandas", "etl", "warehouse", "data lake",
+                   "redshift", "fivetran", "stitch", "duckdb", "clickhouse"],
+    # Mobile: platform-specific keywords
     "mobile":     ["ios", "android", "swift", "kotlin", "react native", "flutter",
-                   "expo", "xctest", "espresso", "app store", "push notification"],
-    "ml":         ["tensorflow", "pytorch", "keras", "sklearn", "hugging face",
-                   "transformers", "langchain", "mlflow", "ray", "cuda", "gpu",
-                   "vector db", "rag", "embedding"],
-    "cloud":      ["aws", "gcp", "azure", "lambda", "s3", "ec2", "gke", "eks",
-                   "aks", "cloud run", "serverless", "cdn", "cloudflare"],
+                   "expo", "xctest", "espresso", "app store", "push notification",
+                   "xcode", "android studio", "swiftui", "jetpack compose"],
+    # ML: more specific — transformer (not transformers), huggingface, mlflow
+    "ml":         ["tensorflow", "pytorch", "keras", "sklearn", "huggingface",
+                   "hugging face", "transformer", "langchain", "mlflow", "mlops",
+                   "ray", "cuda", "gpu training", "fine-tune", "fine-tuning",
+                   "embedding", "vector database", "rag", "llm", "diffusion",
+                   "yolo", "bert", "gpt", "stable diffusion", "openai", "anthropic"],
+    # Cloud: provider-specific services
+    "cloud":      ["aws", "gcp", "azure", "lambda", "s3 bucket", "ec2", "cloudfront",
+                   "cloud run", "serverless", "cdn", "cloudflare", "route53",
+                   "azure devops", "google cloud", "digitalocean", "linode"],
+    # Management: non-technical PM/leadership domain
+    "management": ["project manager", "product manager", "product owner", "scrum master",
+                   "agile coach", "business analyst", "it manager", "it director",
+                   "stakeholder", "sprint", "backlog", "roadmap planning",
+                   "change management", "risk management", "budget", "procurement"],
 }
+
+# Domain → role keyword hints (what agent role substring to look for)
+_DOMAIN_ROLE_MAP: dict[str, list[str]] = {
+    "frontend":   ["frontend"],
+    "backend":    ["backend", "full-stack", "fullstack"],
+    "devops":     ["devops", "platform-engineering", "site-reliability", "infrastructure",
+                   "cloud-engineering", "sre"],
+    "security":   ["security", "cybersecurity", "infosec", "appsec", "devsecops",
+                   "penetration"],
+    # data-engineering listed first so pipeline questions rank above database-administration
+    "data":       ["data-engineering", "analytics", "data-architect",
+                   "data-science", "database", "data-analyst"],
+    "mobile":     ["mobile", "ios-development", "android-development"],
+    "ml":         ["machine-learning", "ml-engineering", "data-science", "ai-engineering",
+                   "mlops"],
+    "cloud":      ["cloud-engineering", "devops", "platform-engineering"],
+    "management": ["project-management", "product-management", "it-management",
+                   "program-management", "scrum", "agile"],
+}
+
+# Intent → role keyword hints (secondary signal when domain is weak)
+_INTENT_ROLE_HINTS: dict[str, list[str]] = {
+    "ml_ai":      ["machine-learning", "data-science", "ai-engineering", "mlops"],
+    "security":   ["security", "cybersecurity", "infosec", "appsec"],
+    "deployment": ["devops", "platform-engineering", "sre", "cloud-engineering"],
+    "data":       ["data-engineering", "data-science", "analytics"],
+    "testing":    ["qa", "quality-assurance", "test-engineering"],
+    "architecture": ["architect", "principal", "staff"],
+}
+
+# Keywords that strongly indicate a non-technical / management request
+_NON_TECH_SIGNALS: list[str] = [
+    "project manager", "product manager", "product owner", "scrum master",
+    "agile coach", "business analyst", "it director", "it manager",
+    "stakeholder", "sprint planning", "backlog grooming", "change management",
+    "vendor management", "procurement", "it governance", "it strategy",
+]
 
 _STACK_TOKENS: set[str] = {
     "python", "javascript", "typescript", "java", "go", "rust", "ruby", "php",
@@ -223,17 +284,21 @@ class OrchestratorAgent:
         escalations = self._check_escalation_triggers(question)
 
         # 3. Score agents
-        agents = self._score_agents(question, domains, seniority, top_k)
+        agents = self._score_agents(question, domains, seniority, top_k, intent=intent)
         primary = agents[0] if agents else None
 
         # 4. Load primary agent YAML for rich context
         agent_def = self._load_yaml(primary.agent_id) if primary else None
         if agent_def and primary:
             primary.top_skills = (agent_def.get("key_skills") or [])[:8]
-            primary.primary_stack = (
+            raw_stack = (
                 agent_def.get("primary_stack") or
                 agent_def.get("languages") or []
-            )[:6]
+            )
+            # Guard: some YAML values are bare strings instead of lists
+            if isinstance(raw_stack, str):
+                raw_stack = [raw_stack]
+            primary.primary_stack = [str(s) for s in raw_stack][:6]
             primary.guardrails_profile = agent_def.get("guardrails_profile", "standard")
 
         # 5. Build guardrails result
@@ -299,7 +364,8 @@ class OrchestratorAgent:
         domains = self._extract_domains(task)
         if domain:
             domains.insert(0, domain)
-        matches = self._score_agents(task, domains, seniority, limit)
+        intent = self._classify_intent(task)
+        matches = self._score_agents(task, domains, seniority, limit, intent=intent)
         if agent_type:
             matches = [m for m in matches if m.agent_type == agent_type]
         return matches[:limit]
@@ -383,7 +449,16 @@ class OrchestratorAgent:
         text_lower = text.lower()
         domain_scores: dict[str, int] = {}
         for domain, keywords in _DOMAIN_KEYWORDS.items():
-            score = sum(1 for kw in keywords if kw in text_lower)
+            score = 0
+            for kw in keywords:
+                if len(kw) <= 3:
+                    # Short keywords (sql, ios, go, k8s…): require word boundary
+                    if re.search(r"\b" + re.escape(kw) + r"\b", text_lower):
+                        score += 1
+                else:
+                    # Longer keywords: substring match is fine
+                    if kw in text_lower:
+                        score += 1
             if score:
                 domain_scores[domain] = score
         return sorted(domain_scores, key=lambda k: domain_scores[k], reverse=True)
@@ -397,17 +472,24 @@ class OrchestratorAgent:
         text_lower = text.lower()
         senior_signals = sum(1 for kw in [
             "design system", "trade-off", "distributed", "scalab", "enterprise",
-            "architect", "lead", "strategy", "roadmap", "principle",
+            "architect", "lead", "strategy", "principle", "roadmap planning",
+            "team lead", "tech lead", "principal", "staff engineer",
         ] if kw in text_lower)
         intern_signals = sum(1 for kw in [
-            "what is", "how do i", "beginner", "tutorial", "getting started",
-            "basic", "simple", "hello world",
+            "what is", "how do i", "how do you", "beginner", "tutorial",
+            "getting started", "simple example", "hello world", "for beginners",
+            "i'm new", "i am new", "first time",
         ] if kw in text_lower)
         if senior_signals >= 2:
             return "senior"
-        if intern_signals >= 2:
-            return "mid-level"
+        if intern_signals >= 2:   # require 2+ signals to avoid false positives
+            return "intern"
         return None
+
+    def _is_non_technical(self, text: str) -> bool:
+        """Return True if the request is clearly non-technical (PM, management, etc.)."""
+        text_lower = text.lower()
+        return any(sig in text_lower for sig in _NON_TECH_SIGNALS)
 
     # ── Agent scoring ──────────────────────────────────────────────────────────
 
@@ -417,16 +499,19 @@ class OrchestratorAgent:
         domains: list[str],
         seniority: Optional[str],
         top_k: int,
+        intent: str = "development",
     ) -> list[AgentMatch]:
         query_lower = query.lower()
         query_tokens = set(re.findall(r"\w+", query_lower))
         inferred_seniority = seniority or self._infer_seniority(query)
+        is_non_tech = self._is_non_technical(query)
 
         scored: list[tuple[float, dict, list[str]]] = []
 
         for agent in self._index:
             score, reasons = self._score_one(
-                agent, query_lower, query_tokens, domains, inferred_seniority
+                agent, query_lower, query_tokens, domains,
+                inferred_seniority, intent, is_non_tech,
             )
             if score > 0:
                 scored.append((score, agent, reasons))
@@ -441,7 +526,7 @@ class OrchestratorAgent:
                 role=agent["role"],
                 seniority=agent.get("seniority", "mid-level"),
                 agent_type=agent.get("type", "technical"),
-                match_score=round(min(score / 100.0, 1.0), 3),
+                match_score=round(min(score / 120.0, 1.0), 3),
                 match_reasons=reasons[:4],
             ))
         return results
@@ -453,51 +538,85 @@ class OrchestratorAgent:
         query_tokens: set[str],
         domains: list[str],
         target_seniority: Optional[str],
+        intent: str = "development",
+        is_non_tech: bool = False,
     ) -> tuple[float, list[str]]:
         score = 0.0
         reasons: list[str] = []
+        agent_role: str = agent.get("role", "")
+        role_display = agent_role.replace("-", " ")
+        role_tokens = set(role_display.split())
+        agent_type: str = agent.get("type", "technical")
 
-        role = agent.get("role", "").replace("-", " ")
-        role_tokens = set(role.split())
-
-        # Role token overlap (weighted highest)
-        overlap = len(role_tokens & query_tokens)
-        if overlap:
-            score += overlap * 20
-            reasons.append(f"role match: {agent['role']}")
-
-        # Role appears in query
-        if role in query_lower or agent.get("role", "") in query_lower:
-            score += 25
-            if "role substring" not in reasons:
-                reasons.append(f"role keyword: {agent['role']}")
-
-        # Domain match
-        for i, domain in enumerate(domains[:3]):
-            if domain in role:
-                weight = 30 - (i * 8)  # top domain is worth most
+        # ── 1. Domain → role-hint match (highest weight, 45 pts primary) ────────
+        domain_matched = False
+        for i, domain in enumerate(domains[:2]):
+            role_hints = _DOMAIN_ROLE_MAP.get(domain, [domain])
+            if any(hint in agent_role for hint in role_hints):
+                weight = 45 - i * 15   # 45 for primary domain, 30 for secondary
                 score += weight
-                reasons.append(f"domain: {domain}")
+                reasons.append(f"domain→role: {domain}")
+                domain_matched = True
                 break
 
-        # Seniority match
+        # ── 2. Non-technical type match ──────────────────────────────────────────
+        if is_non_tech:
+            if agent_type == "non-technical":
+                score += 40
+                reasons.append("non-technical request")
+            else:
+                score -= 20  # strong penalty: don't give non-tech questions to coders
+
+        # ── 3. Intent → role-hint match (secondary signal) ──────────────────────
+        intent_hints = _INTENT_ROLE_HINTS.get(intent, [])
+        if intent_hints and any(hint in agent_role for hint in intent_hints):
+            score += 20
+            reasons.append(f"intent→role: {intent}")
+
+        # ── 4. Role token overlap with query ─────────────────────────────────────
+        overlap = len(role_tokens & query_tokens)
+        if overlap:
+            score += overlap * 15
+            reasons.append(f"query↔role tokens: {overlap}")
+
+        # ── 5. Role slug appears verbatim in query ───────────────────────────────
+        if agent_role in query_lower or role_display in query_lower:
+            score += 25
+            reasons.append(f"exact role in query: {agent_role}")
+
+        # ── 6. Seniority match / mismatch ────────────────────────────────────────
+        _SENIORITY_PREFERENCE = {
+            # Higher = preferred when no explicit target is given
+            "fellow": 9, "distinguished": 9,
+            "principal": 8, "architect": 8,
+            "senior": 8, "staff": 8,
+            "lead": 6,
+            "mid": 4,
+            "junior": 2,
+            "intern": 0,
+        }
         agent_seniority = agent.get("seniority", "mid-level")
-        if target_seniority and agent_seniority == target_seniority:
-            score += 15
-            reasons.append(f"seniority: {agent_seniority}")
-        elif agent_seniority == "senior":
-            score += 5  # small preference for senior
+        if target_seniority:
+            if agent_seniority == target_seniority:
+                score += 20
+                reasons.append(f"seniority match: {agent_seniority}")
+            elif target_seniority == "intern" and agent_seniority in ("senior", "staff", "principal", "distinguished"):
+                score -= 15  # over-qualified for a beginner question
+            elif target_seniority == "senior" and agent_seniority == "intern":
+                score -= 10
+        else:
+            # Prefer higher seniority when no explicit target
+            score += _SENIORITY_PREFERENCE.get(agent_seniority, 3)
 
-        # Type bonus (technical for code questions)
-        if agent.get("type") == "technical":
-            score += 3
+        # ── 7. Technical type bonus (for clearly technical questions) ────────────
+        if not is_non_tech and agent_type == "technical":
+            score += 4
 
-        # Agent name match
-        agent_name_lower = agent.get("name", "").lower()
-        name_tokens = set(re.findall(r"\w+", agent_name_lower))
+        # ── 8. Agent name overlap ────────────────────────────────────────────────
+        name_tokens = set(re.findall(r"\w+", agent.get("name", "").lower()))
         name_overlap = len(name_tokens & query_tokens)
         if name_overlap:
-            score += name_overlap * 5
+            score += name_overlap * 4
 
         return score, reasons
 
@@ -678,7 +797,12 @@ class OrchestratorAgent:
             warnings.append("eval() detected — ensure input is fully trusted and sanitised")
         if re.search(r"pickle\.loads?\(", text, re.I):
             warnings.append("pickle.loads on untrusted data — RCE risk; use JSON instead")
-        if re.search(r"\+\s*(?:request|user|input|params)", text, re.I) and intent in ("data", "backend"):
+        sql_concat = (
+            re.search(r"cursor\.execute\s*\([^\)]*\+", text, re.I) or
+            re.search(r"(execute|query|select|insert|update|delete).*\+\s*\w", text, re.I) or
+            re.search(r"\+\s*(?:request|user|input|params|uid|id|name|email|var|data)\b", text, re.I)
+        )
+        if sql_concat:
             warnings.append("Possible SQL injection — use parameterised queries")
         if profile == "strict" and intent == "deployment":
             warnings.append("Strict profile: deployment changes require peer review before applying")
