@@ -44,6 +44,7 @@ from future_agents.api.routes.agents import router as agents_router
 from future_agents.api.routes.connectors import router as connectors_router
 from future_agents.api.routes.guardrails_api import router as guardrails_router
 from future_agents.api.routes.marketplace import router as marketplace_router
+from future_agents.api.routes.orchestrator import router as orchestrator_router
 from future_agents.api.routes.system_agents import router as system_agents_router
 from future_agents.api.routes.templates import router as templates_router
 from future_agents.api.routes.workflows import router as workflows_router
@@ -70,8 +71,10 @@ app = FastAPI(
         "Generate OpenAPI connectors, MCP configs, and cURL snippets to integrate "
         "any agent into your AI toolchain.\n\n"
         "**Also exposes:** 6 live orchestration agents, guardrails profiles/skills, "
-        "project scaffold templates, and **n8n-like workflow automation** with "
-        "triggers, agent nodes, HTTP requests, branching, loops, and execution history."
+        "project scaffold templates, **n8n-like workflow automation**, and the "
+        "**Smart Orchestrator** — a zero-LLM routing engine that selects the best "
+        "expert from 10,000 IT roles, builds a rich system prompt, and enforces guardrails. "
+        "Import via MCP into VSCode: `python mcp_server.py`."
     ),
     version="1.2.0",
     docs_url="/docs",
@@ -87,6 +90,7 @@ app.add_middleware(
 )
 
 # ── API routes ────────────────────────────────────────────────────────────────
+app.include_router(orchestrator_router)
 app.include_router(marketplace_router)
 app.include_router(agents_router)
 app.include_router(connectors_router)
