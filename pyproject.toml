@@ -9,6 +9,10 @@ description = "Self-improving multi-agent system for organizational capability m
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0",
+    "python-pptx>=0.6.23",
+    "python-docx>=1.1.0",
+    "reportlab>=4.0.0",
+    "Pillow>=10.0.0",
 ]
 
 [project.optional-dependencies]

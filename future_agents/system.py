@@ -16,9 +16,13 @@ from typing import Any
 from future_agents.agents.capability_agent import CapabilityAgent
 from future_agents.agents.knowledge_agent import KnowledgeAgent
 from future_agents.agents.master_agent import MasterAgent
+from future_agents.agents.pdf_agent import PDFAgent
 from future_agents.agents.policy_agent import PolicyAgent
+from future_agents.agents.ppt_agent import PPTAgent
 from future_agents.agents.process_agent import ProcessAgent
+from future_agents.agents.quality_assessor_agent import QualityAssessorAgent
 from future_agents.agents.skills_agent import SkillsAgent
+from future_agents.agents.word_agent import WordAgent
 from future_agents.core.events import EventBus
 from future_agents.core.orchestrator import Orchestrator
 from future_agents.core.registry import AgentRegistry
@@ -141,7 +145,11 @@ class AgentSystem:
             await self.registry.register(PolicyAgent())
             await self.registry.register(SkillsAgent())
             await self.registry.register(KnowledgeAgent(knowledge_store=self.knowledge_store))
-            logger.info("Started 5 legacy agents")
+            await self.registry.register(PPTAgent())
+            await self.registry.register(WordAgent())
+            await self.registry.register(PDFAgent())
+            await self.registry.register(QualityAssessorAgent())
+            logger.info("Started 9 legacy agents (incl. 3 document + 1 quality assessor)")
 
         # Register the Master Agent last (so it can discover all others)
         await self.registry.register(self.master)
