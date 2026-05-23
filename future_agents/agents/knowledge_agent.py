@@ -117,9 +117,7 @@ class KnowledgeAgent(BaseAgent):
         )
 
     async def _audit_knowledge(self, context: TaskContext, params: dict) -> TaskResult:
-        stale = self.store.stale_entries(
-            min_usefulness=params.get("min_usefulness", 0.3)
-        )
+        stale = self.store.stale_entries(min_usefulness=params.get("min_usefulness", 0.3))
         stats = self.store.stats()
 
         return TaskResult(
@@ -129,13 +127,10 @@ class KnowledgeAgent(BaseAgent):
             data={
                 "stats": stats,
                 "stale_entries": [
-                    {"id": e.id, "title": e.title, "usefulness": e.usefulness_score}
-                    for e in stale
+                    {"id": e.id, "title": e.title, "usefulness": e.usefulness_score} for e in stale
                 ],
             },
-            suggestions=[
-                f"Review stale entry: {e.title}" for e in stale[:5]
-            ],
+            suggestions=[f"Review stale entry: {e.title}" for e in stale[:5]],
         )
 
     async def assess_self(self) -> dict[str, Any]:

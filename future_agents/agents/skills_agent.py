@@ -132,13 +132,13 @@ class SkillsAgent(BaseAgent):
     async def _define_growth_path(self, context: TaskContext, params: dict) -> TaskResult:
         levels = [
             TitleLevel(
-                title=l["title"],
-                level=l["level"],
-                required_skills=l.get("required_skills", {}),
-                required_capabilities=l.get("required_capabilities", []),
-                description=l.get("description", ""),
+                title=lvl["title"],
+                level=lvl["level"],
+                required_skills=lvl.get("required_skills", {}),
+                required_capabilities=lvl.get("required_capabilities", []),
+                description=lvl.get("description", ""),
             )
-            for l in params.get("levels", [])
+            for lvl in params.get("levels", [])
         ]
 
         path = GrowthPath(
@@ -227,13 +227,15 @@ class SkillsAgent(BaseAgent):
         enriched_gaps = []
         for skill_id, deficit in gaps.items():
             skill = self._skills.get(skill_id)
-            enriched_gaps.append({
-                "skill_id": skill_id,
-                "skill_name": skill.name if skill else "unknown",
-                "current": skills_map.get(skill_id, 0.0),
-                "required": skills_map.get(skill_id, 0.0) + deficit,
-                "deficit": deficit,
-            })
+            enriched_gaps.append(
+                {
+                    "skill_id": skill_id,
+                    "skill_name": skill.name if skill else "unknown",
+                    "current": skills_map.get(skill_id, 0.0),
+                    "required": skills_map.get(skill_id, 0.0) + deficit,
+                    "deficit": deficit,
+                }
+            )
 
         enriched_gaps.sort(key=lambda g: g["deficit"], reverse=True)
 
@@ -258,8 +260,6 @@ class SkillsAgent(BaseAgent):
         return {
             "total_skills": len(skills),
             "category_distribution": category_dist,
-            "avg_proficiency": (
-                sum(s.proficiency for s in skills) / len(skills) if skills else 0
-            ),
+            "avg_proficiency": (sum(s.proficiency for s in skills) / len(skills) if skills else 0),
             "growth_paths": len(self._growth_paths),
         }

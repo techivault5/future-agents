@@ -112,14 +112,16 @@ class PolicyAgent(BaseAgent):
             violated_rules = policy.check(action_context)
             if violated_rules:
                 policy.record_violation()
-                violations.append({
-                    "policy_id": policy.id,
-                    "policy_name": policy.name,
-                    "violated_rules": [
-                        {"condition": r.condition, "action": r.action, "severity": r.severity}
-                        for r in violated_rules
-                    ],
-                })
+                violations.append(
+                    {
+                        "policy_id": policy.id,
+                        "policy_name": policy.name,
+                        "violated_rules": [
+                            {"condition": r.condition, "action": r.action, "severity": r.severity}
+                            for r in violated_rules
+                        ],
+                    }
+                )
                 await self.emit(
                     "policy.violated",
                     {"policy_id": policy.id, "policy_name": policy.name},
@@ -158,18 +160,18 @@ class PolicyAgent(BaseAgent):
         for policy in self._policies.values():
             if policy.status != PolicyStatus.ACTIVE:
                 continue
-            report.append({
-                "policy_id": policy.id,
-                "name": policy.name,
-                "compliance_rate": policy.compliance_rate,
-                "checks": policy.checks_count,
-                "violations": policy.violations_count,
-                "scope": policy.scope.value,
-            })
+            report.append(
+                {
+                    "policy_id": policy.id,
+                    "name": policy.name,
+                    "compliance_rate": policy.compliance_rate,
+                    "checks": policy.checks_count,
+                    "violations": policy.violations_count,
+                    "scope": policy.scope.value,
+                }
+            )
 
-        overall = (
-            sum(r["compliance_rate"] for r in report) / len(report) if report else 1.0
-        )
+        overall = sum(r["compliance_rate"] for r in report) / len(report) if report else 1.0
 
         return TaskResult(
             task_id=context.task_id,

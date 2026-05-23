@@ -59,8 +59,7 @@ class CodeImprovementWorker(BaseWorker):
             improvements_proposed += self._propose_lint_improvements(lint_issues)
 
         pending_high = [
-            i for i in self.sync_engine.improvements
-            if i.status == "proposed" and i.priority >= 0.7
+            i for i in self.sync_engine.improvements if i.status == "proposed" and i.priority >= 0.7
         ]
         if pending_high:
             findings.append(f"{len(pending_high)} high-priority improvements awaiting review")
@@ -71,15 +70,17 @@ class CodeImprovementWorker(BaseWorker):
             findings.append(f"Performance regressions: {', '.join(regressions)}")
             improvements_proposed += len(regressions)
 
-        await self.event_bus.emit(Event(
-            type="worker.code_improvement.cycle_complete",
-            source=self.worker_id,
-            data={
-                "lint_issues": len(lint_issues),
-                "improvements_proposed": improvements_proposed,
-                "findings": findings,
-            },
-        ))
+        await self.event_bus.emit(
+            Event(
+                type="worker.code_improvement.cycle_complete",
+                source=self.worker_id,
+                data={
+                    "lint_issues": len(lint_issues),
+                    "improvements_proposed": improvements_proposed,
+                    "findings": findings,
+                },
+            )
+        )
         self.metrics.increment("workers.code_improvement.runs")
         self.metrics.increment(
             "workers.code_improvement.improvements_proposed",
@@ -104,8 +105,12 @@ class CodeImprovementWorker(BaseWorker):
             return []
         try:
             proc = await asyncio.create_subprocess_exec(
-                "ruff", "check", str(target),
-                "--output-format", "json", "--quiet",
+                "ruff",
+                "check",
+                str(target),
+                "--output-format",
+                "json",
+                "--quiet",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -133,26 +138,26 @@ class CodeImprovementWorker(BaseWorker):
                     f"{', '.join(codes[:5])}. Run `ruff check --fix` to auto-fix."
                 ),
                 priority=0.35,
-                evidence=[
-                    f"{i.get('code')}: {i.get('message')}" for i in file_issues[:3]
-                ],
+                evidence=[f"{i.get('code')}: {i.get('message')}" for i in file_issues[:3]],
             )
             self.sync_engine._improvements.append(imp)
             count += 1
 
         if by_file:
-            self.knowledge_store.add(KnowledgeEntry(
-                title="Code Quality Snapshot",
-                domain="engineering",
-                content=(
-                    f"Linter found {len(issues)} issues across {len(by_file)} files. "
-                    f"Top files: {', '.join(list(by_file)[:3])}. "
-                    f"Run `ruff check --fix future_agents/` to resolve most automatically."
-                ),
-                tags=["code-quality", "linting", "ruff"],
-                source_agent=self.worker_id,
-                confidence=0.95,
-            ))
+            self.knowledge_store.add(
+                KnowledgeEntry(
+                    title="Code Quality Snapshot",
+                    domain="engineering",
+                    content=(
+                        f"Linter found {len(issues)} issues across {len(by_file)} files. "
+                        f"Top files: {', '.join(list(by_file)[:3])}. "
+                        f"Run `ruff check --fix future_agents/` to resolve most automatically."
+                    ),
+                    tags=["code-quality", "linting", "ruff"],
+                    source_agent=self.worker_id,
+                    confidence=0.95,
+                )
+            )
         return count
 
     def _detect_regressions(self) -> list[str]:
@@ -165,26 +170,30 @@ class CodeImprovementWorker(BaseWorker):
             if avg < 0.5:
                 agent_label = key.split("agent=")[-1].rstrip("}")
                 regressions.append(agent_label)
-                self.sync_engine._improvements.append(Improvement(
-                    type=ImprovementType.CAPABILITY_GAP,
-                    title=f"Performance regression: {agent_label}",
-                    description=(
-                        f"Agent {agent_label} scored {avg:.2f} avg over the last 5 "
-                        f"executions — investigate capability gaps."
-                    ),
-                    target_agent=agent_label,
-                    priority=0.75,
-                    evidence=[f"recent_avg={avg:.2f}"],
-                ))
+                self.sync_engine._improvements.append(
+                    Improvement(
+                        type=ImprovementType.CAPABILITY_GAP,
+                        title=f"Performance regression: {agent_label}",
+                        description=(
+                            f"Agent {agent_label} scored {avg:.2f} avg over the last 5 "
+                            f"executions — investigate capability gaps."
+                        ),
+                        target_agent=agent_label,
+                        priority=0.75,
+                        evidence=[f"recent_avg={avg:.2f}"],
+                    )
+                )
         return regressions
 
     def _record_pending_improvements(self, improvements: list[Improvement]) -> None:
         summary = "; ".join(i.title for i in improvements[:5])
-        self.knowledge_store.add(KnowledgeEntry(
-            title="High-Priority Improvements Pending",
-            domain="system",
-            content=f"These improvements require human review: {summary}",
-            tags=["improvements", "review-needed", "high-priority"],
-            source_agent=self.worker_id,
-            confidence=1.0,
-        ))
+        self.knowledge_store.add(
+            KnowledgeEntry(
+                title="High-Priority Improvements Pending",
+                domain="system",
+                content=f"These improvements require human review: {summary}",
+                tags=["improvements", "review-needed", "high-priority"],
+                source_agent=self.worker_id,
+                confidence=1.0,
+            )
+        )

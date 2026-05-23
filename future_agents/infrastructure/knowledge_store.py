@@ -85,9 +85,7 @@ class KnowledgeStore:
         ids = self._tag_index.get(tag, [])
         return [self._entries[eid] for eid in ids if eid in self._entries]
 
-    async def update(
-        self, entry_id: str, new_content: str, changed_by: str, reason: str
-    ) -> bool:
+    async def update(self, entry_id: str, new_content: str, changed_by: str, reason: str) -> bool:
         """Update a knowledge entry with versioning."""
         entry = self._entries.get(entry_id)
         if not entry:
@@ -109,11 +107,7 @@ class KnowledgeStore:
 
     def stale_entries(self, min_usefulness: float = 0.3) -> list[KnowledgeEntry]:
         """Find entries that may need updating (low usefulness or access)."""
-        return [
-            e
-            for e in self._entries.values()
-            if e.usefulness_score < min_usefulness
-        ]
+        return [e for e in self._entries.values() if e.usefulness_score < min_usefulness]
 
     def stats(self) -> dict:
         """Return store statistics."""
@@ -121,9 +115,7 @@ class KnowledgeStore:
         return {
             "total_entries": len(entries),
             "domains": list(self._domain_index.keys()),
-            "avg_confidence": (
-                sum(e.confidence for e in entries) / len(entries) if entries else 0
-            ),
+            "avg_confidence": (sum(e.confidence for e in entries) / len(entries) if entries else 0),
             "avg_usefulness": (
                 sum(e.usefulness_score for e in entries) / len(entries) if entries else 0
             ),

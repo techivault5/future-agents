@@ -33,13 +33,11 @@ def ensure_labels() -> None:
         ("agent-gap", "d93f0b", "Missing agent domain coverage"),
         ("pattern", "1d76db", "Discovered code or agent pattern"),
     ]:
-        run(["gh", "label", "create", name,
-             "--color", color, "--description", desc, "--force"])
+        run(["gh", "label", "create", name, "--color", color, "--description", desc, "--force"])
 
 
 def open_issue_exists(prefix: str) -> bool:
-    r = run(["gh", "issue", "list", "--state", "open",
-             "--json", "title", "--limit", "30"])
+    r = run(["gh", "issue", "list", "--state", "open", "--json", "title", "--limit", "30"])
     if r.returncode != 0:
         return False
     try:
@@ -63,8 +61,7 @@ def create_issue(title: str, body: str, labels: list[str]) -> None:
 
 
 def run_ruff_json() -> list[dict]:
-    r = run(["ruff", "check", str(ROOT / "future_agents"),
-             "--output-format", "json", "--quiet"])
+    r = run(["ruff", "check", str(ROOT / "future_agents"), "--output-format", "json", "--quiet"])
     if r.stdout.strip():
         try:
             return json.loads(r.stdout)

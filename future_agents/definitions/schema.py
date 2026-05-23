@@ -16,8 +16,10 @@ from pydantic import BaseModel, Field
 
 # ── Enums ────────────────────────────────────────────────────────
 
+
 class InteractionMode(str, Enum):
     """How callers can interact with this agent."""
+
     REQUEST_RESPONSE = "request_response"  # Synchronous call/return
     STREAMING = "streaming"  # Streamed output
     EVENT_DRIVEN = "event_driven"  # Reacts to events
@@ -43,8 +45,10 @@ class ParameterType(str, Enum):
 
 # ── Nested Definition Components ─────────────────────────────────
 
+
 class ParameterDef(BaseModel):
     """Definition of a single input/output parameter."""
+
     name: str
     type: ParameterType = ParameterType.STRING
     description: str = ""
@@ -55,6 +59,7 @@ class ParameterDef(BaseModel):
 
 class SkillDef(BaseModel):
     """A skill this agent possesses — a discrete unit of work it can perform."""
+
     name: str
     description: str
     intent: str  # The intent string used to invoke this skill (e.g. "capability.register")
@@ -67,6 +72,7 @@ class SkillDef(BaseModel):
 
 class SkillExample(BaseModel):
     """A concrete example of invoking a skill."""
+
     description: str
     input: dict = Field(default_factory=dict)
     expected_output: dict = Field(default_factory=dict)
@@ -78,6 +84,7 @@ SkillDef.model_rebuild()
 
 class PromptTemplate(BaseModel):
     """A prompt template used by the agent."""
+
     name: str  # e.g. "system", "task_execution", "error_recovery"
     role: str = "system"  # system, user, assistant
     template: str  # The actual prompt text, supports {variable} placeholders
@@ -87,9 +94,8 @@ class PromptTemplate(BaseModel):
 
 class InteractionDef(BaseModel):
     """How this agent can be interacted with."""
-    modes: list[InteractionMode] = Field(
-        default_factory=lambda: [InteractionMode.REQUEST_RESPONSE]
-    )
+
+    modes: list[InteractionMode] = Field(default_factory=lambda: [InteractionMode.REQUEST_RESPONSE])
     input_format: str = "json"  # json, text, structured
     output_format: str = "json"
     max_concurrent: int = 10
@@ -99,6 +105,7 @@ class InteractionDef(BaseModel):
 
 class RetryPolicy(BaseModel):
     """Retry behavior for failed interactions."""
+
     max_retries: int = 3
     backoff_seconds: float = 1.0
     backoff_multiplier: float = 2.0
@@ -111,6 +118,7 @@ InteractionDef.model_rebuild()
 
 class ConstraintDef(BaseModel):
     """A behavioral constraint / guardrail for the agent."""
+
     name: str
     description: str
     enforcement: str = "strict"  # strict (block), warn, log
@@ -119,6 +127,7 @@ class ConstraintDef(BaseModel):
 
 class PersonalityDef(BaseModel):
     """The agent's communication style and behavior profile."""
+
     tone: str = "professional"  # professional, casual, formal, technical
     verbosity: str = "concise"  # minimal, concise, detailed, verbose
     traits: list[str] = Field(default_factory=list)  # e.g. ["precise", "helpful", "cautious"]
@@ -127,6 +136,7 @@ class PersonalityDef(BaseModel):
 
 class DependencyDef(BaseModel):
     """A dependency on another agent."""
+
     agent_type: str  # The agent type this depends on
     required: bool = True  # Whether the system fails without this dependency
     capabilities_needed: list[str] = Field(default_factory=list)
@@ -134,6 +144,7 @@ class DependencyDef(BaseModel):
 
 class ToolDef(BaseModel):
     """An external tool or API the agent can use."""
+
     name: str
     description: str
     endpoint: str = ""  # URL or function path
@@ -142,6 +153,7 @@ class ToolDef(BaseModel):
 
 
 # ── Top-Level Agent Definition ───────────────────────────────────
+
 
 class AgentDefinition(BaseModel):
     """Complete declarative specification for an agent.

@@ -110,47 +110,45 @@ class AgentSystem:
     def _register_default_workers(self) -> None:
         """Register the three built-in scheduled workers."""
         source_root = self._definitions_dir.parent if self._definitions_dir else Path(".")
-        self.scheduler.register(CodeImprovementWorker(
-            sync_engine=self.sync_engine,
-            knowledge_store=self.knowledge_store,
-            metrics=self.metrics,
-            event_bus=self.event_bus,
-            source_root=source_root,
-            interval_seconds=300,
-        ))
-        self.scheduler.register(PatternDiscoveryWorker(
-            registry=self.registry,
-            sync_engine=self.sync_engine,
-            knowledge_store=self.knowledge_store,
-            metrics=self.metrics,
-            event_bus=self.event_bus,
-            interval_seconds=600,
-        ))
-        self.scheduler.register(AgentGathererWorker(
-            registry=self.registry,
-            factory=self.factory,
-            sync_engine=self.sync_engine,
-            knowledge_store=self.knowledge_store,
-            metrics=self.metrics,
-            event_bus=self.event_bus,
-            definitions_dir=self._definitions_dir or Path("agents"),
-            interval_seconds=900,
-        ))
+        self.scheduler.register(
+            CodeImprovementWorker(
+                sync_engine=self.sync_engine,
+                knowledge_store=self.knowledge_store,
+                metrics=self.metrics,
+                event_bus=self.event_bus,
+                source_root=source_root,
+                interval_seconds=300,
+            )
+        )
+        self.scheduler.register(
+            PatternDiscoveryWorker(
+                registry=self.registry,
+                sync_engine=self.sync_engine,
+                knowledge_store=self.knowledge_store,
+                metrics=self.metrics,
+                event_bus=self.event_bus,
+                interval_seconds=600,
+            )
+        )
+        self.scheduler.register(
+            AgentGathererWorker(
+                registry=self.registry,
+                factory=self.factory,
+                sync_engine=self.sync_engine,
+                knowledge_store=self.knowledge_store,
+                metrics=self.metrics,
+                event_bus=self.event_bus,
+                definitions_dir=self._definitions_dir or Path("agents"),
+                interval_seconds=900,
+            )
+        )
 
     def _register_default_implementations(self) -> None:
         """Register the built-in implementation classes with the factory."""
-        self.factory.register_implementation(
-            "capability", lambda **kw: CapabilityAgent(**kw)
-        )
-        self.factory.register_implementation(
-            "process", lambda **kw: ProcessAgent(**kw)
-        )
-        self.factory.register_implementation(
-            "policy", lambda **kw: PolicyAgent(**kw)
-        )
-        self.factory.register_implementation(
-            "skills", lambda **kw: SkillsAgent(**kw)
-        )
+        self.factory.register_implementation("capability", lambda **kw: CapabilityAgent(**kw))
+        self.factory.register_implementation("process", lambda **kw: ProcessAgent(**kw))
+        self.factory.register_implementation("policy", lambda **kw: PolicyAgent(**kw))
+        self.factory.register_implementation("skills", lambda **kw: SkillsAgent(**kw))
         self.factory.register_implementation(
             "knowledge",
             lambda **kw: KnowledgeAgent(knowledge_store=self.knowledge_store, **kw),

@@ -171,8 +171,7 @@ class MasterAgent(BaseAgent):
                     task_id=context.task_id,
                     agent_id=target.agent_id,
                     outcome=(
-                        ExecutionOutcome.SUCCESS if response.success
-                        else ExecutionOutcome.FAILURE
+                        ExecutionOutcome.SUCCESS if response.success else ExecutionOutcome.FAILURE
                     ),
                     data=response.data,
                     errors=response.errors,
@@ -229,12 +228,14 @@ class MasterAgent(BaseAgent):
 
             target = self._find_best_agent(step_intent)
             if not target:
-                step_results.append({
-                    "step": i + 1,
-                    "intent": step_intent,
-                    "status": "skipped",
-                    "error": f"No agent for intent: {step_intent}",
-                })
+                step_results.append(
+                    {
+                        "step": i + 1,
+                        "intent": step_intent,
+                        "status": "skipped",
+                        "error": f"No agent for intent: {step_intent}",
+                    }
+                )
                 all_success = False
                 continue
 
@@ -244,30 +245,37 @@ class MasterAgent(BaseAgent):
                 response = await self._delegate_to_base(target, step_intent, step_params)
 
             if response and response.success:
-                step_results.append({
-                    "step": i + 1,
-                    "intent": step_intent,
-                    "agent": target.agent_id,
-                    "status": "completed",
-                    "data": response.data,
-                })
+                step_results.append(
+                    {
+                        "step": i + 1,
+                        "intent": step_intent,
+                        "agent": target.agent_id,
+                        "status": "completed",
+                        "data": response.data,
+                    }
+                )
                 accumulated_data[f"step_{i + 1}"] = response.data
             else:
-                step_results.append({
-                    "step": i + 1,
-                    "intent": step_intent,
-                    "agent": target.agent_id,
-                    "status": "failed",
-                    "errors": response.errors if response else [],
-                })
+                step_results.append(
+                    {
+                        "step": i + 1,
+                        "intent": step_intent,
+                        "agent": target.agent_id,
+                        "status": "failed",
+                        "errors": response.errors if response else [],
+                    }
+                )
                 all_success = False
                 # Continue workflow even if a step fails (best-effort)
 
-        await self.emit("master.workflow_completed", {
-            "name": workflow_name,
-            "steps": len(steps),
-            "success": all_success,
-        })
+        await self.emit(
+            "master.workflow_completed",
+            {
+                "name": workflow_name,
+                "steps": len(steps),
+                "success": all_success,
+            },
+        )
 
         return TaskResult(
             task_id=context.task_id,
@@ -405,7 +413,7 @@ class MasterAgent(BaseAgent):
                 lines.append(f"\n## {desc['name']} (type: {desc['type']})")
                 lines.append(f"   Domain: {desc['domain']}")
                 lines.append(f"   Description: {desc['description']}")
-                lines.append(f"   Skills:")
+                lines.append("   Skills:")
                 for skill in desc["skills"]:
                     inputs_str = ", ".join(
                         f"{p['name']}:{p['type']}" + ("*" if p["required"] else "")

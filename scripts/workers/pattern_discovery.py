@@ -30,8 +30,7 @@ def run(cmd: list[str]) -> subprocess.CompletedProcess:
 
 
 def open_issue_exists(prefix: str) -> bool:
-    r = run(["gh", "issue", "list", "--state", "open",
-             "--json", "title", "--limit", "30"])
+    r = run(["gh", "issue", "list", "--state", "open", "--json", "title", "--limit", "30"])
     if r.returncode != 0:
         return False
     try:
@@ -60,8 +59,9 @@ def discover_agent_implementations() -> list[dict]:
             if not isinstance(node, ast.ClassDef):
                 continue
             base_names = [
-                b.id if isinstance(b, ast.Name) else
-                (b.attr if isinstance(b, ast.Attribute) else "")
+                b.id
+                if isinstance(b, ast.Name)
+                else (b.attr if isinstance(b, ast.Attribute) else "")
                 for b in node.bases
             ]
             if "BaseAgent" not in base_names:
@@ -81,12 +81,14 @@ def discover_agent_implementations() -> list[dict]:
                                 agent_type = n.value
                                 break
 
-            results.append({
-                "class": node.name,
-                "file": py_file.name,
-                "agent_type": agent_type,
-                "capabilities": caps,
-            })
+            results.append(
+                {
+                    "class": node.name,
+                    "file": py_file.name,
+                    "agent_type": agent_type,
+                    "capabilities": caps,
+                }
+            )
 
     return results
 
@@ -97,13 +99,15 @@ def discover_definitions() -> list[dict]:
     for json_file in sorted((ROOT / "agents").glob("*.json")):
         try:
             data = json.loads(json_file.read_text())
-            results.append({
-                "name": data.get("name", json_file.stem),
-                "type": data.get("type", ""),
-                "skills": [s.get("name", "") for s in data.get("skills", [])],
-                "file": json_file.name,
-                "auto_generated": data.get("metadata", {}).get("auto_generated", False),
-            })
+            results.append(
+                {
+                    "name": data.get("name", json_file.stem),
+                    "type": data.get("type", ""),
+                    "skills": [s.get("name", "") for s in data.get("skills", [])],
+                    "file": json_file.name,
+                    "auto_generated": data.get("metadata", {}).get("auto_generated", False),
+                }
+            )
         except (json.JSONDecodeError, KeyError):
             pass
     return results
@@ -162,8 +166,7 @@ def build_report(
         if len(impl["capabilities"]) > 3:
             caps += f" *+{len(impl['capabilities']) - 3} more*"
         lines.append(
-            f"| `{impl['class']}` | `{impl['file']}` "
-            f"| `{impl['agent_type']}` | {caps or '—'} |"
+            f"| `{impl['class']}` | `{impl['file']}` | `{impl['agent_type']}` | {caps or '—'} |"
         )
 
     lines += [
@@ -257,8 +260,17 @@ def main() -> None:
 
     body = build_report(impls, defs, events, skills_used)
 
-    args = ["gh", "issue", "create", "--title", title, "--body", body,
-            "--label", "automated,pattern"]
+    args = [
+        "gh",
+        "issue",
+        "create",
+        "--title",
+        title,
+        "--body",
+        body,
+        "--label",
+        "automated,pattern",
+    ]
     r = run(args)
     if r.returncode == 0:
         print(f"Issue created: {title}")

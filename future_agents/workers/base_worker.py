@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -101,9 +100,7 @@ class BaseWorker(ABC):
             logger.exception("Worker %s raised an exception", self.worker_id)
             self.error_count += 1
             self.status = WorkerStatus.ERROR
-            return WorkerResult(
-                worker_id=self.worker_id, success=False, errors=[str(exc)]
-            )
+            return WorkerResult(worker_id=self.worker_id, success=False, errors=[str(exc)])
 
         end = datetime.now(timezone.utc)
         result.duration_ms = (end - start).total_seconds() * 1000

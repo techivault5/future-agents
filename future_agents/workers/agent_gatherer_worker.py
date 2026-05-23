@@ -114,15 +114,17 @@ class AgentGathererWorker(BaseWorker):
 
         self._record_landscape()
 
-        await self.event_bus.emit(Event(
-            type="worker.agent_gatherer.cycle_complete",
-            source=self.worker_id,
-            data={
-                "new_agents_loaded": new_loaded,
-                "gaps_found": gaps_found,
-                "skeletons_created": skeletons_created,
-            },
-        ))
+        await self.event_bus.emit(
+            Event(
+                type="worker.agent_gatherer.cycle_complete",
+                source=self.worker_id,
+                data={
+                    "new_agents_loaded": new_loaded,
+                    "gaps_found": gaps_found,
+                    "skeletons_created": skeletons_created,
+                },
+            )
+        )
         self.metrics.increment("workers.agent_gatherer.runs")
 
         return WorkerResult(
@@ -141,10 +143,7 @@ class AgentGathererWorker(BaseWorker):
     def _new_definition_files(self) -> list[Path]:
         if not self.definitions_dir.exists():
             return []
-        return [
-            f for f in self.definitions_dir.glob("*.json")
-            if f.name not in self._known_files
-        ]
+        return [f for f in self.definitions_dir.glob("*.json") if f.name not in self._known_files]
 
     async def _load_definition(self, def_file: Path) -> bool:
         try:
@@ -175,17 +174,19 @@ class AgentGathererWorker(BaseWorker):
         title = f"Missing agent domain: {gap['domain']}"
         if any(i.title == title for i in self.sync_engine.improvements):
             return
-        self.sync_engine._improvements.append(Improvement(
-            type=ImprovementType.CAPABILITY_GAP,
-            title=title,
-            description=(
-                f"No agent covers '{gap['domain']}' intents "
-                f"(e.g. {gap['intents'][0]}). "
-                f"Create a {gap['domain'].capitalize()}Agent."
-            ),
-            priority=gap["importance"],
-            evidence=[f"example={gap['intents'][0]}"],
-        ))
+        self.sync_engine._improvements.append(
+            Improvement(
+                type=ImprovementType.CAPABILITY_GAP,
+                title=title,
+                description=(
+                    f"No agent covers '{gap['domain']}' intents "
+                    f"(e.g. {gap['intents'][0]}). "
+                    f"Create a {gap['domain'].capitalize()}Agent."
+                ),
+                priority=gap["importance"],
+                evidence=[f"example={gap['intents'][0]}"],
+            )
+        )
 
     def _generate_skeleton(self, gap: dict) -> bool:
         out = self.definitions_dir / f"{gap['domain']}.json"
@@ -224,18 +225,20 @@ class AgentGathererWorker(BaseWorker):
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(json.dumps(skeleton, indent=2) + "\n")
             logger.info("Generated skeleton: %s", out.name)
-            self.knowledge_store.add(KnowledgeEntry(
-                title=f"Skeleton Generated: {gap['domain'].capitalize()}Agent",
-                domain="agents",
-                content=(
-                    f"Skeleton definition created at {out}. "
-                    f"Needs Python implementation for: "
-                    f"{', '.join(s['name'] for s in skeleton['skills'][:3])}."
-                ),
-                tags=["agent", "skeleton", gap["domain"], "needs-implementation"],
-                source_agent=self.worker_id,
-                confidence=0.7,
-            ))
+            self.knowledge_store.add(
+                KnowledgeEntry(
+                    title=f"Skeleton Generated: {gap['domain'].capitalize()}Agent",
+                    domain="agents",
+                    content=(
+                        f"Skeleton definition created at {out}. "
+                        f"Needs Python implementation for: "
+                        f"{', '.join(s['name'] for s in skeleton['skills'][:3])}."
+                    ),
+                    tags=["agent", "skeleton", gap["domain"], "needs-implementation"],
+                    source_agent=self.worker_id,
+                    confidence=0.7,
+                )
+            )
             return True
         except OSError as exc:
             logger.warning("Failed to write skeleton for %s: %s", gap["domain"], exc)
@@ -247,14 +250,16 @@ class AgentGathererWorker(BaseWorker):
         all_caps: list[str] = []
         for a in agents.values():
             all_caps.extend(a.capabilities)
-        self.knowledge_store.add(KnowledgeEntry(
-            title="Current Agent Landscape",
-            domain="system",
-            content=(
-                f"{len(agents)} agents registered covering {len(all_caps)} capabilities: "
-                f"{', '.join(sorted(all_types))}."
-            ),
-            tags=["agents", "landscape", "registry"],
-            source_agent=self.worker_id,
-            confidence=1.0,
-        ))
+        self.knowledge_store.add(
+            KnowledgeEntry(
+                title="Current Agent Landscape",
+                domain="system",
+                content=(
+                    f"{len(agents)} agents registered covering {len(all_caps)} capabilities: "
+                    f"{', '.join(sorted(all_types))}."
+                ),
+                tags=["agents", "landscape", "registry"],
+                source_agent=self.worker_id,
+                confidence=1.0,
+            )
+        )

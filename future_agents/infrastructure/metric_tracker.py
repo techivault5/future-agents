@@ -36,7 +36,9 @@ class MetricTracker:
         self._series: dict[str, list[MetricPoint]] = defaultdict(list)
         self._max_series_len = 10000
 
-    def increment(self, name: str, value: float = 1.0, labels: dict[str, str] | None = None) -> None:
+    def increment(
+        self, name: str, value: float = 1.0, labels: dict[str, str] | None = None
+    ) -> None:
         """Increment a counter metric."""
         key = self._key(name, labels)
         self._counters[key] += value
@@ -52,7 +54,7 @@ class MetricTracker:
         series = self._series[key]
         series.append(MetricPoint(value=value, labels=labels or {}))
         if len(series) > self._max_series_len:
-            self._series[key] = series[-self._max_series_len:]
+            self._series[key] = series[-self._max_series_len :]
 
     def get_counter(self, name: str, labels: dict[str, str] | None = None) -> float:
         key = self._key(name, labels)

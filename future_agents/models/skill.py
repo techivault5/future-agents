@@ -62,7 +62,7 @@ class GrowthPath(BaseModel):
     def current_level(self, skills: dict[str, float], capabilities: list[str]) -> TitleLevel | None:
         """Determine the highest level achieved given current skills and capabilities."""
         achieved = None
-        for level in sorted(self.levels, key=lambda l: l.level):
+        for level in sorted(self.levels, key=lambda lvl: lvl.level):
             # Check skill requirements
             skills_met = all(
                 skills.get(skill_id, 0.0) >= min_prof
@@ -81,14 +81,12 @@ class GrowthPath(BaseModel):
         current = self.current_level(skills, capabilities)
         if current is None:
             return self.levels[0] if self.levels else None
-        for level in sorted(self.levels, key=lambda l: l.level):
+        for level in sorted(self.levels, key=lambda lvl: lvl.level):
             if level.level > current.level:
                 return level
         return None
 
-    def skill_gaps(
-        self, target_level: TitleLevel, skills: dict[str, float]
-    ) -> dict[str, float]:
+    def skill_gaps(self, target_level: TitleLevel, skills: dict[str, float]) -> dict[str, float]:
         """Return map of skill_id -> deficit for reaching the target level."""
         gaps = {}
         for skill_id, required in target_level.required_skills.items():

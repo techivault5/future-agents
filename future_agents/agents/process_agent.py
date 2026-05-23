@@ -108,12 +108,14 @@ class ProcessAgent(BaseAgent):
         completed_steps = 0
         step_results = []
         for step in sorted(process.steps, key=lambda s: s.order):
-            step_results.append({
-                "step": step.order,
-                "name": step.name,
-                "status": "completed",
-                "responsible_agent": step.responsible_agent,
-            })
+            step_results.append(
+                {
+                    "step": step.order,
+                    "name": step.name,
+                    "status": "completed",
+                    "responsible_agent": step.responsible_agent,
+                }
+            )
             completed_steps += 1
 
         process.record_execution(completed_steps)
@@ -159,20 +161,24 @@ class ProcessAgent(BaseAgent):
         suggestions = []
         for process in self._processes.values():
             if process.execution_count >= 3 and process.avg_completion_rate < 0.8:
-                suggestions.append({
-                    "process_id": process.id,
-                    "name": process.name,
-                    "avg_completion_rate": process.avg_completion_rate,
-                    "suggestion": "Review failing steps; consider splitting or adding prerequisites",
-                })
+                suggestions.append(
+                    {
+                        "process_id": process.id,
+                        "name": process.name,
+                        "avg_completion_rate": process.avg_completion_rate,
+                        "suggestion": "Review failing steps; consider splitting or adding prerequisites",
+                    }
+                )
             # Flag processes with unused optional steps
             optional_steps = [s for s in process.steps if s.is_optional]
             if len(optional_steps) > len(process.steps) * 0.5:
-                suggestions.append({
-                    "process_id": process.id,
-                    "name": process.name,
-                    "suggestion": "Too many optional steps — consider splitting into separate processes",
-                })
+                suggestions.append(
+                    {
+                        "process_id": process.id,
+                        "name": process.name,
+                        "suggestion": "Too many optional steps — consider splitting into separate processes",
+                    }
+                )
 
         return TaskResult(
             task_id=context.task_id,
@@ -188,9 +194,7 @@ class ProcessAgent(BaseAgent):
             "total_processes": len(processes),
             "active_processes": len([p for p in processes if p.status == ProcessStatus.ACTIVE]),
             "avg_completion_rate": (
-                sum(p.avg_completion_rate for p in processes) / len(processes)
-                if processes
-                else 0
+                sum(p.avg_completion_rate for p in processes) / len(processes) if processes else 0
             ),
             "total_executions": sum(p.execution_count for p in processes),
         }
