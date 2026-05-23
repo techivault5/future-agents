@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -102,9 +100,17 @@ def test_worker_initial_state(code_worker):
 
 def test_worker_get_status_keys(code_worker):
     status = code_worker.get_status()
-    for key in ("worker_id", "worker_type", "status", "enabled",
-                "interval_seconds", "run_count", "error_count",
-                "last_run", "next_run"):
+    for key in (
+        "worker_id",
+        "worker_type",
+        "status",
+        "enabled",
+        "interval_seconds",
+        "run_count",
+        "error_count",
+        "last_run",
+        "next_run",
+    ):
         assert key in status
 
 
