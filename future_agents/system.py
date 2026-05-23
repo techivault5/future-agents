@@ -27,6 +27,10 @@ from future_agents.definitions.factory import AgentFactory
 from future_agents.infrastructure.knowledge_store import KnowledgeStore
 from future_agents.infrastructure.metric_tracker import MetricTracker
 from future_agents.infrastructure.sync_engine import SyncEngine
+from future_agents.workers.agent_gatherer_worker import AgentGathererWorker
+from future_agents.workers.code_improvement_worker import CodeImprovementWorker
+from future_agents.workers.pattern_discovery_worker import PatternDiscoveryWorker
+from future_agents.workers.scheduler import WorkerScheduler
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +103,40 @@ class AgentSystem:
         self._definitions_dir = Path(definitions_dir) if definitions_dir else None
         self._defined_agents: list[DefinedAgent] = []
 
+        # Worker scheduler (continuous improvement loops)
+        self.scheduler = WorkerScheduler()
+        self._register_default_workers()
+
+    def _register_default_workers(self) -> None:
+        """Register the three built-in scheduled workers."""
+        source_root = self._definitions_dir.parent if self._definitions_dir else Path(".")
+        self.scheduler.register(CodeImprovementWorker(
+            sync_engine=self.sync_engine,
+            knowledge_store=self.knowledge_store,
+            metrics=self.metrics,
+            event_bus=self.event_bus,
+            source_root=source_root,
+            interval_seconds=300,
+        ))
+        self.scheduler.register(PatternDiscoveryWorker(
+            registry=self.registry,
+            sync_engine=self.sync_engine,
+            knowledge_store=self.knowledge_store,
+            metrics=self.metrics,
+            event_bus=self.event_bus,
+            interval_seconds=600,
+        ))
+        self.scheduler.register(AgentGathererWorker(
+            registry=self.registry,
+            factory=self.factory,
+            sync_engine=self.sync_engine,
+            knowledge_store=self.knowledge_store,
+            metrics=self.metrics,
+            event_bus=self.event_bus,
+            definitions_dir=self._definitions_dir or Path("agents"),
+            interval_seconds=900,
+        ))
+
     def _register_default_implementations(self) -> None:
         """Register the built-in implementation classes with the factory."""
         self.factory.register_implementation(
@@ -147,8 +185,13 @@ class AgentSystem:
         await self.registry.register(self.master)
         logger.info("Master Agent registered — system ready")
 
+        # Start the background worker scheduler
+        await self.scheduler.start()
+        logger.info("Worker scheduler started")
+
     async def stop(self) -> None:
-        """Shut down all agents and stop the sync engine."""
+        """Shut down workers, agents, and the sync engine."""
+        await self.scheduler.stop()
         self.sync_engine.stop()
         for agent_id in list(self.registry.agents.keys()):
             await self.registry.deregister(agent_id)
@@ -214,6 +257,23 @@ class AgentSystem:
     def get_agent_catalog(self) -> str:
         """Get a text catalog of all agents (for prompts/LLM context)."""
         return self.master.build_agent_catalog()
+
+    def worker_status(self) -> dict:
+        """Return the current status of all scheduled workers."""
+        return self.scheduler.get_status()
+
+    async def run_worker(self, worker_id: str) -> dict | None:
+        """Manually trigger one execution of a named worker."""
+        result = await self.scheduler.run_now(worker_id)
+        if result is None:
+            return None
+        return {
+            "worker_id": result.worker_id,
+            "success": result.success,
+            "data": result.data,
+            "errors": result.errors,
+            "duration_ms": result.duration_ms,
+        }
 
     # ── Private ──────────────────────────────────────────────────
 

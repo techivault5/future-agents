@@ -1,0 +1,33 @@
+{
+  "workers": {
+    "code_improvement": {
+      "enabled": true,
+      "interval_seconds": 300,
+      "description": "Runs ruff, surfaces performance regressions, records quality snapshots"
+    },
+    "pattern_discovery": {
+      "enabled": true,
+      "interval_seconds": 600,
+      "description": "Discovers success patterns, anti-patterns, and capability trends"
+    },
+    "agent_gatherer": {
+      "enabled": true,
+      "interval_seconds": 900,
+      "description": "Scans for new agent definitions, finds coverage gaps, generates skeletons"
+    }
+  },
+  "github_actions": {
+    "code_improvement": {
+      "cron": "0 */6 * * *",
+      "description": "Every 6 hours — opens a GitHub Issue with lint findings"
+    },
+    "pattern_discovery": {
+      "cron": "0 9 * * *",
+      "description": "Daily at 09:00 UTC — opens a GitHub Issue with pattern analysis"
+    },
+    "agent_gatherer": {
+      "cron": "0 10 * * 1",
+      "description": "Weekly Monday 10:00 UTC — opens a draft PR with skeleton definitions"
+    }
+  }
+}
