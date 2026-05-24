@@ -1,0 +1,91 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-05-24",
+  "categories": {
+    "agent_frameworks": [
+      {"owner": "crewAIInc", "repo": "crewAI", "description": "Multi-agent orchestration framework built on role-playing autonomous AI agents", "tags": ["agents", "orchestration", "multi-agent"]},
+      {"owner": "microsoft", "repo": "autogen", "description": "Multi-agent conversation framework for building LLM applications", "tags": ["agents", "multi-agent", "conversations"]},
+      {"owner": "langchain-ai", "repo": "langchain", "description": "Framework for building context-aware reasoning applications with LLMs", "tags": ["agents", "llm", "chains"]},
+      {"owner": "geekan", "repo": "MetaGPT", "description": "Multi-agent framework that assigns different roles to GPTs for collaborative software development", "tags": ["agents", "software-dev", "multi-agent"]},
+      {"owner": "All-Hands-AI", "repo": "OpenHands", "description": "Open-source platform for AI-powered software development agents", "tags": ["agents", "code", "software-dev"]},
+      {"owner": "microsoft", "repo": "semantic-kernel", "description": "SDK for integrating LLMs with programming languages via plugins and planners", "tags": ["agents", "orchestration", "sdk"]},
+      {"owner": "phidatahq", "repo": "phidata", "description": "Framework for building multi-modal agents with memory, knowledge, and tools", "tags": ["agents", "multi-modal", "memory"]},
+      {"owner": "pydantic", "repo": "pydantic-ai", "description": "Agent framework using Pydantic for structured outputs and type-safe LLM interactions", "tags": ["agents", "pydantic", "type-safe"]},
+      {"owner": "openai", "repo": "swarm", "description": "Lightweight multi-agent orchestration framework by OpenAI", "tags": ["agents", "multi-agent", "openai"]},
+      {"owner": "microsoft", "repo": "TaskWeaver", "description": "Code-first agent framework for data analytics tasks", "tags": ["agents", "code", "data-analytics"]},
+      {"owner": "OpenBMB", "repo": "ChatDev", "description": "Communicative agents for AI-driven software development", "tags": ["agents", "software-dev", "multi-agent"]},
+      {"owner": "AgentOps-AI", "repo": "agentops", "description": "Observability and evaluation platform for AI agents", "tags": ["agents", "observability", "evals"]},
+      {"owner": "composio-dev", "repo": "composio", "description": "Toolset for AI agents with 150+ integrations for actions and triggers", "tags": ["agents", "tools", "integrations"]}
+    ],
+    "llm_sdks": [
+      {"owner": "anthropics", "repo": "anthropic-sdk-python", "description": "Official Python SDK for the Anthropic Claude API", "tags": ["sdk", "anthropic", "claude"]},
+      {"owner": "openai", "repo": "openai-python", "description": "Official Python client library for the OpenAI API", "tags": ["sdk", "openai", "gpt"]},
+      {"owner": "BerriAI", "repo": "litellm", "description": "Unified interface to call 100+ LLMs with OpenAI-compatible format", "tags": ["sdk", "multi-provider", "proxy"]},
+      {"owner": "huggingface", "repo": "transformers", "description": "State-of-the-art ML models for PyTorch, TensorFlow, and JAX", "tags": ["sdk", "models", "huggingface"]},
+      {"owner": "mistralai", "repo": "mistral-inference", "description": "Official inference library for Mistral AI models", "tags": ["sdk", "mistral", "inference"]},
+      {"owner": "google", "repo": "generative-ai-python", "description": "Google Generative AI Python SDK for Gemini models", "tags": ["sdk", "google", "gemini"]},
+      {"owner": "cohere-ai", "repo": "cohere-python", "description": "Official Cohere Python SDK for language model APIs", "tags": ["sdk", "cohere", "nlp"]},
+      {"owner": "togethercomputer", "repo": "together-python", "description": "Python client for Together AI's inference API", "tags": ["sdk", "together", "inference"]}
+    ],
+    "rag_and_vector": [
+      {"owner": "chroma-core", "repo": "chroma", "description": "Open-source AI-native vector database for embeddings", "tags": ["vector-db", "embeddings", "rag"]},
+      {"owner": "weaviate", "repo": "weaviate-python-client", "description": "Python client for Weaviate vector search engine", "tags": ["vector-db", "search", "rag"]},
+      {"owner": "microsoft", "repo": "graphrag", "description": "Graph-based RAG for complex multi-hop document reasoning", "tags": ["rag", "graph", "knowledge-graph"]},
+      {"owner": "HKUDS", "repo": "LightRAG", "description": "Simple and fast RAG system with graph-enhanced retrieval", "tags": ["rag", "graph", "retrieval"]},
+      {"owner": "run-llama", "repo": "llama_index", "description": "Data framework for building LLM applications over custom data", "tags": ["rag", "indexing", "llm"]},
+      {"owner": "qdrant", "repo": "qdrant", "description": "High-performance vector similarity search engine", "tags": ["vector-db", "search", "similarity"]},
+      {"owner": "milvus-io", "repo": "pymilvus", "description": "Python SDK for Milvus vector database", "tags": ["vector-db", "embeddings", "rag"]},
+      {"owner": "stanford-oval", "repo": "storm", "description": "LLM-powered knowledge curation from scratch with retrieval and outline generation", "tags": ["rag", "knowledge", "research"]}
+    ],
+    "eval_frameworks": [
+      {"owner": "deepeval-ai", "repo": "deepeval", "description": "LLM evaluation framework with 14+ metrics for RAG and agents", "tags": ["evals", "metrics", "llm"]},
+      {"owner": "openai", "repo": "evals", "description": "Framework for evaluating LLMs and systems built on LLMs", "tags": ["evals", "benchmarks", "openai"]},
+      {"owner": "EleutherAI", "repo": "lm-evaluation-harness", "description": "Unified evaluation framework for language models across 200+ tasks", "tags": ["evals", "benchmarks", "nlp"]},
+      {"owner": "SWE-bench", "repo": "SWE-bench", "description": "Benchmark for evaluating LLMs on real GitHub software engineering issues", "tags": ["evals", "code", "benchmarks"]},
+      {"owner": "brainlid", "repo": "langchain", "description": "Elixir implementation of LangChain for agent and LLM workflows", "tags": ["evals", "elixir", "agents"]},
+      {"owner": "confident-ai", "repo": "deepeval", "description": "Open-source LLM testing and evaluation platform", "tags": ["evals", "testing", "ci"]},
+      {"owner": "langchain-ai", "repo": "langsmith-sdk", "description": "SDK for logging, debugging, and evaluating LLM applications", "tags": ["evals", "observability", "tracing"]}
+    ],
+    "prompt_engineering": [
+      {"owner": "guidance-ai", "repo": "guidance", "description": "Language for controlling LLMs with interleaved generation and logic", "tags": ["prompts", "control-flow", "structured"]},
+      {"owner": "microsoft", "repo": "promptflow", "description": "Tools for building, evaluating, and deploying LLM-based AI flows", "tags": ["prompts", "flows", "evals"]},
+      {"owner": "instructor-ai", "repo": "instructor", "description": "Structured outputs from LLMs using Pydantic validation", "tags": ["prompts", "structured-output", "pydantic"]},
+      {"owner": "dspy-ai", "repo": "dspy", "description": "Framework for algorithmically optimizing LM prompts and weights", "tags": ["prompts", "optimization", "llm"]},
+      {"owner": "outlines-dev", "repo": "outlines", "description": "Structured text generation with regex and JSON schema constraints", "tags": ["prompts", "structured-output", "generation"]},
+      {"owner": "BerriAI", "repo": "promptlayer", "description": "Prompt versioning, management, and tracking for LLM development", "tags": ["prompts", "versioning", "management"]}
+    ],
+    "code_agents": [
+      {"owner": "princeton-nlp", "repo": "SWE-agent", "description": "Autonomous agent that solves GitHub issues using LLMs", "tags": ["code", "agents", "github"]},
+      {"owner": "Significant-Gravitas", "repo": "AutoGPT", "description": "Experimental open-source autonomous GPT-4 agent", "tags": ["code", "agents", "autonomous"]},
+      {"owner": "yoheinakajima", "repo": "babyagi", "description": "AI-powered task management and autonomous agent loop", "tags": ["code", "agents", "task-management"]},
+      {"owner": "AntonOsika", "repo": "gpt-engineer", "description": "Specify what you want to build and the AI builds it", "tags": ["code", "generation", "agents"]},
+      {"owner": "paul-gauthier", "repo": "aider", "description": "AI pair programming in your terminal with git integration", "tags": ["code", "pair-programming", "git"]},
+      {"owner": "smol-ai", "repo": "developer", "description": "AI junior developer that scaffolds entire codebases from a spec", "tags": ["code", "generation", "scaffolding"]},
+      {"owner": "Aider-AI", "repo": "aider", "description": "AI coding assistant with repository-wide context and git integration", "tags": ["code", "agents", "pair-programming"]}
+    ],
+    "memory_systems": [
+      {"owner": "mem0ai", "repo": "mem0", "description": "Memory layer for AI applications with adaptive personalization", "tags": ["memory", "personalization", "agents"]},
+      {"owner": "letta-ai", "repo": "letta", "description": "Framework for stateful LLM agents with persistent memory (formerly MemGPT)", "tags": ["memory", "stateful", "agents"]},
+      {"owner": "jina-ai", "repo": "jina", "description": "MLOps framework for multimodal AI with neural search and memory", "tags": ["memory", "search", "multimodal"]},
+      {"owner": "zep-io", "repo": "zep", "description": "Long-term memory store for LLM applications with vector search", "tags": ["memory", "vector", "llm"]},
+      {"owner": "langchain-ai", "repo": "langgraph", "description": "Framework for stateful, multi-actor applications with graph-based memory", "tags": ["memory", "graph", "agents"]},
+      {"owner": "cognitive-architecture", "repo": "cognitive-arch", "description": "Cognitive architecture patterns for persistent agent memory", "tags": ["memory", "architecture", "agents"]}
+    ],
+    "multi_modal": [
+      {"owner": "deepmind", "repo": "gemma", "description": "Gemma open models for multimodal reasoning and generation", "tags": ["multi-modal", "vision", "deepmind"]},
+      {"owner": "meta-llama", "repo": "llama", "description": "Meta's Llama family of open foundation language models", "tags": ["multi-modal", "foundation", "meta"]},
+      {"owner": "haotian-liu", "repo": "LLaVA", "description": "Large Language and Vision Assistant for multimodal understanding", "tags": ["multi-modal", "vision", "vlm"]},
+      {"owner": "microsoft", "repo": "Florence-2", "description": "Foundation model for unified image and language understanding", "tags": ["multi-modal", "vision", "microsoft"]},
+      {"owner": "openai", "repo": "CLIP", "description": "Connecting text and images via contrastive language-image pretraining", "tags": ["multi-modal", "vision", "embeddings"]},
+      {"owner": "salesforce", "repo": "BLIP", "description": "Bootstrapping language-image pre-training for vision-language tasks", "tags": ["multi-modal", "vision", "vlm"]}
+    ],
+    "llm_servers": [
+      {"owner": "vllm-project", "repo": "vllm", "description": "High-throughput and memory-efficient LLM serving engine with PagedAttention", "tags": ["serving", "inference", "throughput"]},
+      {"owner": "ollama", "repo": "ollama", "description": "Run Llama, Mistral, and other LLMs locally with a simple API", "tags": ["serving", "local", "inference"]},
+      {"owner": "ggerganov", "repo": "llama.cpp", "description": "LLM inference in pure C/C++ with GGUF model format support", "tags": ["serving", "cpp", "quantization"]},
+      {"owner": "huggingface", "repo": "text-generation-inference", "description": "Optimized LLM serving toolkit for production deployments", "tags": ["serving", "inference", "production"]},
+      {"owner": "triton-inference-server", "repo": "server", "description": "NVIDIA Triton Inference Server for scalable AI model serving", "tags": ["serving", "nvidia", "production"]},
+      {"owner": "lm-sys", "repo": "FastChat", "description": "Open platform for training, serving, and evaluating LLM chatbots", "tags": ["serving", "chat", "evaluation"]}
+    ]
+  }
+}

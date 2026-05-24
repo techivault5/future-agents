@@ -1,0 +1,178 @@
+name: AI Repo Crawler & Idea Generator
+
+on:
+  schedule:
+    # ── Step 1: Crawl repos at 06:00 UTC ──────────────────────────────────────
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "ISO date to crawl from (e.g. 2026-05-01). Default: yesterday."
+        required: false
+      skip_ideas:
+        description: "Set to 'true' to skip idea generation"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  # ── Job 1: Crawl repos ──────────────────────────────────────────────────────
+  crawl:
+    name: Crawl AI Repos
+    runs-on: ubuntu-latest
+    outputs:
+      changes_file: ${{ steps.crawl.outputs.changes_file }}
+      has_changes: ${{ steps.crawl.outputs.has_changes }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -e ".[ai]"
+
+      - name: Crawl repos
+        id: crawl
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SINCE="${{ github.event.inputs.since }}"
+          if [ -z "$SINCE" ]; then
+            SINCE=$(date -u -d "yesterday" +%Y-%m-%dT00:00:00Z 2>/dev/null || \
+                    date -u -v-1d +%Y-%m-%dT00:00:00Z)
+          fi
+          python scripts/ai_crawler/crawl.py --since "$SINCE"
+          TODAY=$(date -u +%Y-%m-%d)
+          FILE="scripts/ai_crawler/changes_${TODAY}.json"
+          echo "changes_file=$FILE" >> "$GITHUB_OUTPUT"
+          CHANGES=$(python -c "import json; d=json.load(open('$FILE')); print(d['repos_with_changes'])")
+          echo "has_changes=$( [ '$CHANGES' -gt 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+          echo "Found $CHANGES repos with changes"
+
+      - name: Commit crawl state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          TODAY=$(date -u +%Y-%m-%d)
+          git add scripts/ai_crawler/state.json "scripts/ai_crawler/changes_${TODAY}.json" || true
+          git diff --cached --quiet || git commit -m "chore: daily crawl state ${TODAY}"
+          git push || true
+
+      - name: Upload crawl artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawl-results
+          path: scripts/ai_crawler/changes_*.json
+          retention-days: 30
+
+  # ── Job 2: Run eval rubric ──────────────────────────────────────────────────
+  evaluate:
+    name: Eval Against Rubric
+    needs: crawl
+    if: needs.crawl.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      eval_file: ${{ steps.eval.outputs.eval_file }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (with AI extras)
+        run: pip install -e ".[ai]"
+
+      - name: Download crawl artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: crawl-results
+          path: scripts/ai_crawler/
+
+      - name: Run eval rubric
+        id: eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          python scripts/ai_crawler/eval_runner.py \
+            --changes "scripts/ai_crawler/changes_${TODAY}.json"
+          echo "eval_file=scripts/ai_crawler/eval_results_${TODAY}.json" >> "$GITHUB_OUTPUT"
+
+      - name: Upload eval artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: scripts/ai_crawler/eval_results_*.json
+          retention-days: 30
+
+  # ── Job 3: Generate ideas at 07:50 UTC (08:50 Ireland) ─────────────────────
+  generate-ideas:
+    name: Generate Patentable Ideas (08:50 Ireland)
+    needs: [crawl, evaluate]
+    if: |
+      needs.crawl.outputs.has_changes == 'true' &&
+      github.event.inputs.skip_ideas != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (with AI extras)
+        run: pip install -e ".[ai]"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: scripts/ai_crawler/
+
+      - name: Wait until 07:50 UTC (08:50 Ireland)
+        run: |
+          TARGET="07:50"
+          NOW=$(date -u +%H:%M)
+          echo "Current UTC: $NOW  |  Target: $TARGET"
+          while [[ "$(date -u +%H:%M)" < "$TARGET" ]]; do
+            echo "Waiting... $(date -u +%H:%M:%S)"
+            sleep 30
+          done
+          echo "It is now $(date -u +%H:%M) UTC — generating ideas"
+
+      - name: Generate patentable ideas
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          python scripts/ai_crawler/idea_generator.py \
+            --eval-file "scripts/ai_crawler/eval_results_${TODAY}.json" \
+            --changes-file "scripts/ai_crawler/changes_${TODAY}.json"
+
+      - name: Commit ideas
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          TODAY=$(date -u +%Y-%m-%d)
+          git add \
+            "scripts/ai_crawler/ideas_${TODAY}.json" \
+            "scripts/ai_crawler/idea_memory.json" || true
+          git diff --cached --quiet || \
+            git commit -m "feat: daily AI patent ideas ${TODAY} (08:50 Ireland)"
+          git push || true
+
+      - name: Upload ideas artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-ideas
+          path: scripts/ai_crawler/ideas_*.json
+          retention-days: 90
