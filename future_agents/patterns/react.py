@@ -89,9 +89,7 @@ class ReActRunner:
 
             if not tool_calls:
                 answer = "\n".join(b.text for b in text_blocks if hasattr(b, "text"))
-                return ReActResult(
-                    answer=answer, steps=steps, success=True, total_tokens=total_tokens
-                )
+                return ReActResult(answer=answer, steps=steps, success=True, total_tokens=total_tokens)
 
             messages.append({"role": "assistant", "content": response.content})
             tool_results = []

@@ -306,12 +306,8 @@ def main() -> None:
     args = p.parse_args()
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    eval_file = (
-        Path(args.eval_file) if args.eval_file else CRAWLER_DIR / f"eval_results_{today}.json"
-    )
-    changes_file = (
-        Path(args.changes_file) if args.changes_file else CRAWLER_DIR / f"changes_{today}.json"
-    )
+    eval_file = Path(args.eval_file) if args.eval_file else CRAWLER_DIR / f"eval_results_{today}.json"
+    changes_file = Path(args.changes_file) if args.changes_file else CRAWLER_DIR / f"changes_{today}.json"
 
     for f in [eval_file, changes_file]:
         if not f.exists():

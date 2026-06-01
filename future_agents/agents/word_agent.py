@@ -19,24 +19,44 @@ logger = logging.getLogger(__name__)
 # Professional color palette for Word docs (hex strings as used by docx)
 WORD_THEMES = {
     "corporate_blue": {
-        "heading1": "1565C0", "heading2": "1976D2", "heading3": "42A5F5",
-        "accent": "1565C0", "cover_bg": "1565C0", "cover_text": "FFFFFF",
-        "header_bg": "E3F2FD", "table_header": "1565C0",
+        "heading1": "1565C0",
+        "heading2": "1976D2",
+        "heading3": "42A5F5",
+        "accent": "1565C0",
+        "cover_bg": "1565C0",
+        "cover_text": "FFFFFF",
+        "header_bg": "E3F2FD",
+        "table_header": "1565C0",
     },
     "executive_green": {
-        "heading1": "2E7D32", "heading2": "388E3C", "heading3": "66BB6A",
-        "accent": "2E7D32", "cover_bg": "1B5E20", "cover_text": "FFFFFF",
-        "header_bg": "E8F5E9", "table_header": "2E7D32",
+        "heading1": "2E7D32",
+        "heading2": "388E3C",
+        "heading3": "66BB6A",
+        "accent": "2E7D32",
+        "cover_bg": "1B5E20",
+        "cover_text": "FFFFFF",
+        "header_bg": "E8F5E9",
+        "table_header": "2E7D32",
     },
     "modern_purple": {
-        "heading1": "4A148C", "heading2": "7B1FA2", "heading3": "AB47BC",
-        "accent": "7B1FA2", "cover_bg": "4A148C", "cover_text": "FFFFFF",
-        "header_bg": "F3E5F5", "table_header": "7B1FA2",
+        "heading1": "4A148C",
+        "heading2": "7B1FA2",
+        "heading3": "AB47BC",
+        "accent": "7B1FA2",
+        "cover_bg": "4A148C",
+        "cover_text": "FFFFFF",
+        "header_bg": "F3E5F5",
+        "table_header": "7B1FA2",
     },
     "classic_navy": {
-        "heading1": "0D47A1", "heading2": "1565C0", "heading3": "5C6BC0",
-        "accent": "0D47A1", "cover_bg": "0D3B6E", "cover_text": "F5F5F5",
-        "header_bg": "E8EAF6", "table_header": "0D47A1",
+        "heading1": "0D47A1",
+        "heading2": "1565C0",
+        "heading3": "5C6BC0",
+        "accent": "0D47A1",
+        "cover_bg": "0D3B6E",
+        "cover_text": "F5F5F5",
+        "header_bg": "E8EAF6",
+        "table_header": "0D47A1",
     },
 }
 
@@ -70,7 +90,8 @@ class WordAgent(BaseAgent):
         handler = handlers.get(context.intent)
         if not handler:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"Unknown intent: {context.intent}"],
             )
@@ -80,8 +101,9 @@ class WordAgent(BaseAgent):
 
     @staticmethod
     def _set_cell_color(cell, hex_color: str) -> None:
-        from docx.oxml.ns import qn
         from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+
         tc = cell._tc
         tcPr = tc.get_or_add_tcPr()
         shd = OxmlElement("w:shd")
@@ -92,8 +114,9 @@ class WordAgent(BaseAgent):
 
     @staticmethod
     def _add_horizontal_rule(doc) -> None:
-        from docx.oxml.ns import qn
         from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+
         para = doc.add_paragraph()
         pPr = para._p.get_or_add_pPr()
         pBdr = OxmlElement("w:pBdr")
@@ -107,7 +130,7 @@ class WordAgent(BaseAgent):
 
     def _style_heading(self, doc, level: int, theme: dict) -> None:
         from docx.shared import Pt, RGBColor
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
+
         style_name = f"Heading {level}"
         style = doc.styles[style_name]
         font = style.font
@@ -146,14 +169,15 @@ class WordAgent(BaseAgent):
         """
         try:
             from docx import Document
-            from docx.shared import Pt, Cm, RGBColor, Inches
-            from docx.enum.text import WD_ALIGN_PARAGRAPH
             from docx.enum.table import WD_TABLE_ALIGNMENT
-            from docx.oxml.ns import qn
+            from docx.enum.text import WD_ALIGN_PARAGRAPH
             from docx.oxml import OxmlElement
+            from docx.oxml.ns import qn
+            from docx.shared import Cm, Inches, Pt, RGBColor
         except ImportError:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=["python-docx not installed. Run: pip install python-docx"],
             )
@@ -261,6 +285,7 @@ class WordAgent(BaseAgent):
         toc_para = doc.add_paragraph()
         from docx.oxml import OxmlElement as OXE
         from docx.oxml.ns import qn as QN
+
         fld_begin = OXE("w:fldChar")
         fld_begin.set(QN("w:fldCharType"), "begin")
         fld_begin.set(QN("w:dirty"), "true")
@@ -325,9 +350,9 @@ class WordAgent(BaseAgent):
                     # Header row
                     hdr_row = tbl.rows[0]
                     th_hex = theme["table_header"]
-                    tr = int(th_hex[0:2], 16)
-                    tg = int(th_hex[2:4], 16)
-                    tb = int(th_hex[4:6], 16)
+                    int(th_hex[0:2], 16)
+                    int(th_hex[2:4], 16)
+                    int(th_hex[4:6], 16)
                     for ci, hdr_text in enumerate(headers):
                         cell = hdr_row.cells[ci]
                         cell.text = hdr_text
@@ -367,7 +392,8 @@ class WordAgent(BaseAgent):
         await self.emit("word.created", {"path": str(out_path), "sections": section_count})
 
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={
                 "file_path": str(out_path),
@@ -375,9 +401,9 @@ class WordAgent(BaseAgent):
                 "section_count": section_count,
                 "title": title,
                 "theme": theme_name,
-                "structure": ["Cover Page", "Table of Contents"] +
-                             [s.get("heading", "Section") for s in sections] +
-                             (["Summary"] if summary_text else []),
+                "structure": ["Cover Page", "Table of Contents"]
+                + [s.get("heading", "Section") for s in sections]
+                + (["Summary"] if summary_text else []),
             },
         )
 
@@ -386,12 +412,14 @@ class WordAgent(BaseAgent):
         path = Path(file_path)
         if not path.exists():
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"File not found: {file_path}"],
             )
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={"file_path": str(path), "size_bytes": path.stat().st_size, "ready": True},
         )

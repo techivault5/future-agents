@@ -116,6 +116,7 @@ def marketplace_ui() -> FileResponse:
     html_file = _STATIC_DIR / "index.html"
     if not html_file.exists():
         from fastapi.responses import HTMLResponse
+
         return HTMLResponse(
             "<h1>Marketplace UI not found</h1><p>Run with the static/ directory present.</p>",
             status_code=200,

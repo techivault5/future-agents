@@ -3,18 +3,27 @@
 Package the entire IT Agents Guardrails system as a downloadable ZIP.
 Generates all 10,000 agents first, then zips everything.
 """
-import os
+
+import subprocess
 import sys
 import zipfile
-import subprocess
-from pathlib import Path
 from datetime import datetime
-
+from pathlib import Path
 
 EXCLUDE_PATTERNS = {
-    "__pycache__", ".pytest_cache", ".git", "*.pyc", "*.pyo",
-    ".DS_Store", "Thumbs.db", "*.egg-info", ".guardrails-report.json",
-    ".guardrails-human-log.jsonl", "node_modules", ".venv", "venv"
+    "__pycache__",
+    ".pytest_cache",
+    ".git",
+    "*.pyc",
+    "*.pyo",
+    ".DS_Store",
+    "Thumbs.db",
+    "*.egg-info",
+    ".guardrails-report.json",
+    ".guardrails-human-log.jsonl",
+    "node_modules",
+    ".venv",
+    "venv",
 }
 
 
@@ -34,10 +43,7 @@ def generate_agents(root: Path):
     """Run the agent generator script."""
     print("Generating 10,000 IT agents...")
     result = subprocess.run(
-        [sys.executable, str(root / "scripts" / "generate_agents.py")],
-        cwd=str(root),
-        capture_output=True,
-        text=True
+        [sys.executable, str(root / "scripts" / "generate_agents.py")], cwd=str(root), capture_output=True, text=True
     )
     if result.returncode != 0:
         print(f"Agent generation failed: {result.stderr}")
@@ -159,7 +165,7 @@ if __name__ == "__main__":
     create_manifest(root, zip_path)
 
     print(f"\n{'=' * 60}")
-    print(f"  DONE! Your downloadable ZIP is ready:")
+    print("  DONE! Your downloadable ZIP is ready:")
     print(f"  {zip_path}")
     print(f"  {count} files packaged")
     print(f"{'=' * 60}\n")

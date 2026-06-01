@@ -58,9 +58,7 @@ class CodeImprovementWorker(BaseWorker):
             findings.append(f"Linter found {len(lint_issues)} issues")
             improvements_proposed += self._propose_lint_improvements(lint_issues)
 
-        pending_high = [
-            i for i in self.sync_engine.improvements if i.status == "proposed" and i.priority >= 0.7
-        ]
+        pending_high = [i for i in self.sync_engine.improvements if i.status == "proposed" and i.priority >= 0.7]
         if pending_high:
             findings.append(f"{len(pending_high)} high-priority improvements awaiting review")
             self._record_pending_improvements(pending_high)
@@ -134,8 +132,7 @@ class CodeImprovementWorker(BaseWorker):
                 type=ImprovementType.PROCESS_OPTIMIZATION,
                 title=f"Lint issues in {rel}",
                 description=(
-                    f"{len(file_issues)} issue(s) in {rel}: "
-                    f"{', '.join(codes[:5])}. Run `ruff check --fix` to auto-fix."
+                    f"{len(file_issues)} issue(s) in {rel}: {', '.join(codes[:5])}. Run `ruff check --fix` to auto-fix."
                 ),
                 priority=0.35,
                 evidence=[f"{i.get('code')}: {i.get('message')}" for i in file_issues[:3]],

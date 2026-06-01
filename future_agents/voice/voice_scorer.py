@@ -36,13 +36,12 @@ Iterative improvement:
 from __future__ import annotations
 
 import logging
-import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from future_agents.voice.voice_profile import SpeakerEmbedding, VoiceProfile
 from future_agents.voice.sample_processor import SampleProcessor
+from future_agents.voice.voice_profile import SpeakerEmbedding, VoiceProfile
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +49,11 @@ logger = logging.getLogger(__name__)
 @dataclass
 class VoiceScore:
     """Full scoring result for one synthesised audio clip."""
-    speaker_similarity: float    # 0–10
-    prosody_match: float         # 0–10
-    mos: float                   # 0–10
-    composite: float             # 0–10 (weighted combination)
+
+    speaker_similarity: float  # 0–10
+    prosody_match: float  # 0–10
+    mos: float  # 0–10
+    composite: float  # 0–10 (weighted combination)
     engine: str = ""
     iteration: int = 1
     details: dict = field(default_factory=dict)
@@ -149,12 +149,7 @@ class VoiceScorer:
         mos_score, mos_details = await self._score_mos(synth_path)
 
         # Composite
-        composite = round(
-            speaker_score * W_SPEAKER +
-            prosody_score * W_PROSODY +
-            mos_score * W_MOS,
-            3
-        )
+        composite = round(speaker_score * W_SPEAKER + prosody_score * W_PROSODY + mos_score * W_MOS, 3)
 
         score = VoiceScore(
             speaker_similarity=speaker_score,
@@ -230,11 +225,13 @@ class VoiceScorer:
                 details["f0_variance_ratio"] = round(float(f0_var), 4)
 
         prosody = round((pitch_score + rate_score + energy_score) / 3, 3)
-        details.update({
-            "pitch_score": round(pitch_score, 2),
-            "rate_score": round(rate_score, 2),
-            "energy_score": round(energy_score, 2),
-        })
+        details.update(
+            {
+                "pitch_score": round(pitch_score, 2),
+                "rate_score": round(rate_score, 2),
+                "energy_score": round(energy_score, 2),
+            }
+        )
         return prosody, details
 
     async def _score_mos(self, synth_path: Path) -> tuple[float, dict]:
@@ -260,8 +257,8 @@ class VoiceScorer:
 
     async def _dnsmos_score(self, synth_path: Path) -> tuple[float, dict]:
         """DNSMOS P.835 neural MOS predictor (requires onnxruntime + model weights)."""
-        import onnxruntime as ort  # type: ignore
         import numpy as np
+        import onnxruntime as ort  # type: ignore
         import soundfile as sf
 
         # Model weights would be at: models/dnsmos/sig_bak_ovr.onnx
@@ -275,6 +272,7 @@ class VoiceScorer:
         # Resample to 16kHz if needed
         if sr != 16000 and self._processor._has_librosa:
             import librosa
+
             audio = librosa.resample(audio.astype(float), orig_sr=sr, target_sr=16000)
 
         session = ort.InferenceSession(str(model_path))
@@ -289,7 +287,7 @@ class VoiceScorer:
     async def _snr_heuristic_score(self, synth_path: Path) -> tuple[float, dict]:
         """Librosa-based signal quality heuristic as MOS proxy."""
         import librosa
-        import numpy as np
+
         y, sr = librosa.load(str(synth_path), sr=None, mono=True)
 
         # Spectral flatness — lower = more tonal (better for speech)

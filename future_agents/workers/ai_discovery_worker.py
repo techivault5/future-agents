@@ -146,9 +146,7 @@ class AIDiscoveryWorker(BaseWorker):
                 if not isinstance(node, ast.ClassDef):
                     continue
                 base_names = [
-                    b.id
-                    if isinstance(b, ast.Name)
-                    else (b.attr if isinstance(b, ast.Attribute) else "")
+                    b.id if isinstance(b, ast.Name) else (b.attr if isinstance(b, ast.Attribute) else "")
                     for b in node.bases
                 ]
                 if "BaseAgent" in base_names:

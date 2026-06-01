@@ -88,9 +88,7 @@ class BaseWorker(ABC):
     async def execute(self) -> WorkerResult:
         """Run one cycle with timing, status tracking, and error isolation."""
         if not self.enabled:
-            return WorkerResult(
-                worker_id=self.worker_id, success=False, errors=["Worker is disabled"]
-            )
+            return WorkerResult(worker_id=self.worker_id, success=False, errors=["Worker is disabled"])
 
         self.status = WorkerStatus.RUNNING
         start = datetime.now(timezone.utc)
