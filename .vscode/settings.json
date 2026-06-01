@@ -1,0 +1,88 @@
+{
+  "// IT Agents Guardrails — VS Code Settings": "",
+
+  // ── Editor ──────────────────────────────────────────────────
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.rulers": [100],
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // ── Python ──────────────────────────────────────────────────
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true
+  },
+  "python.analysis.typeCheckingMode": "basic",
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["tests", "-v", "--tb=short"],
+  "ruff.lint.args": ["--select=E,W,F,I,B,C90,N,UP", "--line-length=100"],
+
+  // ── TypeScript / JavaScript ──────────────────────────────────
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+
+  // ── File exclusions (don't show in explorer) ─────────────────
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/node_modules": true,
+    "**/.git": false
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "agents/**": true
+  },
+
+  // ── Security: warn on .env files ────────────────────────────
+  "files.associations": {
+    ".env.example": "dotenv",
+    ".env": "dotenv"
+  },
+
+  // ── Guardrails: run on save (task) ──────────────────────────
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": "\\.(py|js|ts|yaml|yml|toml|json)$",
+        "isAsync": true,
+        "cmd": "python3 ${workspaceFolder}/guardrails/guardrails_engine.py ${workspaceFolder} --mode check 2>/dev/null || true"
+      }
+    ]
+  },
+
+  // ── YAML ─────────────────────────────────────────────────────
+  "yaml.schemas": {
+    "./skills/combined_guardrails.yaml": ["skills/*.yaml"],
+    "./templates/agent-templates/agent_template.yaml": ["agents/**/*.yaml"]
+  },
+
+  // ── Terminal ─────────────────────────────────────────────────
+  "terminal.integrated.env.linux": {
+    "GUARDRAILS_CONFIG": "${workspaceFolder}/config/guardrails_config.yaml",
+    "GUARDRAILS_INTERACTIVE": "true",
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.env.osx": {
+    "GUARDRAILS_CONFIG": "${workspaceFolder}/config/guardrails_config.yaml",
+    "GUARDRAILS_INTERACTIVE": "true",
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.env.windows": {
+    "GUARDRAILS_CONFIG": "${workspaceFolder}/config/guardrails_config.yaml",
+    "GUARDRAILS_INTERACTIVE": "true",
+    "PYTHONPATH": "${workspaceFolder}"
+  }
+}

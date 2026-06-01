@@ -7,4 +7,25 @@ build/
 *.egg
 .pytest_cache/
 .ruff_cache/
-output/
+
+# IT Agents Guardrails
+.env
+.guardrails-report.json
+.guardrails-human-log.jsonl
+.guardrails.sarif
+
+# Secrets — never commit these
+*.pem
+*.key
+id_rsa
+id_ed25519
+credentials.json
+secrets.json
+terraform.tfvars
+*.tfstate
+*.tfstate.backup
+
+# Container artifacts
+*.tar
+it-agents-guardrails-*.zip
+IT-AGENTS-GUARDRAILS-MANIFEST.md

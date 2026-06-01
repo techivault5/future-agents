@@ -1,0 +1,40 @@
+id: agent-00683
+name: Principal Mobile Development (Specialist) [GOVTECH]
+role: mobile-development
+type: technical
+seniority: principal
+description: Build native and cross-platform mobile applications
+primary_stack: ionic
+industry_focus: govtech
+cloud_preference: cloud-agnostic
+skills:
+- app-store-optimization
+- push-notifications
+- offline-first
+- biometrics
+- camera-apis
+- gps-location
+- bluetooth
+- in-app-purchases
+tools:
+- xcode
+- android-studio
+- fastlane
+- firebase
+- testflight
+certifications:
+- google-android
+- apple-developer
+tags:
+- it-role
+- govtech
+- mobile-development
+- principal
+- specialist
+- technical
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/ionic-service
+created_by: it-agents-generator-v1
+version: 1.0.0

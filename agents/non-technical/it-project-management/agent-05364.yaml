@@ -1,0 +1,41 @@
+id: agent-05364
+name: Lead It Project Management (Consultant) [GOVTECH]
+role: it-project-management
+type: non-technical
+seniority: lead
+description: Lead IT projects from initiation to delivery
+primary_stack: pmbok
+industry_focus: govtech
+cloud_preference: cloud-agnostic
+skills:
+- project-planning
+- risk-management
+- stakeholder-management
+- budget-management
+- resource-planning
+- reporting
+- vendor-management
+- change-management
+tools:
+- jira
+- ms-project
+- asana
+- monday
+- smartsheet
+certifications:
+- pmp
+- capm
+- prince2
+tags:
+- it-role
+- govtech
+- non-technical
+- it-project-management
+- consultant
+- lead
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

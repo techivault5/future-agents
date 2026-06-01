@@ -1,0 +1,40 @@
+id: agent-02404
+name: Intern Data Engineering (Consultant)
+role: data-engineering
+type: technical
+seniority: intern
+description: Build data pipelines and infrastructure for analytics
+primary_stack: redshift
+industry_focus: cross-industry
+cloud_preference: cloud-agnostic
+skills:
+- etl-elt
+- stream-processing
+- batch-processing
+- data-modeling
+- data-quality
+- data-governance
+- data-catalog
+- lakehouse
+tools:
+- great-expectations
+- monte-carlo
+- dbt
+- fivetran
+- airbyte
+certifications:
+- aws-data
+- gcp-data
+- databricks-associate
+tags:
+- it-role
+- consultant
+- data-engineering
+- intern
+- technical
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/redshift-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,41 @@
+id: agent-01351
+name: Junior Cloud Architecture [FINTECH]
+role: cloud-architecture
+type: technical
+seniority: junior
+description: Design scalable, secure, and cost-efficient cloud solutions
+primary_stack: azure
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- well-architected
+- cost-optimization
+- security-design
+- high-availability
+- disaster-recovery
+- multi-region
+- serverless
+- containers
+tools:
+- aws-cdk
+- pulumi
+- terraform
+- cloudformation
+- arm-templates
+certifications:
+- aws-sap
+- aws-saa
+- azure-architect
+tags:
+- it-role
+- cloud-architecture
+- fintech
+- technical
+- junior
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/azure-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,39 @@
+id: agent-00391
+name: Senior Fullstack Development [FINTECH]
+role: fullstack-development
+type: technical
+seniority: senior
+description: Build complete end-to-end applications across frontend and backend
+primary_stack: nestjs-react
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- full-sdlc
+- database-design
+- api-design
+- ui-ux
+- deployment
+- monitoring
+- ci-cd
+- testing-full-stack
+tools:
+- monorepo-tools
+- nx
+- turborepo
+- lerna
+certifications:
+- aws-saa
+- gcp-ace
+tags:
+- senior
+- it-role
+- azure
+- technical
+- fullstack-development
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/nestjs-service
+created_by: it-agents-generator-v1
+version: 1.0.0

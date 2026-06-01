@@ -1,0 +1,42 @@
+id: agent-08757
+name: Mid It Support Helpdesk (Generalist) [RETAILTECH]
+role: it-support-helpdesk
+type: non-technical
+seniority: mid
+description: Provide technical assistance to end users and internal staff
+primary_stack: itil4
+industry_focus: retailtech
+cloud_preference: gcp
+skills:
+- troubleshooting
+- active-directory
+- o365-support
+- hardware-support
+- software-installation
+- remote-support
+- documentation
+- escalation
+tools:
+- servicenow
+- jira-sm
+- zendesk
+- teamviewer
+- bomgar
+certifications:
+- comptia-a+
+- itil4-foundation
+- hda
+tags:
+- it-role
+- non-technical
+- generalist
+- retailtech
+- gcp
+- it-support-helpdesk
+- mid
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

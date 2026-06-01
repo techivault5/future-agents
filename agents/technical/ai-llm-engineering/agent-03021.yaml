@@ -1,0 +1,40 @@
+id: agent-03021
+name: Principal Ai Llm Engineering [FINTECH]
+role: ai-llm-engineering
+type: technical
+seniority: principal
+description: Build applications and systems powered by large language models
+primary_stack: autogen
+industry_focus: fintech
+cloud_preference: cloud-agnostic
+skills:
+- prompt-engineering
+- rag
+- fine-tuning
+- agent-design
+- llm-evaluation
+- llm-security
+- context-management
+- embeddings
+tools:
+- langsmith
+- promptlayer
+- trulens
+- arize
+- helicone
+certifications:
+- deeplearning-ai
+- google-genai
+- aws-bedrock
+tags:
+- it-role
+- principal
+- technical
+- ai-llm-engineering
+- fintech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/autogen-service
+created_by: it-agents-generator-v1
+version: 1.0.0

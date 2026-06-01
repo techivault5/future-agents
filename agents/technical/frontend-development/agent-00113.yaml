@@ -1,0 +1,42 @@
+id: agent-00113
+name: Intern Frontend Development (Specialist) [RETAILTECH]
+role: frontend-development
+type: technical
+seniority: intern
+description: Build user-facing web interfaces and experiences
+primary_stack: qwik
+industry_focus: retailtech
+cloud_preference: azure
+skills:
+- ui-design
+- accessibility
+- performance
+- seo
+- pwa
+- micro-frontends
+- design-systems
+- testing
+tools:
+- webpack
+- vite
+- storybook
+- playwright
+- cypress
+certifications:
+- google-ux
+- aws-clf
+- meta-frontend
+tags:
+- it-role
+- retailtech
+- specialist
+- intern
+- technical
+- frontend-development
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/qwik-service
+created_by: it-agents-generator-v1
+version: 1.0.0

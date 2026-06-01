@@ -1,0 +1,42 @@
+id: agent-01868
+name: Principal Appsec Engineering (Specialist) [EDTECH]
+role: appsec-engineering
+type: technical
+seniority: principal
+description: Embed security into software development lifecycle
+primary_stack: container-scanning
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- secure-code-review
+- threat-modeling
+- pentest-web
+- owasp-top10
+- devsecops
+- security-testing
+- vulnerability-management
+- sbom
+tools:
+- sonarqube
+- snyk
+- veracode
+- checkmarx
+- burpsuite
+certifications:
+- oscp
+- gweb
+- csslp
+tags:
+- it-role
+- edtech
+- aws
+- principal
+- specialist
+- technical
+- appsec-engineering
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/container-service
+created_by: it-agents-generator-v1
+version: 1.0.0

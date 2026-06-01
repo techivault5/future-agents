@@ -1,0 +1,41 @@
+id: agent-09127
+name: Staff Customer Success Tech (Generalist)
+role: customer-success-tech
+type: non-technical
+seniority: staff
+description: Ensure technology customers achieve their desired outcomes
+primary_stack: expansion
+industry_focus: cross-industry
+cloud_preference: aws
+skills:
+- onboarding
+- adoption-strategy
+- churn-prevention
+- upselling
+- technical-escalation
+- success-planning
+- advocacy
+- renewal-management
+tools:
+- gainsight
+- totango
+- churnzero
+- catalyst
+- salesforce
+certifications:
+- csm-certified
+- ccsm
+- pcsm
+tags:
+- it-role
+- non-technical
+- generalist
+- staff
+- aws
+- customer-success-tech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,40 @@
+id: agent-03663
+name: Intern Embedded Systems (Specialist) [EDTECH]
+role: embedded-systems
+type: technical
+seniority: intern
+description: Develop firmware and software for embedded and real-time systems
+primary_stack: esp32
+industry_focus: edtech
+cloud_preference: cloud-agnostic
+skills:
+- firmware-development
+- rtos
+- hardware-interfaces
+- low-power-design
+- debugging-jtag
+- bootloaders
+- device-drivers
+- communication-protocols
+tools:
+- gdb
+- openocd
+- segger-jlink
+- oscilloscope
+- logic-analyzer
+certifications:
+- arm-embedded
+- ieee-embedded
+tags:
+- it-role
+- embedded-systems
+- specialist
+- intern
+- technical
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/esp32-service
+created_by: it-agents-generator-v1
+version: 1.0.0

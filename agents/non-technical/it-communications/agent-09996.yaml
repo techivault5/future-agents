@@ -1,0 +1,41 @@
+id: agent-09996
+name: Senior It Communications [FINTECH]
+role: it-communications
+type: non-technical
+seniority: senior
+description: Manage internal and external IT communications and stakeholder relations
+primary_stack: integrated-communications
+industry_focus: fintech
+cloud_preference: gcp
+skills:
+- executive-communications
+- technical-writing
+- newsletter
+- intranet-management
+- town-halls
+- crisis-communications
+- social-media
+- pr-media-relations
+tools:
+- poppulo
+- staffbase
+- mailchimp
+- wordpress
+- sharepoint
+certifications:
+- iabc
+- prsa
+- google-analytics
+tags:
+- senior
+- it-communications
+- it-role
+- non-technical
+- gcp
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

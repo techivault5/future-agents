@@ -1,0 +1,41 @@
+id: agent-04124
+name: Lead Blockchain Development (Consultant) [HEALTHTECH]
+role: blockchain-development
+type: technical
+seniority: lead
+description: Build decentralized applications and blockchain infrastructure
+primary_stack: cosmos
+industry_focus: healthtech
+cloud_preference: cloud-agnostic
+skills:
+- smart-contracts
+- defi-protocols
+- nft-platforms
+- dao-governance
+- cross-chain
+- layer2
+- wallet-integration
+- cryptography
+tools:
+- hardhat
+- foundry
+- truffle
+- web3js
+- ethersjs
+certifications:
+- certified-blockchain
+- solidity-developer
+- hyperledger-admin
+tags:
+- it-role
+- blockchain-development
+- consultant
+- healthtech
+- technical
+- lead
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/cosmos-service
+created_by: it-agents-generator-v1
+version: 1.0.0

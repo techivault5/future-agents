@@ -1,0 +1,40 @@
+id: agent-00548
+name: Lead Fullstack Development (Specialist) [EDTECH]
+role: fullstack-development
+type: technical
+seniority: lead
+description: Build complete end-to-end applications across frontend and backend
+primary_stack: django-react
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- full-sdlc
+- database-design
+- api-design
+- ui-ux
+- deployment
+- monitoring
+- ci-cd
+- testing-full-stack
+tools:
+- monorepo-tools
+- nx
+- turborepo
+- lerna
+certifications:
+- aws-saa
+- gcp-ace
+tags:
+- it-role
+- aws
+- specialist
+- technical
+- fullstack-development
+- lead
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/django-service
+created_by: it-agents-generator-v1
+version: 1.0.0

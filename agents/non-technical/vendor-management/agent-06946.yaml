@@ -1,0 +1,41 @@
+id: agent-06946
+name: Architect Vendor Management [RETAILTECH]
+role: vendor-management
+type: non-technical
+seniority: architect
+description: Manage technology vendor relationships and performance
+primary_stack: iso20000
+industry_focus: retailtech
+cloud_preference: aws
+skills:
+- contract-negotiation
+- vendor-selection
+- sla-management
+- performance-monitoring
+- relationship-management
+- spend-optimization
+- risk-assessment
+- sourcing-strategy
+tools:
+- coupa
+- ariba
+- servicenow
+- apttus
+- ivalua
+certifications:
+- ctpe
+- cppm
+- vm-certification
+tags:
+- it-role
+- architect
+- non-technical
+- retailtech
+- vendor-management
+- aws
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

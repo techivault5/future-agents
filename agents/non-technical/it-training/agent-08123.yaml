@@ -1,0 +1,41 @@
+id: agent-08123
+name: Architect It Training (Specialist) [GOVTECH]
+role: it-training
+type: non-technical
+seniority: architect
+description: Design and deliver IT learning programs and enablement
+primary_stack: kirkpatrick
+industry_focus: govtech
+cloud_preference: cloud-agnostic
+skills:
+- curriculum-design
+- instructional-design
+- e-learning
+- virtual-training
+- assessment-design
+- learning-analytics
+- lms-management
+- mentoring
+tools:
+- articulate
+- lectora
+- adobe-captivate
+- moodle
+- cornerstone
+certifications:
+- cptd
+- atd
+- ctts
+tags:
+- it-role
+- architect
+- govtech
+- non-technical
+- specialist
+- it-training
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

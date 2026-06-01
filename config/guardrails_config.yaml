@@ -1,0 +1,96 @@
+# ════════════════════════════════════════════════════════════════
+# GUARDRAILS CONFIGURATION
+# IT Agents Platform — guardrails_config.yaml
+# ════════════════════════════════════════════════════════════════
+#
+# Override any skill setting here. Values here take precedence
+# over defaults in combined_guardrails.yaml.
+#
+# Environment variables can be used with ${VAR_NAME} syntax.
+# ════════════════════════════════════════════════════════════════
+
+# Active guardrails profile (standard | strict | relaxed | architect)
+active_profile: standard
+
+# ────────────────────────────────────────────────────────────────
+# SECRETS
+# ────────────────────────────────────────────────────────────────
+secrets:
+  max_file_size_kb: 500
+  block_on_any: false                     # true = fail on any severity, false = only critical
+  severity_downgrade: false              # Downgrade severity for example files
+  skip_example_files: true
+  allowlist_values:
+    - "example"
+    - "your-secret-here"
+    - "changeme"
+    - "placeholder"
+    - "REPLACE_ME"
+    - "YOUR_KEY_HERE"
+  allowlist_files: []
+  extra_patterns: []
+
+# ────────────────────────────────────────────────────────────────
+# PACKAGES
+# ────────────────────────────────────────────────────────────────
+packages:
+  version_policy: minor                  # exact | patch | minor | compatible
+  auto_upgrade: true
+  auto_upgrade_policy:
+    patch: auto
+    minor: auto
+    major: ask                           # Requires human approval
+  check_vulnerabilities: true
+  check_outdated: true
+  offline_mode: false
+  pinned_exceptions:
+    - setuptools
+    - pip
+    - wheel
+  upgrade_excludes: []
+  require_change_rationale: false        # Require written reason for package changes
+
+# ────────────────────────────────────────────────────────────────
+# FOLDER STRUCTURE
+# ────────────────────────────────────────────────────────────────
+folder_structure:
+  check_recommended: false
+  auto_create_missing_dirs: true
+  project_type: auto                     # auto | python-service | node-service | etc.
+  enforce_all: false
+
+# ────────────────────────────────────────────────────────────────
+# HUMAN INPUT
+# ────────────────────────────────────────────────────────────────
+human_input:
+  interactive: true
+  non_interactive_default: deny
+  approval_timeout_secs: 300
+  required_for_all_violations: false
+  log_file: .guardrails-human-log.jsonl
+  channels:
+    slack:
+      enabled: false
+      webhook_url: "${GUARDRAILS_SLACK_WEBHOOK}"
+    webhook:
+      enabled: false
+      url: "${GUARDRAILS_WEBHOOK_URL}"
+
+# ────────────────────────────────────────────────────────────────
+# CI/CD
+# ────────────────────────────────────────────────────────────────
+ci_cd:
+  fail_fast: false
+  exit_code_on_failure: 1
+  report_format: json
+  report_file: .guardrails-report.json
+
+# ────────────────────────────────────────────────────────────────
+# GLOBAL SETTINGS
+# ────────────────────────────────────────────────────────────────
+global:
+  log_level: INFO                        # DEBUG | INFO | WARNING | ERROR
+  dry_run: false                         # Log actions but make no changes
+  mode: check                            # check | fix | block
+  scan_hidden_files: false
+  max_scan_depth: 10

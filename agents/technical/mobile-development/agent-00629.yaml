@@ -1,0 +1,41 @@
+id: agent-00629
+name: Principal Mobile Development (Consultant) [FINTECH]
+role: mobile-development
+type: technical
+seniority: principal
+description: Build native and cross-platform mobile applications
+primary_stack: flutter
+industry_focus: fintech
+cloud_preference: aws
+skills:
+- app-store-optimization
+- push-notifications
+- offline-first
+- biometrics
+- camera-apis
+- gps-location
+- bluetooth
+- in-app-purchases
+tools:
+- xcode
+- android-studio
+- fastlane
+- firebase
+- testflight
+certifications:
+- google-android
+- apple-developer
+tags:
+- it-role
+- aws
+- mobile-development
+- principal
+- consultant
+- technical
+- fintech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/flutter-service
+created_by: it-agents-generator-v1
+version: 1.0.0

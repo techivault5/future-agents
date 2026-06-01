@@ -1,0 +1,204 @@
+# ════════════════════════════════════════════════════════════════
+# CONNECTIVE CONFIGURATION
+# IT Agents Platform — connective_config.yaml
+#
+# Wires together all components: agents, skills, guardrails,
+# CI/CD, notifications, and external integrations.
+# ════════════════════════════════════════════════════════════════
+
+platform:
+  name: IT Agents Platform
+  version: "1.0.0"
+  environment: "${PLATFORM_ENV:-development}"    # development | staging | production
+  region: "${PLATFORM_REGION:-us-east-1}"
+
+# ────────────────────────────────────────────────────────────────
+# AGENT REGISTRY
+# Where agent definitions are stored and loaded from.
+# ────────────────────────────────────────────────────────────────
+agent_registry:
+  path: agents/
+  index_file: agents/agents_index.json
+  cache_ttl_secs: 3600
+  hot_reload: true                       # Reload changed agent files without restart
+  default_profile: standard
+
+# ────────────────────────────────────────────────────────────────
+# SKILLS REGISTRY
+# ────────────────────────────────────────────────────────────────
+skills_registry:
+  combined_guardrails: skills/combined_guardrails.yaml
+  additional_skills_dir: skills/custom/
+  load_order:
+    - combined_guardrails
+    - custom/*
+
+# ────────────────────────────────────────────────────────────────
+# GUARDRAILS PIPELINE
+# Order in which guardrails checks are executed.
+# ────────────────────────────────────────────────────────────────
+guardrails_pipeline:
+  steps:
+    - id: secrets_scan
+      skill: NO_SECRETS
+      priority: 1
+      fail_fast: true                    # Stop pipeline on critical secret finding
+    - id: package_check
+      skill: PACKAGE_MANAGEMENT
+      priority: 2
+      fail_fast: false
+    - id: folder_validate
+      skill: FOLDER_STRUCTURE
+      priority: 3
+      fail_fast: false
+    - id: human_escalation
+      skill: HUMAN_INPUT
+      priority: 4
+      fail_fast: false
+      condition: "previous_steps_have_violations"
+    - id: compliance_report
+      skill: COMPLIANCE
+      priority: 5
+      fail_fast: false
+      enabled: false
+
+# ────────────────────────────────────────────────────────────────
+# INTEGRATIONS
+# External service connections.
+# ────────────────────────────────────────────────────────────────
+integrations:
+
+  # Version Control
+  git:
+    provider: github                     # github | gitlab | bitbucket | azure-devops
+    org: "${GIT_ORG}"
+    default_branch: main
+    protected_branches: [main, master, release/*, hotfix/*]
+    commit_signing_required: false
+
+  # Secrets Management
+  secrets_manager:
+    provider: "${SECRETS_PROVIDER:-env}"  # env | vault | aws-sm | azure-kv | gcp-sm
+    vault:
+      address: "${VAULT_ADDR}"
+      token: "${VAULT_TOKEN}"
+      namespace: "${VAULT_NAMESPACE:-}"
+      mount_path: secret/
+    aws_sm:
+      region: "${AWS_DEFAULT_REGION:-us-east-1}"
+    azure_kv:
+      vault_name: "${AZURE_KEY_VAULT_NAME}"
+    gcp_sm:
+      project_id: "${GCP_PROJECT_ID}"
+
+  # Package Registries
+  package_registry:
+    python:
+      index_url: "${PYPI_INDEX_URL:-https://pypi.org/simple/}"
+      trusted_hosts: []
+      private_registry: "${PRIVATE_PYPI_URL:-}"
+    nodejs:
+      registry: "${NPM_REGISTRY:-https://registry.npmjs.org/}"
+      scope_registry: {}                 # "@myorg": "https://npm.myorg.com/"
+    go:
+      proxy: "${GOPROXY:-https://proxy.golang.org,direct}"
+    ruby:
+      source: "${RUBYGEMS_SOURCE:-https://rubygems.org}"
+
+  # CI/CD Platforms
+  cicd:
+    provider: "${CICD_PROVIDER:-github-actions}"
+    github_actions:
+      enabled: true
+    gitlab_ci:
+      enabled: false
+    jenkins:
+      enabled: false
+      url: "${JENKINS_URL}"
+    azure_devops:
+      enabled: false
+      org: "${ADO_ORG}"
+
+  # Notifications
+  notifications:
+    slack:
+      enabled: "${SLACK_ENABLED:-false}"
+      webhook_url: "${GUARDRAILS_SLACK_WEBHOOK}"
+      channel: "${SLACK_ALERTS_CHANNEL:-#guardrails-alerts}"
+      mention_on_critical: "${SLACK_MENTION:-@security-team}"
+    teams:
+      enabled: "${TEAMS_ENABLED:-false}"
+      webhook_url: "${TEAMS_WEBHOOK_URL}"
+    email:
+      enabled: "${EMAIL_ENABLED:-false}"
+      smtp_host: "${SMTP_HOST}"
+      smtp_port: "${SMTP_PORT:-587}"
+      from: "${EMAIL_FROM}"
+      to: "${ALERT_EMAIL}"
+    pagerduty:
+      enabled: "${PAGERDUTY_ENABLED:-false}"
+      routing_key: "${PAGERDUTY_ROUTING_KEY}"
+      trigger_on: [critical]
+
+  # Observability
+  observability:
+    metrics:
+      enabled: true
+      provider: "${METRICS_PROVIDER:-prometheus}"
+      push_gateway: "${PROMETHEUS_PUSH_GATEWAY:-}"
+    tracing:
+      enabled: false
+      provider: "${TRACING_PROVIDER:-jaeger}"
+      endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
+    logging:
+      level: "${LOG_LEVEL:-INFO}"
+      format: "${LOG_FORMAT:-json}"
+      output: "${LOG_OUTPUT:-stdout}"
+      log_file: "${LOG_FILE:-}"
+
+  # Storage (for reports and audit logs)
+  storage:
+    local:
+      enabled: true
+      path: ".guardrails/"
+    s3:
+      enabled: "${S3_STORAGE_ENABLED:-false}"
+      bucket: "${GUARDRAILS_S3_BUCKET}"
+      prefix: "guardrails-reports/"
+      region: "${AWS_DEFAULT_REGION:-us-east-1}"
+
+# ────────────────────────────────────────────────────────────────
+# AGENT ROUTING
+# Maps agent roles to guardrails profiles and CI modes.
+# ────────────────────────────────────────────────────────────────
+agent_routing:
+  rules:
+    - match:
+        tags: [security-engineering, appsec-engineering, cloud-security, penetration-testing]
+      apply_profile: strict
+      ci_mode: block
+    - match:
+        seniority: [architect, principal, distinguished, fellow]
+      apply_profile: architect
+      ci_mode: block
+    - match:
+        type: non-technical
+      apply_profile: relaxed
+      ci_mode: check
+    - match:
+        tags: [intern, junior]
+      apply_profile: standard
+      ci_mode: warn
+    - default:
+      apply_profile: standard
+      ci_mode: check
+
+# ────────────────────────────────────────────────────────────────
+# FEATURE FLAGS
+# ────────────────────────────────────────────────────────────────
+feature_flags:
+  enable_auto_fix: true
+  enable_compliance_reporting: false
+  enable_ai_remediation_suggestions: false
+  enable_drift_detection: false
+  enable_real_time_scanning: false

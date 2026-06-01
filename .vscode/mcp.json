@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "it-agents-orchestrator": {
+      "command": "python",
+      "args": ["${workspaceFolder}/mcp_server.py"],
+      "env": {}
+    }
+  }
+}

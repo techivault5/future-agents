@@ -1,0 +1,41 @@
+id: agent-08653
+name: Mid It Operations Management (Specialist)
+role: it-operations-management
+type: non-technical
+seniority: mid
+description: Oversee day-to-day IT operations and service delivery
+primary_stack: cobit
+industry_focus: cross-industry
+cloud_preference: azure
+skills:
+- operations-planning
+- team-leadership
+- budget-management
+- vendor-oversight
+- escalation-management
+- kpi-reporting
+- continuous-improvement
+- capacity-planning
+tools:
+- servicenow
+- pagerduty
+- datadog
+- new-relic
+- opsgenie
+certifications:
+- itil4-mp
+- pmp
+- cobit-2019
+tags:
+- it-role
+- non-technical
+- it-operations-management
+- specialist
+- mid
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

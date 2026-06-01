@@ -1,0 +1,42 @@
+id: agent-01433
+name: Junior Cloud Architecture (Specialist) [RETAILTECH]
+role: cloud-architecture
+type: technical
+seniority: junior
+description: Design scalable, secure, and cost-efficient cloud solutions
+primary_stack: gcp
+industry_focus: retailtech
+cloud_preference: azure
+skills:
+- well-architected
+- cost-optimization
+- security-design
+- high-availability
+- disaster-recovery
+- multi-region
+- serverless
+- containers
+tools:
+- aws-cdk
+- pulumi
+- terraform
+- cloudformation
+- arm-templates
+certifications:
+- aws-sap
+- aws-saa
+- azure-architect
+tags:
+- it-role
+- retailtech
+- cloud-architecture
+- specialist
+- technical
+- junior
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/gcp-service
+created_by: it-agents-generator-v1
+version: 1.0.0
