@@ -16,11 +16,11 @@ from typing import Any
 
 
 class AgentRole(str, Enum):
-    RESEARCHER  = "researcher"    # gathers facts and evidence
-    PLANNER     = "planner"       # decomposes and sequences steps
-    EXECUTOR    = "executor"      # produces concrete implementation
-    CRITIC      = "critic"        # identifies flaws and edge cases
-    SYNTHESIZER = "synthesizer"   # integrates all views into final answer
+    RESEARCHER = "researcher"  # gathers facts and evidence
+    PLANNER = "planner"  # decomposes and sequences steps
+    EXECUTOR = "executor"  # produces concrete implementation
+    CRITIC = "critic"  # identifies flaws and edge cases
+    SYNTHESIZER = "synthesizer"  # integrates all views into final answer
 
 
 @dataclass
@@ -36,7 +36,7 @@ class SwarmSpec:
 class AgentVote:
     role: AgentRole
     answer: str
-    confidence: float       # 0.0-1.0
+    confidence: float  # 0.0-1.0
     reasoning: str = ""
     tokens_used: int = 0
 
@@ -52,27 +52,19 @@ class SwarmResult:
 
 # Role-specific instructions (inspired by MetaGPT company roles)
 _ROLE_INSTRUCTIONS: dict[AgentRole, str] = {
-    AgentRole.RESEARCHER: (
-        "Focus on gathering evidence, facts, and relevant context. Cite specifics."
-    ),
-    AgentRole.PLANNER: (
-        "Focus on decomposing the task into clear, ordered steps. Prioritise structure."
-    ),
-    AgentRole.EXECUTOR: (
-        "Focus on concrete, working implementation. Prefer actionable over abstract."
-    ),
-    AgentRole.CRITIC: (
-        "Focus on flaws, edge cases, risks, and what could go wrong. Be constructive."
-    ),
+    AgentRole.RESEARCHER: ("Focus on gathering evidence, facts, and relevant context. Cite specifics."),
+    AgentRole.PLANNER: ("Focus on decomposing the task into clear, ordered steps. Prioritise structure."),
+    AgentRole.EXECUTOR: ("Focus on concrete, working implementation. Prefer actionable over abstract."),
+    AgentRole.CRITIC: ("Focus on flaws, edge cases, risks, and what could go wrong. Be constructive."),
     AgentRole.SYNTHESIZER: "Integrate all perspectives into one coherent, balanced final response.",
 }
 
 # Synthesizer and Executor carry more weight; Critic is slightly downweighted
 _ROLE_WEIGHTS: dict[AgentRole, float] = {
-    AgentRole.RESEARCHER:  1.0,
-    AgentRole.PLANNER:     1.0,
-    AgentRole.EXECUTOR:    1.2,
-    AgentRole.CRITIC:      0.8,
+    AgentRole.RESEARCHER: 1.0,
+    AgentRole.PLANNER: 1.0,
+    AgentRole.EXECUTOR: 1.2,
+    AgentRole.CRITIC: 0.8,
     AgentRole.SYNTHESIZER: 1.4,
 }
 
@@ -105,9 +97,7 @@ class SwarmCoordinator:
             # Feed this round's answers into context for the next round
             spec.context = {
                 **spec.context,
-                "round_{}_answers".format(round_num): {
-                    v.role.value: v.answer[:200] for v in round_votes
-                },
+                "round_{}_answers".format(round_num): {v.role.value: v.answer[:200] for v in round_votes},
             }
 
         consensus, confidence = self._aggregate(all_votes)
@@ -121,14 +111,9 @@ class SwarmCoordinator:
             dissenting_views=dissenters,
         )
 
-    async def _run_role(
-        self, role: AgentRole, task: str, context: dict, round_num: int
-    ) -> AgentVote:
+    async def _run_role(self, role: AgentRole, task: str, context: dict, round_num: int) -> AgentVote:
         instruction = _ROLE_INSTRUCTIONS[role]
-        ctx_str = (
-            "\n".join(f"  {k}: {str(v)[:150]}" for k, v in context.items())
-            if context else "  (none)"
-        )
+        ctx_str = "\n".join(f"  {k}: {str(v)[:150]}" for k, v in context.items()) if context else "  (none)"
 
         if self._client is None:
             return AgentVote(

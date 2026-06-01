@@ -189,9 +189,7 @@ class PolicyAgent(BaseAgent):
         return {
             "total_policies": len(self._policies),
             "active_policies": len(active),
-            "overall_compliance": (
-                sum(p.compliance_rate for p in active) / len(active) if active else 1.0
-            ),
+            "overall_compliance": (sum(p.compliance_rate for p in active) / len(active) if active else 1.0),
             "total_checks": sum(p.checks_count for p in active),
             "total_violations": sum(p.violations_count for p in active),
         }

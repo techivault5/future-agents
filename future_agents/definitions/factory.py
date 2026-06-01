@@ -45,9 +45,7 @@ class AgentFactory:
         self._implementations: dict[str, ImplFactory] = {}
         self._extra_kwargs: dict[str, dict[str, Any]] = {}
 
-    def register_implementation(
-        self, agent_type: str, factory_fn: ImplFactory, **kwargs: Any
-    ) -> None:
+    def register_implementation(self, agent_type: str, factory_fn: ImplFactory, **kwargs: Any) -> None:
         """Register a factory function for a given agent type.
 
         Args:

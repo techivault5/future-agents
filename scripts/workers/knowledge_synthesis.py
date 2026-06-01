@@ -59,14 +59,10 @@ def load_knowledge_entries() -> list[dict]:
 
 def synthesise(entries: list[dict]) -> str:
     if not _ANTHROPIC_AVAILABLE:
-        return (
-            "anthropic package not installed. "
-            "Add ANTHROPIC_API_KEY secret and install with: pip install anthropic"
-        )
+        return "anthropic package not installed. Add ANTHROPIC_API_KEY secret and install with: pip install anthropic"
 
     entries_text = "\n\n".join(
-        f"[{e.get('domain', 'unknown')}] {e.get('title', 'Untitled')}\n{e.get('content', '')}"
-        for e in entries[:20]
+        f"[{e.get('domain', 'unknown')}] {e.get('title', 'Untitled')}\n{e.get('content', '')}" for e in entries[:20]
     )
     prompt = (
         f"Below are {len(entries[:20])} knowledge entries from an AI agent system.\n\n"

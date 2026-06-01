@@ -37,6 +37,7 @@ from future_agents.models.feedback import ExecutionOutcome
 
 try:
     import anthropic as _anthropic
+
     _SDK_OK = True
 except ImportError:
     _SDK_OK = False
@@ -86,9 +87,7 @@ class CognitiveSwarmAgent(BaseAgent):
 
         # Recall relevant memories to enrich context
         memories = self._memory.recall(task, top_k=3)
-        mem_ctx: dict[str, Any] = {
-            f"memory_{i}": m.entry.content[:200] for i, m in enumerate(memories)
-        }
+        mem_ctx: dict[str, Any] = {f"memory_{i}": m.entry.content[:200] for i, m in enumerate(memories)}
 
         decision = self._router.route(task, task_id=context.task_id, hints=params.get("hints", {}))
         result_data: dict[str, Any] = {
@@ -109,24 +108,28 @@ class CognitiveSwarmAgent(BaseAgent):
             elif decision.complexity == TaskComplexity.MODERATE:
                 ref: ReflexionResult = await self._reflexion.run(task, context=mem_ctx)
                 output = ref.final_answer
-                result_data.update({
-                    "strategy": "reflexion",
-                    "attempts": ref.attempts,
-                    "best_score": ref.best_score,
-                    "tokens": ref.total_tokens,
-                })
+                result_data.update(
+                    {
+                        "strategy": "reflexion",
+                        "attempts": ref.attempts,
+                        "best_score": ref.best_score,
+                        "tokens": ref.total_tokens,
+                    }
+                )
                 if not ref.success:
                     outcome = ExecutionOutcome.PARTIAL
 
             elif decision.complexity == TaskComplexity.COMPLEX:
                 swarm: SwarmResult = await self._run_swarm(task, mem_ctx)
                 output = swarm.consensus
-                result_data.update({
-                    "strategy": "swarm",
-                    "rounds": swarm.rounds,
-                    "confidence": swarm.confidence,
-                    "dissenting": len(swarm.dissenting_views),
-                })
+                result_data.update(
+                    {
+                        "strategy": "swarm",
+                        "rounds": swarm.rounds,
+                        "confidence": swarm.confidence,
+                        "dissenting": len(swarm.dissenting_views),
+                    }
+                )
 
             else:  # CRITICAL: swarm feeds reflexion for maximum quality
                 swarm = await self._run_swarm(task, mem_ctx)
@@ -136,12 +139,14 @@ class CognitiveSwarmAgent(BaseAgent):
                     context={"swarm_answer": swarm.consensus[:400], **mem_ctx},
                 )
                 output = ref.final_answer
-                result_data.update({
-                    "strategy": "swarm+reflexion",
-                    "swarm_confidence": swarm.confidence,
-                    "reflexion_score": ref.best_score,
-                    "tokens": ref.total_tokens,
-                })
+                result_data.update(
+                    {
+                        "strategy": "swarm+reflexion",
+                        "swarm_confidence": swarm.confidence,
+                        "reflexion_score": ref.best_score,
+                        "tokens": ref.total_tokens,
+                    }
+                )
                 if not ref.success:
                     outcome = ExecutionOutcome.PARTIAL
 
@@ -159,9 +164,7 @@ class CognitiveSwarmAgent(BaseAgent):
                 importance=0.6,
             )
 
-        self._router.record_outcome(
-            task_id=context.task_id, decision=decision, outcome=outcome.value
-        )
+        self._router.record_outcome(task_id=context.task_id, decision=decision, outcome=outcome.value)
 
         return TaskResult(
             task_id=context.task_id,
@@ -177,11 +180,21 @@ class CognitiveSwarmAgent(BaseAgent):
             "router_stats": self._router.stats(),
             "memory_stats": self._memory.stats(),
             "patterns_used": [
-                "AdaptiveRouter", "ReflexionLoop", "SwarmCoordinator", "LifelongMemory",
+                "AdaptiveRouter",
+                "ReflexionLoop",
+                "SwarmCoordinator",
+                "LifelongMemory",
             ],
             "frameworks_synthesised": [
-                "MRKL", "CrewAI", "MetaGPT", "AutoGen", "Reflexion",
-                "MemGPT", "Voyager", "BabyAGI", "LangGraph",
+                "MRKL",
+                "CrewAI",
+                "MetaGPT",
+                "AutoGen",
+                "Reflexion",
+                "MemGPT",
+                "Voyager",
+                "BabyAGI",
+                "LangGraph",
             ],
         }
 
@@ -196,23 +209,30 @@ class CognitiveSwarmAgent(BaseAgent):
                 model="claude-opus-4-7",
                 max_tokens=512,
                 thinking={"type": "adaptive"},
-                messages=[{
-                    "role": "user",
-                    "content": f"Task: {task}\n{ctx_str}\n\nAnswer concisely.",
-                }],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"Task: {task}\n{ctx_str}\n\nAnswer concisely.",
+                    }
+                ],
             )
             return "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
         except Exception as exc:
             return f"Direct error: {exc}"
 
     async def _run_swarm(self, task: str, context: dict) -> SwarmResult:
-        return await self._swarm.execute(SwarmSpec(
-            task=task,
-            roles=[
-                AgentRole.RESEARCHER, AgentRole.PLANNER, AgentRole.EXECUTOR,
-                AgentRole.CRITIC, AgentRole.SYNTHESIZER,
-            ],
-            context=context,
-            max_rounds=2,
-            consensus_threshold=0.65,
-        ))
+        return await self._swarm.execute(
+            SwarmSpec(
+                task=task,
+                roles=[
+                    AgentRole.RESEARCHER,
+                    AgentRole.PLANNER,
+                    AgentRole.EXECUTOR,
+                    AgentRole.CRITIC,
+                    AgentRole.SYNTHESIZER,
+                ],
+                context=context,
+                max_rounds=2,
+                consensus_threshold=0.65,
+            )
+        )

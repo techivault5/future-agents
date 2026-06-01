@@ -40,10 +40,7 @@ class WorkflowStore:
             workflows = [w for w in workflows if any(t in w.tags for t in tags)]
         if q:
             q_lower = q.lower()
-            workflows = [
-                w for w in workflows
-                if q_lower in w.name.lower() or q_lower in w.description.lower()
-            ]
+            workflows = [w for w in workflows if q_lower in w.name.lower() or q_lower in w.description.lower()]
         return sorted(workflows, key=lambda w: w.updated_at, reverse=True)
 
     def update(self, workflow_id: str, **fields) -> Optional[WorkflowDefinition]:
@@ -90,9 +87,7 @@ class ExecutionStore:
     def get(self, execution_id: str) -> Optional[WorkflowExecution]:
         return self._executions.get(execution_id)
 
-    def list_for_workflow(
-        self, workflow_id: str, limit: int = 20
-    ) -> list[WorkflowExecution]:
+    def list_for_workflow(self, workflow_id: str, limit: int = 20) -> list[WorkflowExecution]:
         ids = self._by_workflow.get(workflow_id, [])
         execs = [self._executions[eid] for eid in ids if eid in self._executions]
         return sorted(execs, key=lambda e: e.started_at, reverse=True)[:limit]

@@ -31,6 +31,7 @@ _rich_index_ready = threading.Event()
 
 # ── Basic index (5 fields from JSON) ─────────────────────────────────────────
 
+
 @lru_cache(maxsize=1)
 def load_index() -> list[dict[str, Any]]:
     """Load the 5-field agents index (cached after first read)."""
@@ -42,6 +43,7 @@ def load_index() -> list[dict[str, Any]]:
 
 
 # ── Rich index (all YAML fields — built in background at startup) ─────────────
+
 
 def build_rich_index() -> None:
     """Scan all agent YAML files and build a rich in-memory index.
@@ -93,6 +95,7 @@ def get_rich_record(agent_id: str) -> dict[str, Any] | None:
 
 # ── YAML loader ───────────────────────────────────────────────────────────────
 
+
 def load_agent_yaml(agent_id: str) -> dict[str, Any] | None:
     """Load the YAML file for a given agent ID.
 
@@ -108,6 +111,7 @@ def load_agent_yaml(agent_id: str) -> dict[str, Any] | None:
 
 
 # ── Search ────────────────────────────────────────────────────────────────────
+
 
 def search_index(
     *,
@@ -213,6 +217,7 @@ def recommend_agents(task: str, limit: int = 10) -> list[dict[str, Any]]:
 
 # ── Stats / Categories ────────────────────────────────────────────────────────
 
+
 def get_stats() -> dict[str, Any]:
     """Compute marketplace statistics (uses rich index when available)."""
     agents = list(_rich_index.values()) if _rich_index_ready.is_set() else load_index()
@@ -266,9 +271,7 @@ def get_categories() -> list[dict[str, Any]]:
         if a.get("seniority"):
             cats[key]["roles"].add(a["seniority"])
 
-    result = [
-        {**c, "roles": sorted(c["roles"])} for c in cats.values()
-    ]
+    result = [{**c, "roles": sorted(c["roles"])} for c in cats.values()]
     return sorted(result, key=lambda x: x["count"], reverse=True)
 
 
@@ -295,6 +298,7 @@ def load_system_agents() -> list[dict[str, Any]]:
 
 # ── Guardrails Skills ─────────────────────────────────────────────────────────
 
+
 @lru_cache(maxsize=1)
 def load_guardrails() -> dict[str, Any]:
     """Load the combined guardrails skill file."""
@@ -306,6 +310,7 @@ def load_guardrails() -> dict[str, Any]:
 
 # ── Project Templates ─────────────────────────────────────────────────────────
 
+
 def load_templates() -> list[dict[str, Any]]:
     """List available project-structure templates with their file trees."""
     if not TEMPLATES_DIR.exists():
@@ -314,15 +319,13 @@ def load_templates() -> list[dict[str, Any]]:
     for tdir in sorted(TEMPLATES_DIR.iterdir()):
         if not tdir.is_dir():
             continue
-        files = [
-            str(p.relative_to(tdir))
-            for p in sorted(tdir.rglob("*"))
-            if not p.name.startswith(".")
-        ]
-        templates.append({
-            "name": tdir.name,
-            "path": str(tdir),
-            "file_count": len(files),
-            "files": files[:50],  # cap for API response size
-        })
+        files = [str(p.relative_to(tdir)) for p in sorted(tdir.rglob("*")) if not p.name.startswith(".")]
+        templates.append(
+            {
+                "name": tdir.name,
+                "path": str(tdir),
+                "file_count": len(files),
+                "files": files[:50],  # cap for API response size
+            }
+        )
     return templates

@@ -13,6 +13,7 @@ from future_agents.workflows.models import (
 
 # ── Helper ─────────────────────────────────────────────────────────────────────
 
+
 def _node(node_id: str, ntype: NodeType, name: str, x: float, y: float, **params) -> WorkflowNode:
     return WorkflowNode(
         id=node_id,
@@ -28,6 +29,7 @@ def _conn(src: str, tgt: str, src_port: str = "main") -> WorkflowConnection:
 
 
 # ── Template definitions ───────────────────────────────────────────────────────
+
 
 def _tpl_agent_search() -> WorkflowTemplate:
     return WorkflowTemplate(
@@ -46,12 +48,20 @@ def _tpl_agent_search() -> WorkflowTemplate:
             nodes=[
                 _node("n1", NodeType.WEBHOOK, "Webhook Trigger", 100, 200),
                 _node(
-                    "n2", NodeType.AGENT, "Call Role Agent", 350, 200,
+                    "n2",
+                    NodeType.AGENT,
+                    "Call Role Agent",
+                    350,
+                    200,
                     agent_role="{{ input.role }}",
                     prompt="{{ input.task }}",
                 ),
                 _node(
-                    "n3", NodeType.TRANSFORM, "Shape Output", 600, 200,
+                    "n3",
+                    NodeType.TRANSFORM,
+                    "Shape Output",
+                    600,
+                    200,
                     mapping={
                         "agent": "{{ nodes['Call Role Agent'].agent_name }}",
                         "response": "{{ nodes['Call Role Agent'].response }}",
@@ -59,7 +69,11 @@ def _tpl_agent_search() -> WorkflowTemplate:
                     },
                 ),
                 _node(
-                    "n4", NodeType.EMIT_EVENT, "Emit Event", 850, 200,
+                    "n4",
+                    NodeType.EMIT_EVENT,
+                    "Emit Event",
+                    850,
+                    200,
                     event_type="workflow.agent_result",
                     data="{{ input }}",
                 ),
@@ -79,8 +93,7 @@ def _tpl_guardrails_check() -> WorkflowTemplate:
         id="tpl-guardrails-pipeline",
         name="Guardrails Check Pipeline",
         description=(
-            "Run a guardrails check on code context. "
-            "If violations are found, escalate; otherwise mark as clean."
+            "Run a guardrails check on code context. If violations are found, escalate; otherwise mark as clean."
         ),
         category="guardrails",
         tags=["security", "guardrails", "if-condition"],
@@ -91,7 +104,11 @@ def _tpl_guardrails_check() -> WorkflowTemplate:
             nodes=[
                 _node("n1", NodeType.MANUAL, "Start", 100, 200),
                 _node(
-                    "n2", NodeType.SYSTEM_AGENT, "Check Policy", 350, 200,
+                    "n2",
+                    NodeType.SYSTEM_AGENT,
+                    "Check Policy",
+                    350,
+                    200,
                     agent_id="policy",
                     intent="policy.check",
                     parameters={
@@ -100,16 +117,28 @@ def _tpl_guardrails_check() -> WorkflowTemplate:
                     },
                 ),
                 _node(
-                    "n3", NodeType.IF_CONDITION, "Violations?", 600, 200,
+                    "n3",
+                    NodeType.IF_CONDITION,
+                    "Violations?",
+                    600,
+                    200,
                     condition="{{ input.data.get('allowed', True) == False if isinstance(input, dict) else False }}",
                 ),
                 _node(
-                    "n4", NodeType.SET, "Flag Violation", 850, 100,
+                    "n4",
+                    NodeType.SET,
+                    "Flag Violation",
+                    850,
+                    100,
                     values={"status": "BLOCKED", "escalated": True},
                     mode="merge",
                 ),
                 _node(
-                    "n5", NodeType.SET, "Mark Clean", 850, 300,
+                    "n5",
+                    NodeType.SET,
+                    "Mark Clean",
+                    850,
+                    300,
                     values={"status": "ALLOWED", "escalated": False},
                     mode="merge",
                 ),
@@ -135,8 +164,7 @@ def _tpl_capability_onboarding() -> WorkflowTemplate:
         id="tpl-capability-onboarding",
         name="New Employee Capability Onboarding",
         description=(
-            "Register a new employee's capabilities, analyse gaps against "
-            "a target role, and log the growth plan."
+            "Register a new employee's capabilities, analyse gaps against a target role, and log the growth plan."
         ),
         category="hr",
         tags=["capability", "knowledge", "onboarding"],
@@ -147,7 +175,11 @@ def _tpl_capability_onboarding() -> WorkflowTemplate:
             nodes=[
                 _node("n1", NodeType.WEBHOOK, "New Employee Webhook", 100, 200),
                 _node(
-                    "n2", NodeType.SYSTEM_AGENT, "Register Capabilities", 350, 200,
+                    "n2",
+                    NodeType.SYSTEM_AGENT,
+                    "Register Capabilities",
+                    350,
+                    200,
                     agent_id="capability",
                     intent="capability.register",
                     parameters={
@@ -157,7 +189,11 @@ def _tpl_capability_onboarding() -> WorkflowTemplate:
                     },
                 ),
                 _node(
-                    "n3", NodeType.SYSTEM_AGENT, "Gap Analysis", 600, 200,
+                    "n3",
+                    NodeType.SYSTEM_AGENT,
+                    "Gap Analysis",
+                    600,
+                    200,
                     agent_id="capability",
                     intent="capability.gap_analysis",
                     parameters={
@@ -166,7 +202,11 @@ def _tpl_capability_onboarding() -> WorkflowTemplate:
                     },
                 ),
                 _node(
-                    "n4", NodeType.SYSTEM_AGENT, "Store Knowledge", 850, 200,
+                    "n4",
+                    NodeType.SYSTEM_AGENT,
+                    "Store Knowledge",
+                    850,
+                    200,
                     agent_id="knowledge",
                     intent="knowledge.add",
                     parameters={
@@ -205,13 +245,21 @@ def _tpl_http_enrich() -> WorkflowTemplate:
             nodes=[
                 _node("n1", NodeType.MANUAL, "Start", 100, 200),
                 _node(
-                    "n2", NodeType.HTTP_REQUEST, "Fetch External Data", 350, 200,
+                    "n2",
+                    NodeType.HTTP_REQUEST,
+                    "Fetch External Data",
+                    350,
+                    200,
                     method="GET",
                     url="{{ input.api_url }}",
                     headers={"Accept": "application/json"},
                 ),
                 _node(
-                    "n3", NodeType.SET, "Enrich Payload", 600, 200,
+                    "n3",
+                    NodeType.SET,
+                    "Enrich Payload",
+                    600,
+                    200,
                     values={
                         "raw_data": "{{ input.body }}",
                         "source_url": "{{ input.url }}",
@@ -220,20 +268,25 @@ def _tpl_http_enrich() -> WorkflowTemplate:
                     mode="replace",
                 ),
                 _node(
-                    "n4", NodeType.AGENT, "Analyse with Backend Agent", 850, 200,
+                    "n4",
+                    NodeType.AGENT,
+                    "Analyse with Backend Agent",
+                    850,
+                    200,
                     agent_role="backend-development",
                     prompt="Analyse this data: {{ input.raw_data }}",
                 ),
                 _node(
-                    "n5", NodeType.SWITCH, "Route by Profile", 1100, 200,
+                    "n5",
+                    NodeType.SWITCH,
+                    "Route by Profile",
+                    1100,
+                    200,
                     expression="{{ input.guardrails_profile }}",
                 ),
-                _node("n6", NodeType.SET, "Strict Path", 1350, 100,
-                      values={"path": "strict"}, mode="merge"),
-                _node("n7", NodeType.SET, "Standard Path", 1350, 200,
-                      values={"path": "standard"}, mode="merge"),
-                _node("n8", NodeType.SET, "Relaxed Path", 1350, 300,
-                      values={"path": "relaxed"}, mode="merge"),
+                _node("n6", NodeType.SET, "Strict Path", 1350, 100, values={"path": "strict"}, mode="merge"),
+                _node("n7", NodeType.SET, "Standard Path", 1350, 200, values={"path": "standard"}, mode="merge"),
+                _node("n8", NodeType.SET, "Relaxed Path", 1350, 300, values={"path": "relaxed"}, mode="merge"),
                 _node("n9", NodeType.MERGE, "Collect Results", 1600, 200),
             ],
             connections=[
@@ -270,17 +323,29 @@ def _tpl_batch_process() -> WorkflowTemplate:
             nodes=[
                 _node("n1", NodeType.MANUAL, "Start", 100, 200),
                 _node(
-                    "n2", NodeType.LOOP, "Loop Over Tasks", 350, 200,
+                    "n2",
+                    NodeType.LOOP,
+                    "Loop Over Tasks",
+                    350,
+                    200,
                     items="{{ input.tasks }}",
                     item_var="item",
                     transform="{{ {'task': item, 'status': 'pending'} }}",
                 ),
                 _node(
-                    "n3", NodeType.FILTER, "Keep Pending Only", 600, 200,
+                    "n3",
+                    NodeType.FILTER,
+                    "Keep Pending Only",
+                    600,
+                    200,
                     condition="{{ item.get('status') == 'pending' }}",
                 ),
                 _node(
-                    "n4", NodeType.CODE, "Count Results", 850, 200,
+                    "n4",
+                    NodeType.CODE,
+                    "Count Results",
+                    850,
+                    200,
                     code=(
                         "output = {\n"
                         "    'total': len(input),\n"

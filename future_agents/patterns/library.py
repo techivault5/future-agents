@@ -140,9 +140,7 @@ class PatternLibrary:
         return [
             p
             for p in self._patterns.values()
-            if kw in p.name.lower()
-            or kw in p.description.lower()
-            or any(kw in uc.lower() for uc in p.use_cases)
+            if kw in p.name.lower() or kw in p.description.lower() or any(kw in uc.lower() for uc in p.use_cases)
         ]
 
     def all(self) -> list[AgentPattern]:

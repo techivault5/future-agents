@@ -37,9 +37,19 @@ from future_agents.agentic_synthesis.swarm_coordinator import (
 )
 
 __all__ = [
-    "AdaptiveRouter", "RouteDecision", "TaskComplexity", "TaskDomain",
-    "LifelongMemory", "MemoryEntry", "MemorySearchResult",
-    "AgentRole", "SwarmCoordinator", "SwarmResult", "SwarmSpec",
-    "ReflexionLoop", "ReflexionResult", "ReflexionTrace",
+    "AdaptiveRouter",
+    "RouteDecision",
+    "TaskComplexity",
+    "TaskDomain",
+    "LifelongMemory",
+    "MemoryEntry",
+    "MemorySearchResult",
+    "AgentRole",
+    "SwarmCoordinator",
+    "SwarmResult",
+    "SwarmSpec",
+    "ReflexionLoop",
+    "ReflexionResult",
+    "ReflexionTrace",
     "CognitiveSwarmAgent",
 ]

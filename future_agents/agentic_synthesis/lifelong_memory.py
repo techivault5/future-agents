@@ -18,8 +18,23 @@ from typing import Any
 _DEFAULT_PATH = Path.home() / ".cache" / "future-agents" / "lifelong_memory.json"
 
 _STOP_WORDS = {
-    "a", "an", "the", "is", "it", "to", "for", "of", "in", "on", "at",
-    "and", "or", "not", "be", "was", "with",
+    "a",
+    "an",
+    "the",
+    "is",
+    "it",
+    "to",
+    "for",
+    "of",
+    "in",
+    "on",
+    "at",
+    "and",
+    "or",
+    "not",
+    "be",
+    "was",
+    "with",
 }
 
 
@@ -27,10 +42,10 @@ _STOP_WORDS = {
 class MemoryEntry:
     key: str
     content: str
-    memory_type: str            # "episodic" | "semantic" | "procedural"
+    memory_type: str  # "episodic" | "semantic" | "procedural"
     tags: list[str] = field(default_factory=list)
     access_count: int = 0
-    importance: float = 0.5     # 0.0-1.0; high importance survives eviction
+    importance: float = 0.5  # 0.0-1.0; high importance survives eviction
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     last_accessed: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -43,8 +58,8 @@ class MemoryEntry:
 @dataclass
 class MemorySearchResult:
     entry: MemoryEntry
-    match_type: str     # "exact" | "keyword" | "tag"
-    score: float        # 0.0-1.0
+    match_type: str  # "exact" | "keyword" | "tag"
+    score: float  # 0.0-1.0
 
 
 class LifelongMemory:
@@ -76,9 +91,7 @@ class LifelongMemory:
 
     def _save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._path.write_text(
-            json.dumps({k: v.__dict__ for k, v in self._entries.items()}, indent=2)
-        )
+        self._path.write_text(json.dumps({k: v.__dict__ for k, v in self._entries.items()}, indent=2))
 
     # ── Core API ──────────────────────────────────────────────────────────────
 
@@ -130,9 +143,7 @@ class LifelongMemory:
                 overlap = set(tags) & set(entry.tags)
                 if overlap:
                     entry.touch()
-                    results.append(MemorySearchResult(
-                        entry=entry, match_type="tag", score=len(overlap) / len(tags)
-                    ))
+                    results.append(MemorySearchResult(entry=entry, match_type="tag", score=len(overlap) / len(tags)))
                     continue
 
             # Keyword match (Jaccard similarity)
@@ -171,11 +182,7 @@ class LifelongMemory:
     # ── Internal ──────────────────────────────────────────────────────────────
 
     def _tokenize(self, text: str) -> list[str]:
-        return [
-            w.strip(".,;:!?\"'()[]")
-            for w in text.lower().split()
-            if w not in _STOP_WORDS and len(w) > 2
-        ]
+        return [w.strip(".,;:!?\"'()[]") for w in text.lower().split() if w not in _STOP_WORDS and len(w) > 2]
 
     def _consolidate(self) -> None:
         """Evict lowest-scored entries when over capacity."""

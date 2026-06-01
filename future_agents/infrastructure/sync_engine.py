@@ -136,8 +136,7 @@ class SyncEngine:
                     type=ImprovementType.POLICY_REFINEMENT,
                     title="Policy violations detected",
                     description=(
-                        f"{len(violations)} tasks had policy violations across "
-                        f"policies: {', '.join(unique_policies)}"
+                        f"{len(violations)} tasks had policy violations across policies: {', '.join(unique_policies)}"
                     ),
                     priority=0.9,
                     evidence=[f"violation_count={len(violations)}"],
@@ -151,10 +150,7 @@ class SyncEngine:
                 Improvement(
                     type=ImprovementType.PROCESS_OPTIMIZATION,
                     title="Recurring task failures",
-                    description=(
-                        f"{len(failures)} tasks failed. Review processes and "
-                        f"capability assignments."
-                    ),
+                    description=(f"{len(failures)} tasks failed. Review processes and capability assignments."),
                     priority=0.8,
                     evidence=[fb.details for fb in failures if fb.details],
                 )

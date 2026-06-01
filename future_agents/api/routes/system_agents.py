@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api/system-agents", tags=["system-agents"])
 
 class InvokeRequest(BaseModel):
     """Invoke a system agent intent."""
+
     intent: str
     parameters: dict[str, Any] | None = None
 
@@ -30,31 +31,33 @@ def list_system_agents() -> list[dict[str, Any]]:
     result = []
     for a in agents:
         skills = a.get("skills", [])
-        result.append({
-            "id": a["_id"],
-            "name": a.get("name", a["_id"]),
-            "type": a.get("type", ""),
-            "version": a.get("version", "1.0.0"),
-            "description": a.get("description", ""),
-            "domain": a.get("domain", ""),
-            "tags": a.get("tags", []),
-            "skills": [
-                {
-                    "name": s.get("name", ""),
-                    "description": s.get("description", ""),
-                    "intent": s.get("intent", ""),
-                    "level": s.get("level", "basic"),
-                    "tags": s.get("tags", []),
-                    "inputs": s.get("inputs", []),
-                    "outputs": s.get("outputs", []),
-                    "examples": s.get("examples", [])[:2],
-                }
-                for s in skills
-            ],
-            "callable_intents": [s.get("intent") for s in skills if s.get("intent")],
-            "personality": a.get("personality", {}),
-            "constraints": a.get("constraints", {}),
-        })
+        result.append(
+            {
+                "id": a["_id"],
+                "name": a.get("name", a["_id"]),
+                "type": a.get("type", ""),
+                "version": a.get("version", "1.0.0"),
+                "description": a.get("description", ""),
+                "domain": a.get("domain", ""),
+                "tags": a.get("tags", []),
+                "skills": [
+                    {
+                        "name": s.get("name", ""),
+                        "description": s.get("description", ""),
+                        "intent": s.get("intent", ""),
+                        "level": s.get("level", "basic"),
+                        "tags": s.get("tags", []),
+                        "inputs": s.get("inputs", []),
+                        "outputs": s.get("outputs", []),
+                        "examples": s.get("examples", [])[:2],
+                    }
+                    for s in skills
+                ],
+                "callable_intents": [s.get("intent") for s in skills if s.get("intent")],
+                "personality": a.get("personality", {}),
+                "constraints": a.get("constraints", {}),
+            }
+        )
     return result
 
 
@@ -81,6 +84,7 @@ async def invoke_system_agent(agent_id: str, body: InvokeRequest) -> dict[str, A
 
     try:
         from future_agents.system import AgentSystem
+
         system = AgentSystem()
         await system.start()
         result = await system.ask(body.intent, body.parameters or {})
@@ -92,8 +96,7 @@ async def invoke_system_agent(agent_id: str, body: InvokeRequest) -> dict[str, A
         raise HTTPException(
             status_code=503,
             detail=(
-                f"System agent invoke failed: {exc}. "
-                "Ensure the AgentSystem dependencies are installed and configured."
+                f"System agent invoke failed: {exc}. Ensure the AgentSystem dependencies are installed and configured."
             ),
         ) from exc
 
@@ -121,17 +124,19 @@ def get_system_agent_mcp(agent_id: str, base_url: str = "http://localhost:8000")
             if inp.get("required"):
                 inputs_schema["required"].append(inp["name"])
 
-        tools.append({
-            "name": intent.replace(".", "_"),
-            "description": s.get("description", s.get("name", intent)),
-            "input_schema": inputs_schema,
-            "http": {
-                "method": "POST",
-                "url": f"{base_url}/api/system-agents/{agent_id}/invoke",
-                "headers": {"Content-Type": "application/json"},
-                "body_template": f'{{"intent": "{intent}", "parameters": {{{{...}}}}}}',
-            },
-        })
+        tools.append(
+            {
+                "name": intent.replace(".", "_"),
+                "description": s.get("description", s.get("name", intent)),
+                "input_schema": inputs_schema,
+                "http": {
+                    "method": "POST",
+                    "url": f"{base_url}/api/system-agents/{agent_id}/invoke",
+                    "headers": {"Content-Type": "application/json"},
+                    "body_template": f'{{"intent": "{intent}", "parameters": {{{{...}}}}}}',
+                },
+            }
+        )
 
     return {
         "mcpServers": {

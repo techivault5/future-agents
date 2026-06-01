@@ -9,8 +9,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
-
 # ── Node types ────────────────────────────────────────────────────────────────
+
 
 class NodeType(str, Enum):
     # Triggers (entry points)
@@ -20,7 +20,7 @@ class NodeType(str, Enum):
     EVENT_TRIGGER = "event_trigger"
 
     # Agent invocation
-    AGENT = "agent"             # IT role agent (10K catalog)
+    AGENT = "agent"  # IT role agent (10K catalog)
     SYSTEM_AGENT = "system_agent"  # Live system agent (capability, knowledge, etc.)
 
     # HTTP / external
@@ -45,6 +45,7 @@ class NodeType(str, Enum):
 
 
 # ── Workflow definition ───────────────────────────────────────────────────────
+
 
 class NodePosition(BaseModel):
     x: float = 0.0
@@ -95,6 +96,7 @@ class WorkflowDefinition(BaseModel):
 
 # ── Execution state ───────────────────────────────────────────────────────────
 
+
 class ExecutionStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
@@ -137,6 +139,7 @@ class WorkflowExecution(BaseModel):
 
 
 # ── Built-in templates ────────────────────────────────────────────────────────
+
 
 class WorkflowTemplate(BaseModel):
     """A pre-built workflow template."""

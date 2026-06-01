@@ -56,9 +56,7 @@ class KnowledgeEntry(BaseModel):
         self.access_count += 1
         # Exponential moving average for usefulness
         alpha = 0.1
-        self.usefulness_score = (
-            alpha * (1.0 if was_useful else 0.0) + (1 - alpha) * self.usefulness_score
-        )
+        self.usefulness_score = alpha * (1.0 if was_useful else 0.0) + (1 - alpha) * self.usefulness_score
         self.updated_at = datetime.now(timezone.utc)
 
     def rollback(self, to_version: int) -> bool:

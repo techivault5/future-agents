@@ -8,7 +8,6 @@ scaffold new projects that match their chosen agent's stack.
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
 from future_agents.api import loader
 
@@ -76,12 +75,16 @@ def get_template_for_agent(agent_id: str) -> dict:
             **match,
             "description": _template_description(template_name or ""),
             "use_cases": _template_use_cases(template_name or ""),
-        } if match else None,
+        }
+        if match
+        else None,
         "scaffold_command": (
             f"python guardrails/guardrails_engine.py . --mode fix "
             f"--project-type {template_name or 'python-service'} "
             f"--project-name my-project"
-        ) if match else None,
+        )
+        if match
+        else None,
     }
 
 

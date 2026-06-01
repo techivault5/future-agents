@@ -6,7 +6,6 @@ Title → Index → Introduction → Topic slides → Architecture → Summary �
 
 from __future__ import annotations
 
-import io
 import logging
 from pathlib import Path
 from typing import Any
@@ -18,33 +17,44 @@ logger = logging.getLogger(__name__)
 
 # ── Light color palette ──────────────────────────────────────────────────────
 PALETTE = {
-    "sky":      {"bg": (0xE3, 0xF2, 0xFD), "accent": (0x19, 0x76, 0xD2), "text": (0x0D, 0x47, 0xA1)},
-    "mint":     {"bg": (0xE8, 0xF5, 0xE9), "accent": (0x2E, 0x7D, 0x32), "text": (0x1B, 0x5E, 0x20)},
+    "sky": {"bg": (0xE3, 0xF2, 0xFD), "accent": (0x19, 0x76, 0xD2), "text": (0x0D, 0x47, 0xA1)},
+    "mint": {"bg": (0xE8, 0xF5, 0xE9), "accent": (0x2E, 0x7D, 0x32), "text": (0x1B, 0x5E, 0x20)},
     "lavender": {"bg": (0xF3, 0xE5, 0xF5), "accent": (0x7B, 0x1F, 0xA2), "text": (0x4A, 0x14, 0x8C)},
-    "sunrise":  {"bg": (0xFF, 0xF8, 0xE1), "accent": (0xF5, 0x7F, 0x17), "text": (0xE6, 0x5C, 0x00)},
-    "coral":    {"bg": (0xFF, 0xEB, 0xEE), "accent": (0xC6, 0x28, 0x28), "text": (0xB7, 0x1C, 0x1C)},
-    "teal":     {"bg": (0xE0, 0xF2, 0xF1), "accent": (0x00, 0x69, 0x6C), "text": (0x00, 0x4D, 0x40)},
+    "sunrise": {"bg": (0xFF, 0xF8, 0xE1), "accent": (0xF5, 0x7F, 0x17), "text": (0xE6, 0x5C, 0x00)},
+    "coral": {"bg": (0xFF, 0xEB, 0xEE), "accent": (0xC6, 0x28, 0x28), "text": (0xB7, 0x1C, 0x1C)},
+    "teal": {"bg": (0xE0, 0xF2, 0xF1), "accent": (0x00, 0x69, 0x6C), "text": (0x00, 0x4D, 0x40)},
 }
 
 SLIDE_THEMES = [
-    "sky", "mint", "lavender", "sunrise", "coral", "teal",
-    "sky", "mint", "lavender", "sunrise",
+    "sky",
+    "mint",
+    "lavender",
+    "sunrise",
+    "coral",
+    "teal",
+    "sky",
+    "mint",
+    "lavender",
+    "sunrise",
 ]
 
 
 def _rgb(r: int, g: int, b: int):
     from pptx.util import Pt  # noqa — imported here to keep top-level import clean
     from pptx.dml.color import RGBColor
+
     return RGBColor(r, g, b)
 
 
 def _pt(n: float):
     from pptx.util import Pt
+
     return Pt(n)
 
 
 def _emu(cm: float):
     from pptx.util import Cm
+
     return Cm(cm)
 
 
@@ -77,7 +87,8 @@ class PPTAgent(BaseAgent):
         handler = handlers.get(context.intent)
         if not handler:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"Unknown intent: {context.intent}"],
             )
@@ -98,12 +109,13 @@ class PPTAgent(BaseAgent):
         """
         try:
             from pptx import Presentation
-            from pptx.util import Inches, Pt, Cm
             from pptx.dml.color import RGBColor
             from pptx.enum.text import PP_ALIGN
+            from pptx.util import Cm, Inches, Pt
         except ImportError:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=["python-pptx not installed. Run: pip install python-pptx"],
             )
@@ -128,10 +140,12 @@ class PPTAgent(BaseAgent):
         blank_layout = prs.slide_layouts[6]  # blank
 
         def add_bg(slide, color: RGBColor):
-            from pptx.util import Inches
             bg = slide.shapes.add_shape(
                 1,  # MSO_SHAPE_TYPE.RECTANGLE
-                0, 0, prs.slide_width, prs.slide_height,
+                0,
+                0,
+                prs.slide_width,
+                prs.slide_height,
             )
             bg.fill.solid()
             bg.fill.fore_color.rgb = color
@@ -141,15 +155,22 @@ class PPTAgent(BaseAgent):
 
         def add_accent_bar(slide, color: RGBColor, height_cm: float = 0.8):
             bar = slide.shapes.add_shape(
-                1, 0, 0, prs.slide_width, _emu(height_cm),
+                1,
+                0,
+                0,
+                prs.slide_width,
+                _emu(height_cm),
             )
             bar.fill.solid()
             bar.fill.fore_color.rgb = color
             bar.line.fill.background()
             return bar
 
-        def text_box(slide, left, top, width, height, text, size, bold=False, color=None, align=PP_ALIGN.LEFT, italic=False):
-            from pptx.util import Inches, Pt
+        def text_box(
+            slide, left, top, width, height, text, size, bold=False, color=None, align=PP_ALIGN.LEFT, italic=False
+        ):  # noqa: E501
+            from pptx.util import Pt
+
             txb = slide.shapes.add_textbox(left, top, width, height)
             tf = txb.text_frame
             tf.word_wrap = True
@@ -182,22 +203,42 @@ class PPTAgent(BaseAgent):
         # Title text
         text_box(
             slide,
-            Inches(1), Inches(1.8), Inches(11.33), Inches(1.8),
-            title, 44, bold=True, color=text_color, align=PP_ALIGN.CENTER,
+            Inches(1),
+            Inches(1.8),
+            Inches(11.33),
+            Inches(1.8),
+            title,
+            44,
+            bold=True,
+            color=text_color,
+            align=PP_ALIGN.CENTER,
         )
 
         if subtitle:
             text_box(
                 slide,
-                Inches(2), Inches(3.7), Inches(9.33), Inches(0.8),
-                subtitle, 22, italic=True, color=RGBColor(0x55, 0x55, 0x55), align=PP_ALIGN.CENTER,
+                Inches(2),
+                Inches(3.7),
+                Inches(9.33),
+                Inches(0.8),
+                subtitle,
+                22,
+                italic=True,
+                color=RGBColor(0x55, 0x55, 0x55),
+                align=PP_ALIGN.CENTER,
             )
 
         # Author / date
         text_box(
             slide,
-            Inches(1), Inches(5.0), Inches(11.33), Inches(0.5),
-            f"Presented by {author}", 14, color=RGBColor(0x77, 0x77, 0x77), align=PP_ALIGN.CENTER,
+            Inches(1),
+            Inches(5.0),
+            Inches(11.33),
+            Inches(0.5),
+            f"Presented by {author}",
+            14,
+            color=RGBColor(0x77, 0x77, 0x77),
+            align=PP_ALIGN.CENTER,
         )
 
         # ── SLIDE 2: Table of Contents ──────────────────────────────
@@ -205,12 +246,27 @@ class PPTAgent(BaseAgent):
         add_bg(slide, bg_color)
         add_accent_bar(slide, accent)
 
-        text_box(slide, Inches(0.5), Inches(0.15), Inches(12), Inches(0.7),
-                 "Table of Contents", 22, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+        text_box(
+            slide,
+            Inches(0.5),
+            Inches(0.15),
+            Inches(12),
+            Inches(0.7),
+            "Table of Contents",
+            22,
+            bold=True,
+            color=RGBColor(0xFF, 0xFF, 0xFF),
+        )
 
-        toc_items = ["Introduction"] + [t.get("title", f"Topic {i+1}") for i, t in enumerate(topics)] + [
-            "Architecture Overview", "Summary", "Q & A",
-        ]
+        toc_items = (
+            ["Introduction"]
+            + [t.get("title", f"Topic {i + 1}") for i, t in enumerate(topics)]
+            + [
+                "Architecture Overview",
+                "Summary",
+                "Q & A",
+            ]
+        )
         col_break = (len(toc_items) + 1) // 2
 
         for idx, item in enumerate(toc_items):
@@ -233,19 +289,26 @@ class PPTAgent(BaseAgent):
             run.font.bold = True
             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
 
-            text_box(slide, lx + _emu(0.7), ly, Inches(5.5), _emu(0.65),
-                     item, 14, color=text_color)
+            text_box(slide, lx + _emu(0.7), ly, Inches(5.5), _emu(0.65), item, 14, color=text_color)
 
         # ── SLIDE 3: Introduction ───────────────────────────────────
         slide = prs.slides.add_slide(blank_layout)
         add_bg(slide, bg_color)
         add_accent_bar(slide, accent)
-        text_box(slide, Inches(0.5), Inches(0.15), Inches(12), Inches(0.7),
-                 "Introduction", 22, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+        text_box(
+            slide,
+            Inches(0.5),
+            Inches(0.15),
+            Inches(12),
+            Inches(0.7),
+            "Introduction",
+            22,
+            bold=True,
+            color=RGBColor(0xFF, 0xFF, 0xFF),
+        )
 
         intro_text = p.get("introduction", f"This presentation covers key aspects of: {title}.")
-        text_box(slide, Inches(0.8), Inches(1.2), Inches(11.6), Inches(5.5),
-                 intro_text, 18, color=text_color)
+        text_box(slide, Inches(0.8), Inches(1.2), Inches(11.6), Inches(5.5), intro_text, 18, color=text_color)
 
         # ── SLIDES 4..N: Topics ─────────────────────────────────────
         for i, topic in enumerate(topics):
@@ -277,8 +340,17 @@ class PPTAgent(BaseAgent):
             run.font.color.rgb = t_accent
 
             # Title
-            text_box(slide, Inches(1.0), Inches(0.3), Inches(11.5), Inches(0.9),
-                     topic.get("title", ""), 28, bold=True, color=t_text)
+            text_box(
+                slide,
+                Inches(1.0),
+                Inches(0.3),
+                Inches(11.5),
+                Inches(0.9),
+                topic.get("title", ""),
+                28,
+                bold=True,
+                color=t_text,
+            )
 
             # Divider line
             divider = slide.shapes.add_shape(1, Inches(1.0), Inches(1.35), Inches(11.3), _emu(0.06))
@@ -294,8 +366,9 @@ class PPTAgent(BaseAgent):
                 dot.fill.solid()
                 dot.fill.fore_color.rgb = t_accent
                 dot.line.fill.background()
-                text_box(slide, Inches(1.6), by, Inches(11.0), Inches(0.7),
-                         bullet, 15, color=RGBColor(0x33, 0x33, 0x33))
+                text_box(
+                    slide, Inches(1.6), by, Inches(11.0), Inches(0.7), bullet, 15, color=RGBColor(0x33, 0x33, 0x33)
+                )
 
             # Speaker notes
             notes = topic.get("notes", "")
@@ -306,14 +379,26 @@ class PPTAgent(BaseAgent):
         slide = prs.slides.add_slide(blank_layout)
         add_bg(slide, RGBColor(0xF0, 0xF4, 0xFF))
         add_accent_bar(slide, RGBColor(0x19, 0x76, 0xD2))
-        text_box(slide, Inches(0.5), Inches(0.15), Inches(12), Inches(0.7),
-                 "Architecture Overview", 22, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+        text_box(
+            slide,
+            Inches(0.5),
+            Inches(0.15),
+            Inches(12),
+            Inches(0.7),
+            "Architecture Overview",
+            22,
+            bold=True,
+            color=RGBColor(0xFF, 0xFF, 0xFF),
+        )
 
-        arch_boxes = p.get("architecture", [
-            {"label": "Input Layer", "color": (0x42, 0xA5, 0xF5)},
-            {"label": "Processing Engine", "color": (0x66, 0xBB, 0x6A)},
-            {"label": "Output Layer", "color": (0xFFA7, 0x26, 0x00)},
-        ])
+        arch_boxes = p.get(
+            "architecture",
+            [
+                {"label": "Input Layer", "color": (0x42, 0xA5, 0xF5)},
+                {"label": "Processing Engine", "color": (0x66, 0xBB, 0x6A)},
+                {"label": "Output Layer", "color": (0xFFA7, 0x26, 0x00)},
+            ],
+        )
 
         box_w = Inches(2.8)
         box_h = Inches(1.2)
@@ -347,21 +432,42 @@ class PPTAgent(BaseAgent):
                 arr.line.fill.background()
 
         arch_desc = p.get("architecture_description", "High-level system component flow.")
-        text_box(slide, Inches(1), Inches(4.2), Inches(11.3), Inches(1.0),
-                 arch_desc, 14, color=RGBColor(0x44, 0x44, 0x44), align=PP_ALIGN.CENTER)
+        text_box(
+            slide,
+            Inches(1),
+            Inches(4.2),
+            Inches(11.3),
+            Inches(1.0),
+            arch_desc,
+            14,
+            color=RGBColor(0x44, 0x44, 0x44),
+            align=PP_ALIGN.CENTER,
+        )
 
         # ── Summary Slide ───────────────────────────────────────────
         slide = prs.slides.add_slide(blank_layout)
         add_bg(slide, bg_color)
         add_accent_bar(slide, accent)
-        text_box(slide, Inches(0.5), Inches(0.15), Inches(12), Inches(0.7),
-                 "Summary", 22, bold=True, color=RGBColor(0xFF, 0xFF, 0xFF))
+        text_box(
+            slide,
+            Inches(0.5),
+            Inches(0.15),
+            Inches(12),
+            Inches(0.7),
+            "Summary",
+            22,
+            bold=True,
+            color=RGBColor(0xFF, 0xFF, 0xFF),
+        )
 
-        summary_points = p.get("summary", [
-            f"Key insights from: {title}",
-            "Review all topic highlights",
-            "Actionable next steps defined",
-        ])
+        summary_points = p.get(
+            "summary",
+            [
+                f"Key insights from: {title}",
+                "Review all topic highlights",
+                "Actionable next steps defined",
+            ],
+        )
         for idx_s, sp in enumerate(summary_points[:6]):
             sy = Inches(1.2) + idx_s * Inches(0.85)
             chk = slide.shapes.add_shape(1, Inches(0.7), sy + _emu(0.1), _emu(0.55), _emu(0.55))
@@ -374,8 +480,7 @@ class PPTAgent(BaseAgent):
             run.text = "✓"
             run.font.size = _pt(12)
             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-            text_box(slide, Inches(1.4), sy, Inches(11.2), Inches(0.8),
-                     sp, 16, color=text_color)
+            text_box(slide, Inches(1.4), sy, Inches(11.2), Inches(0.8), sp, 16, color=text_color)
 
         # ── Q&A Slide ───────────────────────────────────────────────
         slide = prs.slides.add_slide(blank_layout)
@@ -391,11 +496,29 @@ class PPTAgent(BaseAgent):
         run.font.bold = True
         run.font.color.rgb = RGBColor(*[min(c + 30, 255) for c in theme["bg"]])
 
-        text_box(slide, Inches(0), Inches(2.5), prs.slide_width, Inches(1.5),
-                 "Questions & Answers", 40, bold=True, color=accent, align=PP_ALIGN.CENTER)
-        text_box(slide, Inches(1), Inches(4.2), Inches(11.33), Inches(0.6),
-                 "Thank you for your attention!", 18,
-                 color=RGBColor(0x55, 0x55, 0x55), align=PP_ALIGN.CENTER)
+        text_box(
+            slide,
+            Inches(0),
+            Inches(2.5),
+            prs.slide_width,
+            Inches(1.5),
+            "Questions & Answers",
+            40,
+            bold=True,
+            color=accent,
+            align=PP_ALIGN.CENTER,
+        )
+        text_box(
+            slide,
+            Inches(1),
+            Inches(4.2),
+            Inches(11.33),
+            Inches(0.6),
+            "Thank you for your attention!",
+            18,
+            color=RGBColor(0x55, 0x55, 0x55),
+            align=PP_ALIGN.CENTER,
+        )
 
         # ── Save ────────────────────────────────────────────────────
         out_path = self._output_dir / f"{output_name}.pptx"
@@ -407,7 +530,8 @@ class PPTAgent(BaseAgent):
         await self.emit("ppt.created", {"path": str(out_path), "slides": slide_count})
 
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={
                 "file_path": str(out_path),
@@ -416,9 +540,13 @@ class PPTAgent(BaseAgent):
                 "theme": theme_name,
                 "topics": [t.get("title") for t in topics],
                 "structure": [
-                    "Title", "Table of Contents", "Introduction",
+                    "Title",
+                    "Table of Contents",
+                    "Introduction",
                     *[t.get("title", "Topic") for t in topics],
-                    "Architecture Overview", "Summary", "Q & A",
+                    "Architecture Overview",
+                    "Summary",
+                    "Q & A",
                 ],
             },
         )
@@ -428,13 +556,15 @@ class PPTAgent(BaseAgent):
         path = Path(file_path)
         if not path.exists():
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"File not found: {file_path}"],
             )
         size = path.stat().st_size
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={"file_path": str(path), "size_bytes": size, "ready": True},
         )

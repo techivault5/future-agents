@@ -25,7 +25,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -38,127 +38,445 @@ _INDEX_FILE = _AGENTS_DIR / "agents_index.json"
 # ── Intent + domain keyword maps ─────────────────────────────────────────────
 
 _INTENT_KEYWORDS: dict[str, list[str]] = {
-    "code_review":   ["review", "check", "audit", "analyse", "analyze", "lint",
-                      "quality", "clean", "smell", "refactor"],
-    "architecture":  ["design", "architect", "structure", "pattern", "diagram",
-                      "system design", "scalab", "modular", "microservice", "monolith"],
-    "security":      ["security", "vulnerab", "auth", "permission", "hack", "injection",
-                      "xss", "csrf", "owasp", "pentest", "encrypt", "jwt", "oauth",
-                      "ssrf", "rce", "privilege"],
-    "debugging":     ["bug", "error", "fix", "broken", "issue", "crash", "traceback",
-                      "exception", "fail", "wrong", "problem", "debug"],
-    "deployment":    ["deploy", "release", "ship", "ci", "cd", "pipeline", "docker",
-                      "kubernetes", "k8s", "helm", "container", "infra", "terraform",
-                      "cloud", "aws", "gcp", "azure"],
-    "development":   ["build", "create", "implement", "develop", "write", "code",
-                      "generate", "scaffold", "boilerplate"],
-    "optimization":  ["optim", "performance", "slow", "faster", "efficient", "profil",
-                      "memory", "cpu", "latency", "throughput", "cache"],
-    "testing":       ["test", "unit", "integration", "e2e", "mock", "coverage",
-                      "fixture", "assert", "pytest", "jest", "spec"],
-    "documentation": ["document", "readme", "docs", "comment", "explain", "api doc",
-                      "swagger", "openapi", "runbook"],
-    "data":          ["data", "pipeline", "etl", "warehouse", "analytics", "query",
-                      "sql", "nosql", "migrate", "schema", "index"],
-    "ml_ai":         ["machine learning", "ml", "model", "train", "inference",
-                      "neural", "nlp", "cv", "llm", "embedding", "fine-tun"],
+    "code_review": ["review", "check", "audit", "analyse", "analyze", "lint", "quality", "clean", "smell", "refactor"],
+    "architecture": [
+        "design",
+        "architect",
+        "structure",
+        "pattern",
+        "diagram",
+        "system design",
+        "scalab",
+        "modular",
+        "microservice",
+        "monolith",
+    ],
+    "security": [
+        "security",
+        "vulnerab",
+        "auth",
+        "permission",
+        "hack",
+        "injection",
+        "xss",
+        "csrf",
+        "owasp",
+        "pentest",
+        "encrypt",
+        "jwt",
+        "oauth",
+        "ssrf",
+        "rce",
+        "privilege",
+    ],
+    "debugging": [
+        "bug",
+        "error",
+        "fix",
+        "broken",
+        "issue",
+        "crash",
+        "traceback",
+        "exception",
+        "fail",
+        "wrong",
+        "problem",
+        "debug",
+    ],
+    "deployment": [
+        "deploy",
+        "release",
+        "ship",
+        "ci",
+        "cd",
+        "pipeline",
+        "docker",
+        "kubernetes",
+        "k8s",
+        "helm",
+        "container",
+        "infra",
+        "terraform",
+        "cloud",
+        "aws",
+        "gcp",
+        "azure",
+    ],
+    "development": ["build", "create", "implement", "develop", "write", "code", "generate", "scaffold", "boilerplate"],
+    "optimization": [
+        "optim",
+        "performance",
+        "slow",
+        "faster",
+        "efficient",
+        "profil",
+        "memory",
+        "cpu",
+        "latency",
+        "throughput",
+        "cache",
+    ],
+    "testing": [
+        "test",
+        "unit",
+        "integration",
+        "e2e",
+        "mock",
+        "coverage",
+        "fixture",
+        "assert",
+        "pytest",
+        "jest",
+        "spec",
+    ],
+    "documentation": ["document", "readme", "docs", "comment", "explain", "api doc", "swagger", "openapi", "runbook"],
+    "data": [
+        "data",
+        "pipeline",
+        "etl",
+        "warehouse",
+        "analytics",
+        "query",
+        "sql",
+        "nosql",
+        "migrate",
+        "schema",
+        "index",
+    ],
+    "ml_ai": [
+        "machine learning",
+        "ml",
+        "model",
+        "train",
+        "inference",
+        "neural",
+        "nlp",
+        "cv",
+        "llm",
+        "embedding",
+        "fine-tun",
+    ],
 }
 
 _DOMAIN_KEYWORDS: dict[str, list[str]] = {
     # Frontend: specific frameworks/tools only, NO generic 2-3-char words
-    "frontend":   ["react", "vue", "angular", "svelte", "nextjs", "nuxt", "html",
-                   "css", "sass", "webpack", "vite", "tailwind", "browser", "dom",
-                   "spa", "ssr", "accessibility", "a11y", "component", "storybook",
-                   "figma", "typescript frontend", "jamstack"],
+    "frontend": [
+        "react",
+        "vue",
+        "angular",
+        "svelte",
+        "nextjs",
+        "nuxt",
+        "html",
+        "css",
+        "sass",
+        "webpack",
+        "vite",
+        "tailwind",
+        "browser",
+        "dom",
+        "spa",
+        "ssr",
+        "accessibility",
+        "a11y",
+        "component",
+        "storybook",
+        "figma",
+        "typescript frontend",
+        "jamstack",
+    ],
     # Backend: languages/frameworks — word-boundary enforced by _extract_domains for short ones
-    "backend":    ["django", "fastapi", "flask", "express", "spring", "rails", "laravel",
-                   "graphql", "grpc", "dotnet", "asp.net", "gin", "actix", "fiber",
-                   "python", "java", "golang", "node.js", "nodejs", "ruby", "php",
-                   "rest api", "microservice", "monolith"],
+    "backend": [
+        "django",
+        "fastapi",
+        "flask",
+        "express",
+        "spring",
+        "rails",
+        "laravel",
+        "graphql",
+        "grpc",
+        "dotnet",
+        "asp.net",
+        "gin",
+        "actix",
+        "fiber",
+        "python",
+        "java",
+        "golang",
+        "node.js",
+        "nodejs",
+        "ruby",
+        "php",
+        "rest api",
+        "microservice",
+        "monolith",
+    ],
     # DevOps: infra/pipeline tools — more specific terms
-    "devops":     ["docker", "kubernetes", "k8s", "helm", "terraform", "ansible",
-                   "jenkins", "github actions", "gitlab ci", "argocd", "monitoring",
-                   "prometheus", "grafana", "sre", "observability", "infrastructure",
-                   "eks", "aks", "gke", "ecs", "fargate", "circleci", "tekton",
-                   "gitops", "flux", "crossplane", "pulumi", "packer"],
+    "devops": [
+        "docker",
+        "kubernetes",
+        "k8s",
+        "helm",
+        "terraform",
+        "ansible",
+        "jenkins",
+        "github actions",
+        "gitlab ci",
+        "argocd",
+        "monitoring",
+        "prometheus",
+        "grafana",
+        "sre",
+        "observability",
+        "infrastructure",
+        "eks",
+        "aks",
+        "gke",
+        "ecs",
+        "fargate",
+        "circleci",
+        "tekton",
+        "gitops",
+        "flux",
+        "crossplane",
+        "pulumi",
+        "packer",
+    ],
     # Security: more specific terms including "vulnerability", "injection"
-    "security":   ["owasp", "pentest", "sast", "dast", "cve", "zero-day", "firewall",
-                   "iam", "rbac", "mfa", "tls", "ssl", "certificate", "hsm", "soc2",
-                   "iso27001", "gdpr", "compliance", "vulnerability", "injection",
-                   "xss", "csrf", "ssrf", "sqli", "devsecops", "sonarqube", "snyk",
-                   "burp suite", "nmap", "metasploit", "appsec"],
+    "security": [
+        "owasp",
+        "pentest",
+        "sast",
+        "dast",
+        "cve",
+        "zero-day",
+        "firewall",
+        "iam",
+        "rbac",
+        "mfa",
+        "tls",
+        "ssl",
+        "certificate",
+        "hsm",
+        "soc2",
+        "iso27001",
+        "gdpr",
+        "compliance",
+        "vulnerability",
+        "injection",
+        "xss",
+        "csrf",
+        "ssrf",
+        "sqli",
+        "devsecops",
+        "sonarqube",
+        "snyk",
+        "burp suite",
+        "nmap",
+        "metasploit",
+        "appsec",
+    ],
     # Data: databases and pipeline tools
-    "data":       ["sql", "postgres", "mysql", "mongodb", "redis", "elasticsearch",
-                   "kafka", "spark", "airflow", "dbt", "bigquery", "snowflake",
-                   "databricks", "pandas", "etl", "warehouse", "data lake",
-                   "redshift", "fivetran", "stitch", "duckdb", "clickhouse"],
+    "data": [
+        "sql",
+        "postgres",
+        "mysql",
+        "mongodb",
+        "redis",
+        "elasticsearch",
+        "kafka",
+        "spark",
+        "airflow",
+        "dbt",
+        "bigquery",
+        "snowflake",
+        "databricks",
+        "pandas",
+        "etl",
+        "warehouse",
+        "data lake",
+        "redshift",
+        "fivetran",
+        "stitch",
+        "duckdb",
+        "clickhouse",
+    ],
     # Mobile: platform-specific keywords
-    "mobile":     ["ios", "android", "swift", "kotlin", "react native", "flutter",
-                   "expo", "xctest", "espresso", "app store", "push notification",
-                   "xcode", "android studio", "swiftui", "jetpack compose"],
+    "mobile": [
+        "ios",
+        "android",
+        "swift",
+        "kotlin",
+        "react native",
+        "flutter",
+        "expo",
+        "xctest",
+        "espresso",
+        "app store",
+        "push notification",
+        "xcode",
+        "android studio",
+        "swiftui",
+        "jetpack compose",
+    ],
     # ML: more specific — transformer (not transformers), huggingface, mlflow
-    "ml":         ["tensorflow", "pytorch", "keras", "sklearn", "huggingface",
-                   "hugging face", "transformer", "langchain", "mlflow", "mlops",
-                   "ray", "cuda", "gpu training", "fine-tune", "fine-tuning",
-                   "embedding", "vector database", "rag", "llm", "diffusion",
-                   "yolo", "bert", "gpt", "stable diffusion", "openai", "anthropic"],
+    "ml": [
+        "tensorflow",
+        "pytorch",
+        "keras",
+        "sklearn",
+        "huggingface",
+        "hugging face",
+        "transformer",
+        "langchain",
+        "mlflow",
+        "mlops",
+        "ray",
+        "cuda",
+        "gpu training",
+        "fine-tune",
+        "fine-tuning",
+        "embedding",
+        "vector database",
+        "rag",
+        "llm",
+        "diffusion",
+        "yolo",
+        "bert",
+        "gpt",
+        "stable diffusion",
+        "openai",
+        "anthropic",
+    ],
     # Cloud: provider-specific services
-    "cloud":      ["aws", "gcp", "azure", "lambda", "s3 bucket", "ec2", "cloudfront",
-                   "cloud run", "serverless", "cdn", "cloudflare", "route53",
-                   "azure devops", "google cloud", "digitalocean", "linode"],
+    "cloud": [
+        "aws",
+        "gcp",
+        "azure",
+        "lambda",
+        "s3 bucket",
+        "ec2",
+        "cloudfront",
+        "cloud run",
+        "serverless",
+        "cdn",
+        "cloudflare",
+        "route53",
+        "azure devops",
+        "google cloud",
+        "digitalocean",
+        "linode",
+    ],
     # Management: non-technical PM/leadership domain
-    "management": ["project manager", "product manager", "product owner", "scrum master",
-                   "agile coach", "business analyst", "it manager", "it director",
-                   "stakeholder", "sprint", "backlog", "roadmap planning",
-                   "change management", "risk management", "budget", "procurement"],
+    "management": [
+        "project manager",
+        "product manager",
+        "product owner",
+        "scrum master",
+        "agile coach",
+        "business analyst",
+        "it manager",
+        "it director",
+        "stakeholder",
+        "sprint",
+        "backlog",
+        "roadmap planning",
+        "change management",
+        "risk management",
+        "budget",
+        "procurement",
+    ],
 }
 
 # Domain → role keyword hints (what agent role substring to look for)
 _DOMAIN_ROLE_MAP: dict[str, list[str]] = {
-    "frontend":   ["frontend"],
-    "backend":    ["backend", "full-stack", "fullstack"],
-    "devops":     ["devops", "platform-engineering", "site-reliability", "infrastructure",
-                   "cloud-engineering", "sre"],
-    "security":   ["security", "cybersecurity", "infosec", "appsec", "devsecops",
-                   "penetration"],
+    "frontend": ["frontend"],
+    "backend": ["backend", "full-stack", "fullstack"],
+    "devops": ["devops", "platform-engineering", "site-reliability", "infrastructure", "cloud-engineering", "sre"],
+    "security": ["security", "cybersecurity", "infosec", "appsec", "devsecops", "penetration"],
     # data-engineering listed first so pipeline questions rank above database-administration
-    "data":       ["data-engineering", "analytics", "data-architect",
-                   "data-science", "database", "data-analyst"],
-    "mobile":     ["mobile", "ios-development", "android-development"],
-    "ml":         ["machine-learning", "ml-engineering", "data-science", "ai-engineering",
-                   "mlops"],
-    "cloud":      ["cloud-engineering", "devops", "platform-engineering"],
-    "management": ["project-management", "product-management", "it-management",
-                   "program-management", "scrum", "agile"],
+    "data": ["data-engineering", "analytics", "data-architect", "data-science", "database", "data-analyst"],
+    "mobile": ["mobile", "ios-development", "android-development"],
+    "ml": ["machine-learning", "ml-engineering", "data-science", "ai-engineering", "mlops"],
+    "cloud": ["cloud-engineering", "devops", "platform-engineering"],
+    "management": ["project-management", "product-management", "it-management", "program-management", "scrum", "agile"],
 }
 
 # Intent → role keyword hints (secondary signal when domain is weak)
 _INTENT_ROLE_HINTS: dict[str, list[str]] = {
-    "ml_ai":      ["machine-learning", "data-science", "ai-engineering", "mlops"],
-    "security":   ["security", "cybersecurity", "infosec", "appsec"],
+    "ml_ai": ["machine-learning", "data-science", "ai-engineering", "mlops"],
+    "security": ["security", "cybersecurity", "infosec", "appsec"],
     "deployment": ["devops", "platform-engineering", "sre", "cloud-engineering"],
-    "data":       ["data-engineering", "data-science", "analytics"],
-    "testing":    ["qa", "quality-assurance", "test-engineering"],
+    "data": ["data-engineering", "data-science", "analytics"],
+    "testing": ["qa", "quality-assurance", "test-engineering"],
     "architecture": ["architect", "principal", "staff"],
 }
 
 # Keywords that strongly indicate a non-technical / management request
 _NON_TECH_SIGNALS: list[str] = [
-    "project manager", "product manager", "product owner", "scrum master",
-    "agile coach", "business analyst", "it director", "it manager",
-    "stakeholder", "sprint planning", "backlog grooming", "change management",
-    "vendor management", "procurement", "it governance", "it strategy",
+    "project manager",
+    "product manager",
+    "product owner",
+    "scrum master",
+    "agile coach",
+    "business analyst",
+    "it director",
+    "it manager",
+    "stakeholder",
+    "sprint planning",
+    "backlog grooming",
+    "change management",
+    "vendor management",
+    "procurement",
+    "it governance",
+    "it strategy",
 ]
 
 _STACK_TOKENS: set[str] = {
-    "python", "javascript", "typescript", "java", "go", "rust", "ruby", "php",
-    "c#", "dotnet", "swift", "kotlin", "scala", "elixir",
-    "react", "vue", "angular", "svelte", "nextjs",
-    "django", "fastapi", "flask", "express", "spring", "rails",
-    "postgres", "mysql", "mongodb", "redis", "elasticsearch", "kafka",
-    "docker", "kubernetes", "terraform", "ansible",
-    "aws", "gcp", "azure", "firebase",
-    "pytorch", "tensorflow", "sklearn", "langchain",
+    "python",
+    "javascript",
+    "typescript",
+    "java",
+    "go",
+    "rust",
+    "ruby",
+    "php",
+    "c#",
+    "dotnet",
+    "swift",
+    "kotlin",
+    "scala",
+    "elixir",
+    "react",
+    "vue",
+    "angular",
+    "svelte",
+    "nextjs",
+    "django",
+    "fastapi",
+    "flask",
+    "express",
+    "spring",
+    "rails",
+    "postgres",
+    "mysql",
+    "mongodb",
+    "redis",
+    "elasticsearch",
+    "kafka",
+    "docker",
+    "kubernetes",
+    "terraform",
+    "ansible",
+    "aws",
+    "gcp",
+    "azure",
+    "firebase",
+    "pytorch",
+    "tensorflow",
+    "sklearn",
+    "langchain",
 }
 
 # Patterns that suggest a security-sensitive request requiring escalation
@@ -176,14 +494,15 @@ _SECRET_PATTERNS: list[re.Pattern] = [
     re.compile(r"(?:password|passwd|pwd)\s*[=:]\s*['\"](?!REPLACE_ME|your-|example|changeme)[^'\"]{6,}['\"]", re.I),
     re.compile(r"(?:api[_-]?key|apikey)\s*[=:]\s*['\"][A-Za-z0-9_\-]{16,}['\"]", re.I),
     re.compile(r"(?:secret|token)\s*[=:]\s*['\"][A-Za-z0-9_\-]{16,}['\"]", re.I),
-    re.compile(r"sk-[A-Za-z0-9]{32,}", re.I),            # OpenAI style
-    re.compile(r"ghp_[A-Za-z0-9]{36}", re.I),             # GitHub PAT
+    re.compile(r"sk-[A-Za-z0-9]{32,}", re.I),  # OpenAI style
+    re.compile(r"ghp_[A-Za-z0-9]{36}", re.I),  # GitHub PAT
     re.compile(r"xox[bpoa]-[A-Za-z0-9\-]{16,}", re.I),  # Slack
-    re.compile(r"AKIA[0-9A-Z]{16}", re.I),                # AWS access key
+    re.compile(r"AKIA[0-9A-Z]{16}", re.I),  # AWS access key
 ]
 
 
 # ── Data models ────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class AgentMatch:
@@ -218,16 +537,17 @@ class OrchestratorResponse:
     detected_stack: list[str]
     matched_agents: list[AgentMatch]
     primary_agent: Optional[AgentMatch]
-    system_prompt: str          # Rich LLM-ready persona + instructions
-    context_block: str          # Structured context the LLM should reference
+    system_prompt: str  # Rich LLM-ready persona + instructions
+    context_block: str  # Structured context the LLM should reference
     guardrails: GuardrailsResult
-    confidence: float           # 0–1 match confidence
+    confidence: float  # 0–1 match confidence
     multi_agent_suggested: bool
     suggested_workflow: Optional[str]
     timestamp: str
 
 
 # ── Orchestrator ───────────────────────────────────────────────────────────────
+
 
 class OrchestratorAgent:
     """Smart router that selects from 10,000 IT role agents and builds expert context.
@@ -240,10 +560,10 @@ class OrchestratorAgent:
     """
 
     GUARDRAILS_PROFILES = {
-        "strict":    {"escalate_all_secrets": True, "block_prod_ops": True,  "require_review": True},
-        "standard":  {"escalate_all_secrets": False, "block_prod_ops": False, "require_review": False},
-        "relaxed":   {"escalate_all_secrets": False, "block_prod_ops": False, "require_review": False},
-        "architect": {"escalate_all_secrets": True,  "block_prod_ops": True,  "require_review": True},
+        "strict": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},
+        "standard": {"escalate_all_secrets": False, "block_prod_ops": False, "require_review": False},
+        "relaxed": {"escalate_all_secrets": False, "block_prod_ops": False, "require_review": False},
+        "architect": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},
     }
 
     def __init__(
@@ -257,7 +577,7 @@ class OrchestratorAgent:
         self._max_history = max_history
         self._index: list[dict] = []
         self._rich_cache: dict[str, dict] = {}  # agent_id → YAML data
-        self._history: list[dict] = []           # conversation turns
+        self._history: list[dict] = []  # conversation turns
         self._load_index()
 
     # ── Public API ─────────────────────────────────────────────────────────────
@@ -291,10 +611,7 @@ class OrchestratorAgent:
         agent_def = self._load_yaml(primary.agent_id) if primary else None
         if agent_def and primary:
             primary.top_skills = (agent_def.get("key_skills") or [])[:8]
-            raw_stack = (
-                agent_def.get("primary_stack") or
-                agent_def.get("languages") or []
-            )
+            raw_stack = agent_def.get("primary_stack") or agent_def.get("languages") or []
             # Guard: some YAML values are bare strings instead of lists
             if isinstance(raw_stack, str):
                 raw_stack = [raw_stack]
@@ -324,15 +641,17 @@ class OrchestratorAgent:
         workflow_suggestion = self._suggest_workflow(intent, domains) if multi_agent else None
 
         # 8. Store in history
-        self._history.append({
-            "role": "user",
-            "content": question,
-            "intent": intent,
-            "agent": primary.agent_id if primary else None,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        self._history.append(
+            {
+                "role": "user",
+                "content": question,
+                "intent": intent,
+                "agent": primary.agent_id if primary else None,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
         if len(self._history) > self._max_history:
-            self._history = self._history[-self._max_history:]
+            self._history = self._history[-self._max_history :]
 
         confidence = self._compute_confidence(agents, intent, domains)
 
@@ -423,6 +742,7 @@ class OrchestratorAgent:
         for yaml_path in self._agents_dir.rglob(f"{agent_id}.yaml"):
             try:
                 import yaml
+
                 with yaml_path.open() as f:
                     data = yaml.safe_load(f)
                 if data:
@@ -470,19 +790,47 @@ class OrchestratorAgent:
     def _infer_seniority(self, text: str) -> Optional[str]:
         """Guess required seniority from question vocabulary."""
         text_lower = text.lower()
-        senior_signals = sum(1 for kw in [
-            "design system", "trade-off", "distributed", "scalab", "enterprise",
-            "architect", "lead", "strategy", "principle", "roadmap planning",
-            "team lead", "tech lead", "principal", "staff engineer",
-        ] if kw in text_lower)
-        intern_signals = sum(1 for kw in [
-            "what is", "how do i", "how do you", "beginner", "tutorial",
-            "getting started", "simple example", "hello world", "for beginners",
-            "i'm new", "i am new", "first time",
-        ] if kw in text_lower)
+        senior_signals = sum(
+            1
+            for kw in [
+                "design system",
+                "trade-off",
+                "distributed",
+                "scalab",
+                "enterprise",
+                "architect",
+                "lead",
+                "strategy",
+                "principle",
+                "roadmap planning",
+                "team lead",
+                "tech lead",
+                "principal",
+                "staff engineer",
+            ]
+            if kw in text_lower
+        )
+        intern_signals = sum(
+            1
+            for kw in [
+                "what is",
+                "how do i",
+                "how do you",
+                "beginner",
+                "tutorial",
+                "getting started",
+                "simple example",
+                "hello world",
+                "for beginners",
+                "i'm new",
+                "i am new",
+                "first time",
+            ]
+            if kw in text_lower
+        )
         if senior_signals >= 2:
             return "senior"
-        if intern_signals >= 2:   # require 2+ signals to avoid false positives
+        if intern_signals >= 2:  # require 2+ signals to avoid false positives
             return "intern"
         return None
 
@@ -510,8 +858,13 @@ class OrchestratorAgent:
 
         for agent in self._index:
             score, reasons = self._score_one(
-                agent, query_lower, query_tokens, domains,
-                inferred_seniority, intent, is_non_tech,
+                agent,
+                query_lower,
+                query_tokens,
+                domains,
+                inferred_seniority,
+                intent,
+                is_non_tech,
             )
             if score > 0:
                 scored.append((score, agent, reasons))
@@ -520,15 +873,17 @@ class OrchestratorAgent:
 
         results = []
         for score, agent, reasons in scored[:top_k]:
-            results.append(AgentMatch(
-                agent_id=agent["id"],
-                agent_name=agent["name"],
-                role=agent["role"],
-                seniority=agent.get("seniority", "mid-level"),
-                agent_type=agent.get("type", "technical"),
-                match_score=round(min(score / 120.0, 1.0), 3),
-                match_reasons=reasons[:4],
-            ))
+            results.append(
+                AgentMatch(
+                    agent_id=agent["id"],
+                    agent_name=agent["name"],
+                    role=agent["role"],
+                    seniority=agent.get("seniority", "mid-level"),
+                    agent_type=agent.get("type", "technical"),
+                    match_score=round(min(score / 120.0, 1.0), 3),
+                    match_reasons=reasons[:4],
+                )
+            )
         return results
 
     def _score_one(
@@ -549,14 +904,12 @@ class OrchestratorAgent:
         agent_type: str = agent.get("type", "technical")
 
         # ── 1. Domain → role-hint match (highest weight, 45 pts primary) ────────
-        domain_matched = False
         for i, domain in enumerate(domains[:2]):
             role_hints = _DOMAIN_ROLE_MAP.get(domain, [domain])
             if any(hint in agent_role for hint in role_hints):
-                weight = 45 - i * 15   # 45 for primary domain, 30 for secondary
+                weight = 45 - i * 15  # 45 for primary domain, 30 for secondary
                 score += weight
                 reasons.append(f"domain→role: {domain}")
-                domain_matched = True
                 break
 
         # ── 2. Non-technical type match ──────────────────────────────────────────
@@ -587,9 +940,12 @@ class OrchestratorAgent:
         # ── 6. Seniority match / mismatch ────────────────────────────────────────
         _SENIORITY_PREFERENCE = {
             # Higher = preferred when no explicit target is given
-            "fellow": 9, "distinguished": 9,
-            "principal": 8, "architect": 8,
-            "senior": 8, "staff": 8,
+            "fellow": 9,
+            "distinguished": 9,
+            "principal": 8,
+            "architect": 8,
+            "senior": 8,
+            "staff": 8,
             "lead": 6,
             "mid": 4,
             "junior": 2,
@@ -660,7 +1016,7 @@ class OrchestratorAgent:
 
             languages = agent_def.get("languages") or []
             if languages and languages != stack:
-                persona_lines.append(f"Languages you work in: {', '.join(str(l) for l in languages[:4])}.")
+                persona_lines.append(f"Languages you work in: {', '.join(str(lang) for lang in languages[:4])}.")
 
         # Guardrails instructions
         persona_lines.append("")
@@ -689,13 +1045,13 @@ class OrchestratorAgent:
 
         # Intent-specific guidance
         intent_guidance = {
-            "security":      "Prioritise security best practices. Reference OWASP where relevant.",
-            "architecture":  "Think in systems: consider scalability, fault tolerance, and maintainability.",
-            "code_review":   "Be specific: cite line patterns, suggest concrete fixes, explain the 'why'.",
-            "debugging":     "Follow systematic diagnosis: reproduce, isolate, hypothesise, verify.",
-            "deployment":    "Consider rollback strategies, health checks, and zero-downtime approaches.",
-            "optimization":  "Profile before optimising. Quote measurements. Prefer readability unless proven bottleneck.",
-            "testing":       "Recommend arrange-act-assert. Aim for ≥80% coverage. Prefer unit over integration where possible.",
+            "security": "Prioritise security best practices. Reference OWASP where relevant.",
+            "architecture": "Think in systems: consider scalability, fault tolerance, and maintainability.",
+            "code_review": "Be specific: cite line patterns, suggest concrete fixes, explain the 'why'.",
+            "debugging": "Follow systematic diagnosis: reproduce, isolate, hypothesise, verify.",
+            "deployment": "Consider rollback strategies, health checks, and zero-downtime approaches.",
+            "optimization": "Profile before optimising. Quote measurements. Prefer readability unless proven bottleneck.",  # noqa: E501
+            "testing": "Recommend arrange-act-assert. Aim for ≥80% coverage. Prefer unit over integration where possible.",  # noqa: E501
         }
         if intent in intent_guidance:
             persona_lines.append("")
@@ -724,8 +1080,10 @@ class OrchestratorAgent:
             lines.append(f"**Stack detected:** {', '.join(stack[:6])}")
 
         if agent:
-            lines.append(f"\n**Routing to:** [{agent.agent_name}] `{agent.role}` "
-                         f"({agent.seniority}) — confidence {agent.match_score:.0%}")
+            lines.append(
+                f"\n**Routing to:** [{agent.agent_name}] `{agent.role}` "
+                f"({agent.seniority}) — confidence {agent.match_score:.0%}"
+            )
             if agent.match_reasons:
                 lines.append(f"**Match reasons:** {', '.join(agent.match_reasons)}")
             lines.append(f"**Guardrails profile:** `{guardrails.profile}`")
@@ -798,9 +1156,9 @@ class OrchestratorAgent:
         if re.search(r"pickle\.loads?\(", text, re.I):
             warnings.append("pickle.loads on untrusted data — RCE risk; use JSON instead")
         sql_concat = (
-            re.search(r"cursor\.execute\s*\([^\)]*\+", text, re.I) or
-            re.search(r"(execute|query|select|insert|update|delete).*\+\s*\w", text, re.I) or
-            re.search(r"\+\s*(?:request|user|input|params|uid|id|name|email|var|data)\b", text, re.I)
+            re.search(r"cursor\.execute\s*\([^\)]*\+", text, re.I)
+            or re.search(r"(execute|query|select|insert|update|delete).*\+\s*\w", text, re.I)
+            or re.search(r"\+\s*(?:request|user|input|params|uid|id|name|email|var|data)\b", text, re.I)
         )
         if sql_concat:
             warnings.append("Possible SQL injection — use parameterised queries")
@@ -832,8 +1190,12 @@ class OrchestratorAgent:
         if len(domains) >= 3:
             return True
         multi_signals = [
-            "end to end", "full stack", "from scratch", "complete project",
-            "architecture and implementation", "design and build",
+            "end to end",
+            "full stack",
+            "from scratch",
+            "complete project",
+            "architecture and implementation",
+            "design and build",
         ]
         text_lower = text.lower()
         return any(s in text_lower for s in multi_signals)

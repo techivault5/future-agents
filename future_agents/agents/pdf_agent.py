@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import io
 import logging
-import math
 import os
 import urllib.request
 from pathlib import Path
@@ -27,7 +26,7 @@ logger = logging.getLogger(__name__)
 # ── Theme definitions ─────────────────────────────────────────────────────────
 PDF_THEMES = {
     "professional": {
-        "primary": (0.08, 0.28, 0.62),   # deep blue
+        "primary": (0.08, 0.28, 0.62),  # deep blue
         "secondary": (0.13, 0.59, 0.95),
         "accent": (0.95, 0.61, 0.07),
         "text": (0.12, 0.12, 0.12),
@@ -59,12 +58,12 @@ PDF_THEMES = {
 # People categories for Unsplash/Pexels search queries
 PEOPLE_QUERIES = {
     "professionals": "diverse professionals office team collaboration",
-    "healthcare":    "diverse doctors nurses healthcare team smiling",
-    "community":    "diverse community people smiling together",
-    "technology":   "diverse tech professionals working team",
-    "education":    "diverse students teachers education learning",
-    "leadership":   "diverse leadership business professionals meeting",
-    "general":      "diverse people team collaboration smiling inclusion",
+    "healthcare": "diverse doctors nurses healthcare team smiling",
+    "community": "diverse community people smiling together",
+    "technology": "diverse tech professionals working team",
+    "education": "diverse students teachers education learning",
+    "leadership": "diverse leadership business professionals meeting",
+    "general": "diverse people team collaboration smiling inclusion",
 }
 
 
@@ -98,7 +97,8 @@ class PDFAgent(BaseAgent):
         handler = handlers.get(context.intent)
         if not handler:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"Unknown intent: {context.intent}"],
             )
@@ -119,6 +119,7 @@ class PDFAgent(BaseAgent):
             req = urllib.request.Request(url, headers={"Authorization": f"Client-ID {key}"})
             with urllib.request.urlopen(req, timeout=8) as resp:
                 import json
+
                 data = json.loads(resp.read())
                 img_url = data["urls"]["regular"]
             req2 = urllib.request.Request(img_url)
@@ -134,13 +135,12 @@ class PDFAgent(BaseAgent):
             return None
         try:
             import urllib.parse
-            url = (
-                f"https://api.pexels.com/v1/search"
-                f"?query={urllib.parse.quote(query)}&per_page=1&orientation=landscape"
-            )
+
+            url = f"https://api.pexels.com/v1/search?query={urllib.parse.quote(query)}&per_page=1&orientation=landscape"
             req = urllib.request.Request(url, headers={"Authorization": key})
             with urllib.request.urlopen(req, timeout=8) as resp:
                 import json
+
                 data = json.loads(resp.read())
                 photos = data.get("photos", [])
                 if not photos:
@@ -156,7 +156,8 @@ class PDFAgent(BaseAgent):
     def _make_gradient_background(self, w: int, h: int, theme: dict) -> bytes:
         """Generate a gradient background image as JPEG bytes using PIL."""
         try:
-            from PIL import Image, ImageDraw, ImageFilter
+            from PIL import Image, ImageDraw
+
             img = Image.new("RGB", (w, h))
             draw = ImageDraw.Draw(img)
             p1 = theme["primary"]
@@ -220,30 +221,35 @@ class PDFAgent(BaseAgent):
             output_name    (str): Filename without extension
         """
         try:
+            from reportlab.lib import colors
+            from reportlab.lib.colors import Color, HexColor, black, white
+            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
             from reportlab.lib.pagesizes import A4
+            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
             from reportlab.lib.units import cm, mm
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib.colors import Color, HexColor, white, black
+            from reportlab.pdfgen import canvas as rl_canvas
             from reportlab.platypus import (
-                SimpleDocTemplate, Paragraph, Spacer, PageBreak,
-                Table, TableStyle, KeepTogether,
+                KeepTogether,
+                PageBreak,
+                Paragraph,
+                SimpleDocTemplate,
+                Spacer,
+                Table,
+                TableStyle,
             )
             from reportlab.platypus.flowables import HRFlowable
-            from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
-            from reportlab.pdfgen import canvas as rl_canvas
-            from reportlab.lib import colors
         except ImportError:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=["reportlab not installed. Run: pip install reportlab"],
             )
 
         try:
             from PIL import Image
-            pil_available = True
         except ImportError:
-            pil_available = False
+            pass
 
         p = context.parameters
         title = p.get("title", "Professional Report")
@@ -272,11 +278,10 @@ class PDFAgent(BaseAgent):
         out_path = self._output_dir / f"{output_name}.pdf"
 
         # ── Canvas-based renderer (for image backgrounds) ─────────────────
-        from reportlab.pdfgen import canvas as rl_canvas
-        from reportlab.platypus import SimpleDocTemplate
         from reportlab.lib.units import cm
+        from reportlab.pdfgen import canvas as rl_canvas
 
-        doc_buf = io.BytesIO()
+        io.BytesIO()
         c = rl_canvas.Canvas(str(out_path), pagesize=A4)
         c.setTitle(title)
         c.setAuthor(author)
@@ -296,12 +301,14 @@ class PDFAgent(BaseAgent):
                 return
             try:
                 from PIL import Image as PILImage
+
                 pil_img = PILImage.open(io.BytesIO(img_bytes)).convert("RGB")
                 pil_img = pil_img.resize((int(width), int(height)), PILImage.LANCZOS)
                 tmp = io.BytesIO()
                 pil_img.save(tmp, format="JPEG", quality=82)
                 tmp.seek(0)
                 from reportlab.lib.utils import ImageReader
+
                 img_reader = ImageReader(tmp)
                 canvas_obj.drawImage(img_reader, 0, 0, width, height, preserveAspectRatio=False, mask=None)
             except Exception as exc:
@@ -376,6 +383,7 @@ class PDFAgent(BaseAgent):
             c.drawCentredString(page_w / 2, page_h * 0.33, organization)
 
         from datetime import datetime as dt
+
         c.setFont("Helvetica", 10)
         c.drawCentredString(page_w / 2, page_h * 0.27, dt.now().strftime("%B %Y"))
 
@@ -402,9 +410,11 @@ class PDFAgent(BaseAgent):
         c.line(2 * cm, page_h - 3.4 * cm, page_w - 2 * cm, page_h - 3.4 * cm)
 
         toc_y = page_h - 4.5 * cm
-        toc_items = [("Introduction", 3)] + [
-            (chap.get("title", f"Chapter {i+1}"), i + 4) for i, chap in enumerate(chapters)
-        ] + ([("Conclusion", len(chapters) + 4)] if conclusion else [])
+        toc_items = (
+            [("Introduction", 3)]
+            + [(chap.get("title", f"Chapter {i + 1}"), i + 4) for i, chap in enumerate(chapters)]
+            + ([("Conclusion", len(chapters) + 4)] if conclusion else [])
+        )
 
         for idx_t, (toc_title, pg_num_approx) in enumerate(toc_items):
             c.setFillColorRGB(*primary)
@@ -436,15 +446,16 @@ class PDFAgent(BaseAgent):
         if cover_img:
             try:
                 from PIL import Image as PILImage
+
                 pil_img = PILImage.open(io.BytesIO(cover_img)).convert("RGB")
                 pil_img = pil_img.resize((int(page_w), int(banner_h * 1.5)), PILImage.LANCZOS)
                 tmp = io.BytesIO()
                 pil_img.save(tmp, format="JPEG", quality=75)
                 tmp.seek(0)
                 from reportlab.lib.utils import ImageReader
+
                 ir = ImageReader(tmp)
-                c.drawImage(ir, 0, page_h - 1.2 * cm - banner_h, page_w, banner_h,
-                            preserveAspectRatio=False, mask=None)
+                c.drawImage(ir, 0, page_h - 1.2 * cm - banner_h, page_w, banner_h, preserveAspectRatio=False, mask=None)
                 c.setFillColorRGB(0, 0, 0, alpha=0.5)
                 c.rect(0, page_h - 1.2 * cm - banner_h, page_w, banner_h, fill=1, stroke=0)
             except Exception:
@@ -455,8 +466,7 @@ class PDFAgent(BaseAgent):
         c.drawCentredString(page_w / 2, page_h - 1.2 * cm - banner_h + 2.5 * cm, "Introduction")
 
         intro_text = p.get("introduction", f"This report provides a comprehensive overview of {title}.")
-        self._draw_body_text(c, intro_text, 2 * cm, page_h - 1.2 * cm - banner_h - 1.5 * cm,
-                             page_w - 4 * cm, theme)
+        self._draw_body_text(c, intro_text, 2 * cm, page_h - 1.2 * cm - banner_h - 1.5 * cm, page_w - 4 * cm, theme)
         c.showPage()
 
         # ── CHAPTER PAGES ─────────────────────────────────────────────
@@ -518,9 +528,7 @@ class PDFAgent(BaseAgent):
             content_y = page_h - 2.5 * cm
 
             if chap_content:
-                content_y = self._draw_body_text(
-                    c, chap_content, 2 * cm, content_y, page_w - 4 * cm, theme
-                )
+                content_y = self._draw_body_text(c, chap_content, 2 * cm, content_y, page_w - 4 * cm, theme)
 
             # Subsections
             for sec in chap_sections:
@@ -546,9 +554,7 @@ class PDFAgent(BaseAgent):
                 content_y -= 0.5 * cm
 
                 if sec_content:
-                    content_y = self._draw_body_text(
-                        c, sec_content, 2 * cm, content_y, page_w - 4 * cm, theme
-                    )
+                    content_y = self._draw_body_text(c, sec_content, 2 * cm, content_y, page_w - 4 * cm, theme)
 
             # Bullets
             for bullet in chap_bullets:
@@ -595,7 +601,8 @@ class PDFAgent(BaseAgent):
         await self.emit("pdf.created", {"path": str(out_path), "pages": page_num})
 
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={
                 "file_path": str(out_path),
@@ -605,15 +612,18 @@ class PDFAgent(BaseAgent):
                 "theme": theme_name,
                 "people_type": people_type,
                 "chapters": [c.get("title", "") for c in chapters],
-                "image_source": "unsplash/pexels" if os.environ.get("UNSPLASH_ACCESS_KEY") or os.environ.get("PEXELS_API_KEY") else "generated_gradient",
+                "image_source": (
+                    "unsplash/pexels"
+                    if os.environ.get("UNSPLASH_ACCESS_KEY") or os.environ.get("PEXELS_API_KEY")
+                    else "generated_gradient"
+                ),
             },
         )
 
-    def _draw_body_text(
-        self, c, text: str, x: float, y: float, width: float, theme: dict
-    ) -> float:
+    def _draw_body_text(self, c, text: str, x: float, y: float, width: float, theme: dict) -> float:
         """Draw wrapped body text and return the new y position."""
         from reportlab.lib.units import cm
+
         c.setFillColorRGB(*theme["text"])
         c.setFont("Helvetica", 10.5)
         line_height = 0.55 * cm
@@ -646,12 +656,14 @@ class PDFAgent(BaseAgent):
         path = Path(file_path)
         if not path.exists():
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"File not found: {file_path}"],
             )
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={"file_path": str(path), "size_bytes": path.stat().st_size, "ready": True},
         )

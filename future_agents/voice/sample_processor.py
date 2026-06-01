@@ -31,10 +31,10 @@ from future_agents.voice.voice_profile import SpeakerEmbedding
 
 logger = logging.getLogger(__name__)
 
-MIN_DURATION_S = 3.0    # minimum sample length for cloning
+MIN_DURATION_S = 3.0  # minimum sample length for cloning
 TARGET_DURATION_S = 6.0  # ideal XTTS reference length
-MAX_DURATION_S = 30.0   # trim anything longer than this
-TARGET_SR = 22050        # sample rate required by XTTS
+MAX_DURATION_S = 30.0  # trim anything longer than this
+TARGET_SR = 22050  # sample rate required by XTTS
 
 
 class AudioValidationError(ValueError):
@@ -132,7 +132,10 @@ class SampleProcessor:
 
         logger.info(
             "Processed sample '%s': %dd embedding, %.1fs reference clip, hash=%s",
-            name, embedding.dimension, final_duration, sample_hash[:8],
+            name,
+            embedding.dimension,
+            final_duration,
+            sample_hash[:8],
         )
         return embedding, ref_clip
 
@@ -140,9 +143,11 @@ class SampleProcessor:
         """Get audio duration in seconds — tries multiple backends."""
         if self._has_librosa:
             import librosa
+
             return float(librosa.get_duration(path=str(path)))
         if self._has_sf:
             import soundfile as sf
+
             info = sf.info(str(path))
             return info.duration
         # Fallback: read WAV header directly
@@ -174,7 +179,6 @@ class SampleProcessor:
         if self._has_librosa and self._has_sf:
             import librosa
             import soundfile as sf
-            import numpy as np
 
             y, sr = librosa.load(str(src), sr=TARGET_SR, mono=True, duration=MAX_DURATION_S)
 
@@ -184,18 +188,20 @@ class SampleProcessor:
             # Noise reduction (optional)
             if self._has_noisereduce:
                 import noisereduce as nr
+
                 y = nr.reduce_noise(y=y, sr=sr)
 
             # Take best TARGET_DURATION_S centred slice
             if len(y) > TARGET_SR * TARGET_DURATION_S:
                 mid = len(y) // 2
                 half = int(TARGET_SR * TARGET_DURATION_S // 2)
-                y = y[mid - half: mid + half]
+                y = y[mid - half : mid + half]
 
             sf.write(str(dst), y, TARGET_SR, subtype="PCM_16")
 
         elif self._has_pydub:
             from pydub import AudioSegment
+
             audio = AudioSegment.from_file(str(src))
             audio = audio.set_frame_rate(TARGET_SR).set_channels(1)
             # Trim to target duration
@@ -218,6 +224,7 @@ class SampleProcessor:
     def _embed_resemblyzer(self, ref_clip: Path) -> tuple[list[float], str]:
         """256-d GE2E embedding (Wan et al. 2018)."""
         from resemblyzer import VoiceEncoder, preprocess_wav
+
         encoder = VoiceEncoder()
         wav = preprocess_wav(ref_clip)
         embedding = encoder.embed_utterance(wav)
@@ -225,8 +232,8 @@ class SampleProcessor:
 
     def _embed_speechbrain(self, ref_clip: Path) -> tuple[list[float], str]:
         """192-d ECAPA-TDNN embedding — highest quality speaker representation."""
-        import torch
         from speechbrain.pretrained import EncoderClassifier
+
         classifier = EncoderClassifier.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",
             run_opts={"device": "cpu"},
@@ -242,6 +249,7 @@ class SampleProcessor:
         useful for testing and CI. Replace with a real encoder for production.
         """
         import hashlib
+
         raw = ref_clip.read_bytes()
         dim = 256
         vector = []
@@ -251,7 +259,7 @@ class SampleProcessor:
             val = (int.from_bytes(h[:4], "big") / 2**32) * 2 - 1
             vector.append(round(val, 6))
         # L2-normalise
-        magnitude = sum(v ** 2 for v in vector) ** 0.5
+        magnitude = sum(v**2 for v in vector) ** 0.5
         if magnitude > 0:
             vector = [v / magnitude for v in vector]
         return vector, "stub-sha256"

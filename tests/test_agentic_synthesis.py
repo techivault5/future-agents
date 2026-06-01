@@ -191,8 +191,11 @@ async def test_swarm_stub_returns_all_roles():
     spec = SwarmSpec(
         task="explain recursion",
         roles=[
-            AgentRole.RESEARCHER, AgentRole.PLANNER, AgentRole.EXECUTOR,
-            AgentRole.CRITIC, AgentRole.SYNTHESIZER,
+            AgentRole.RESEARCHER,
+            AgentRole.PLANNER,
+            AgentRole.EXECUTOR,
+            AgentRole.CRITIC,
+            AgentRole.SYNTHESIZER,
         ],
     )
     result = await coord.execute(spec)

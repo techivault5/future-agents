@@ -174,8 +174,10 @@ def get_mcp_connector(agent_id: str, base_url: str = "http://localhost:8000") ->
                 "command": "uvx",
                 "args": [
                     "mcp-server-fetch",
-                    "--base-url", base_url,
-                    "--agent-id", agent_id,
+                    "--base-url",
+                    base_url,
+                    "--agent-id",
+                    agent_id,
                 ],
                 "env": {},
             }
@@ -197,9 +199,7 @@ def get_mcp_connector(agent_id: str, base_url: str = "http://localhost:8000") ->
                 {
                     "name": f"ask_{agent_id.replace('-', '_')}",
                     "description": (
-                        f"Ask the {name} agent. "
-                        f"Specialises in: {', '.join(skills[:5])}. "
-                        f"Uses: {', '.join(tools[:3])}."
+                        f"Ask the {name} agent. Specialises in: {', '.join(skills[:5])}. Uses: {', '.join(tools[:3])}."
                     ),
                     "input_schema": {
                         "type": "object",

@@ -15,12 +15,13 @@ from typing import Any
 @dataclass
 class ReflexionTrace:
     """One act-evaluate-reflect cycle."""
+
     attempt: int
     action: str
-    observation: str        # environment / evaluator response
-    evaluation: str         # human-readable quality assessment
-    reflection: str         # verbal self-critique to guide next attempt
-    score: float            # 0.0-1.0
+    observation: str  # environment / evaluator response
+    evaluation: str  # human-readable quality assessment
+    reflection: str  # verbal self-critique to guide next attempt
+    score: float  # 0.0-1.0
     tokens_used: int = 0
 
 
@@ -40,8 +41,7 @@ class ReflexionResult:
     def summary(self) -> str:
         lines = [
             f"Task     : {self.task[:80]}",
-            f"Attempts : {self.attempts}  Best score: {self.best_score:.2f}"
-            f"  Success: {self.success}",
+            f"Attempts : {self.attempts}  Best score: {self.best_score:.2f}  Success: {self.success}",
         ]
         for t in self.traces:
             lines.append(f"  [{t.attempt}] score={t.score:.2f} — {t.reflection[:100]}")
@@ -94,15 +94,17 @@ class ReflexionLoop:
             reflection, ref_tokens = await self._reflect(task, action, evaluation, score)
             total_tokens += ref_tokens
 
-            traces.append(ReflexionTrace(
-                attempt=attempt,
-                action=action,
-                observation=evaluation,
-                evaluation=evaluation,
-                reflection=reflection,
-                score=score,
-                tokens_used=act_tokens + eval_tokens + ref_tokens,
-            ))
+            traces.append(
+                ReflexionTrace(
+                    attempt=attempt,
+                    action=action,
+                    observation=evaluation,
+                    evaluation=evaluation,
+                    reflection=reflection,
+                    score=score,
+                    tokens_used=act_tokens + eval_tokens + ref_tokens,
+                )
+            )
             prior_reflections.append(reflection)
 
             if score > best_score:
@@ -133,9 +135,7 @@ class ReflexionLoop:
                 f"  Attempt {i + 1}: {r}" for i, r in enumerate(prior_reflections)
             )
 
-        ctx_block = (
-            "\n".join(f"  {k}: {str(v)[:200]}" for k, v in context.items()) if context else ""
-        )
+        ctx_block = "\n".join(f"  {k}: {str(v)[:200]}" for k, v in context.items()) if context else ""
 
         prompt = f"Task: {task}\n{ctx_block}{reflection_block}\n\nProvide your best response."
         try:
@@ -184,9 +184,7 @@ class ReflexionLoop:
         except Exception as exc:
             return f"Eval error: {exc}", 0.5, 0
 
-    async def _reflect(
-        self, task: str, action: str, evaluation: str, score: float
-    ) -> tuple[str, int]:
+    async def _reflect(self, task: str, action: str, evaluation: str, score: float) -> tuple[str, int]:
         if self._client is None:
             return f"[stub reflection, score={score:.2f}]", 0
 
