@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 # Try to import yaml, fall back to JSON-only if not available
 try:
     import yaml
+
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False

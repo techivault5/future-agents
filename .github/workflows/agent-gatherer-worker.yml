@@ -1,0 +1,41 @@
+name: Agent Gatherer Worker
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'   # Weekly on Monday at 10:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write        # needed to push the skeleton-agents branch
+  issues: write
+  pull-requests: write
+
+jobs:
+  gather:
+    name: Gather New Agents & Patterns
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run Agent Gatherer Worker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/workers/agent_gatherer.py

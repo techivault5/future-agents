@@ -20,7 +20,6 @@ from future_agents.core.protocol.messages import (
     AgentMessage,
     DelegationRequest,
     DelegationResponse,
-    MessageRole,
     MessageType,
 )
 from future_agents.definitions.schema import AgentDefinition, SkillDef
@@ -181,8 +180,7 @@ class DefinedAgent(BaseAgent):
                 "traits": self.definition.personality.traits,
             },
             "constraints": [
-                {"name": c.name, "description": c.description}
-                for c in self.definition.constraints
+                {"name": c.name, "description": c.description} for c in self.definition.constraints
             ],
             "metrics": {
                 "success_rate": self.success_rate,
@@ -220,8 +218,7 @@ class DefinedAgent(BaseAgent):
             if input_def.required and input_def.name not in params:
                 if input_def.default is None:
                     errors.append(
-                        f"Missing required parameter: '{input_def.name}' "
-                        f"({input_def.description})"
+                        f"Missing required parameter: '{input_def.name}' ({input_def.description})"
                     )
         return errors
 

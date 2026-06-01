@@ -56,9 +56,7 @@ class CapabilityAgent(BaseAgent):
                 errors=[f"Unknown intent: {intent}"],
             )
 
-    async def _register_capability(
-        self, context: TaskContext, params: dict
-    ) -> TaskResult:
+    async def _register_capability(self, context: TaskContext, params: dict) -> TaskResult:
         cap = Capability(
             name=params["name"],
             description=params.get("description", ""),
@@ -81,9 +79,7 @@ class CapabilityAgent(BaseAgent):
             data={"capability_id": cap.id, "capability": cap.model_dump(mode="json")},
         )
 
-    async def _query_capabilities(
-        self, context: TaskContext, params: dict
-    ) -> TaskResult:
+    async def _query_capabilities(self, context: TaskContext, params: dict) -> TaskResult:
         domain = params.get("domain")
         level = params.get("level")
         tag = params.get("tag")
@@ -113,12 +109,14 @@ class CapabilityAgent(BaseAgent):
             else:
                 best = max(matches, key=lambda c: c.success_rate)
                 if best.level.value in ("novice", "intermediate") or best.success_rate < 0.6:
-                    gaps.append({
-                        "name": cap_name,
-                        "status": "weak",
-                        "current_level": best.level.value,
-                        "success_rate": best.success_rate,
-                    })
+                    gaps.append(
+                        {
+                            "name": cap_name,
+                            "status": "weak",
+                            "current_level": best.level.value,
+                            "success_rate": best.success_rate,
+                        }
+                    )
 
         return TaskResult(
             task_id=context.task_id,
@@ -169,8 +167,6 @@ class CapabilityAgent(BaseAgent):
         return {
             "total_capabilities": len(caps),
             "level_distribution": level_dist,
-            "avg_success_rate": (
-                sum(c.success_rate for c in caps) / len(caps) if caps else 0
-            ),
+            "avg_success_rate": (sum(c.success_rate for c in caps) / len(caps) if caps else 0),
             "domains": list(set(c.domain for c in caps)),
         }

@@ -1,0 +1,292 @@
+[
+  {
+    "id": "token_efficiency_baseline",
+    "name": "Token Efficiency Baseline",
+    "category": "token_efficiency",
+    "description": "Measures whether a technique meaningfully reduces token consumption across a standard workload of 20 representative prompts, compared to the unoptimized baseline.",
+    "scoring_criteria": [
+      {
+        "criterion": "input_token_reduction",
+        "weight": 0.35,
+        "description": "Percentage reduction in input tokens vs baseline. >=20% = full score, 10-19% = half, <10% = zero."
+      },
+      {
+        "criterion": "output_token_reduction",
+        "weight": 0.25,
+        "description": "Percentage reduction in output tokens without quality loss. Measured by semantic similarity >= 0.90 with reference outputs."
+      },
+      {
+        "criterion": "cache_hit_rate",
+        "weight": 0.25,
+        "description": "Anthropic prompt-cache hit rate across the workload. Target >= 60% hit rate for full score."
+      },
+      {
+        "criterion": "quality_preservation",
+        "weight": 0.15,
+        "description": "Output quality must not degrade. Judged by LLM-as-judge with reference answers; >= 4.0/5.0 required for any token savings to count."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "react_pattern_enhancement",
+    "name": "ReAct Pattern Enhancement",
+    "category": "agent_patterns",
+    "description": "Evaluates whether a technique improves the ReAct (Reasoning + Acting) loop in terms of task completion rate, step efficiency, and tool call accuracy.",
+    "scoring_criteria": [
+      {
+        "criterion": "task_completion_rate",
+        "weight": 0.40,
+        "description": "Fraction of benchmark tasks completed successfully end-to-end. Baseline: 60% completion rate; improvement delta is scored."
+      },
+      {
+        "criterion": "reasoning_step_efficiency",
+        "weight": 0.25,
+        "description": "Average number of reasoning steps to completion. Fewer steps = higher score, penalized if quality drops."
+      },
+      {
+        "criterion": "tool_call_precision",
+        "weight": 0.20,
+        "description": "Ratio of correct tool calls to total tool calls. Spurious or hallucinated tool calls reduce this score."
+      },
+      {
+        "criterion": "backtrack_rate",
+        "weight": 0.15,
+        "description": "How often the agent must backtrack or re-plan. Lower backtrack rate = higher score."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "memory_augmentation",
+    "name": "Memory Augmentation Quality",
+    "category": "agent_patterns",
+    "description": "Assesses whether a memory technique improves recall accuracy, reduces redundant retrievals, and correctly scopes long-term vs short-term context.",
+    "scoring_criteria": [
+      {
+        "criterion": "recall_accuracy",
+        "weight": 0.35,
+        "description": "Precision and recall of relevant memories retrieved for a query set. F1 score normalized to 0-100."
+      },
+      {
+        "criterion": "staleness_avoidance",
+        "weight": 0.20,
+        "description": "Rate at which outdated memories are correctly excluded or marked stale. Tested with deliberately updated facts."
+      },
+      {
+        "criterion": "retrieval_latency",
+        "weight": 0.20,
+        "description": "P95 latency of memory retrieval operations. Must remain under 200ms for full score."
+      },
+      {
+        "criterion": "context_window_efficiency",
+        "weight": 0.25,
+        "description": "Ratio of useful retrieved tokens to total injected memory tokens. Higher density = higher score."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "tool_use_improvement",
+    "name": "Tool Use Improvement",
+    "category": "agent_patterns",
+    "description": "Tests whether a technique improves the accuracy, reliability, and efficiency of LLM tool/function calling across a diverse set of 50 tool-use tasks.",
+    "scoring_criteria": [
+      {
+        "criterion": "argument_accuracy",
+        "weight": 0.35,
+        "description": "Correctness of arguments passed to tools. Includes type correctness, value validity, and schema compliance."
+      },
+      {
+        "criterion": "tool_selection_accuracy",
+        "weight": 0.30,
+        "description": "Whether the correct tool is chosen for each task. Multi-tool tasks require all tools selected in correct order."
+      },
+      {
+        "criterion": "error_handling_quality",
+        "weight": 0.20,
+        "description": "How well the agent recovers from tool errors or unexpected responses without human intervention."
+      },
+      {
+        "criterion": "unnecessary_calls_rate",
+        "weight": 0.15,
+        "description": "Fraction of tool calls that were not needed. Lower = better. Zero unnecessary calls = full score."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "multi_agent_coordination",
+    "name": "Multi-Agent Coordination",
+    "category": "agent_patterns",
+    "description": "Evaluates how well a technique improves coordination, communication, and task decomposition across 2-5 collaborating agents.",
+    "scoring_criteria": [
+      {
+        "criterion": "task_decomposition_quality",
+        "weight": 0.30,
+        "description": "How well the orchestrator decomposes tasks into independently executable subtasks. Scored by human reviewers on a rubric."
+      },
+      {
+        "criterion": "work_duplication_rate",
+        "weight": 0.25,
+        "description": "Fraction of subtasks duplicated across agents. Lower duplication = higher score."
+      },
+      {
+        "criterion": "inter_agent_communication_efficiency",
+        "weight": 0.25,
+        "description": "Token cost of inter-agent messages relative to useful information exchanged. Penalizes verbose handoffs."
+      },
+      {
+        "criterion": "collective_task_completion",
+        "weight": 0.20,
+        "description": "Overall success rate of multi-agent tasks end-to-end, including partial credit for nearly-complete results."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "error_recovery",
+    "name": "Error Recovery and Resilience",
+    "category": "reliability",
+    "description": "Tests whether a technique improves the agent's ability to detect, classify, and recover from errors including API failures, malformed outputs, and logical contradictions.",
+    "scoring_criteria": [
+      {
+        "criterion": "error_detection_rate",
+        "weight": 0.30,
+        "description": "Fraction of injected errors (API timeouts, bad JSON, hallucinated references) correctly detected before propagation."
+      },
+      {
+        "criterion": "recovery_without_human",
+        "weight": 0.35,
+        "description": "Rate of successful autonomous recovery without requiring human intervention. Tested with 30 error scenarios."
+      },
+      {
+        "criterion": "recovery_latency",
+        "weight": 0.20,
+        "description": "Time from error detection to resumed correct execution. P50 must be < 5s for full score."
+      },
+      {
+        "criterion": "cascade_failure_rate",
+        "weight": 0.15,
+        "description": "Rate at which a single error causes downstream failures. Lower cascade rate = higher score."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "latency_reduction",
+    "name": "Latency Reduction",
+    "category": "latency",
+    "description": "Measures whether a technique meaningfully reduces end-to-end response latency for agent tasks while maintaining output quality.",
+    "scoring_criteria": [
+      {
+        "criterion": "p50_latency_improvement",
+        "weight": 0.25,
+        "description": "Reduction in median (P50) end-to-end latency vs baseline. >=30% reduction = full score."
+      },
+      {
+        "criterion": "p95_latency_improvement",
+        "weight": 0.30,
+        "description": "Reduction in P95 (tail) latency. Tail latency matters most for user-facing agents; >=25% reduction = full score."
+      },
+      {
+        "criterion": "quality_under_speed",
+        "weight": 0.25,
+        "description": "Output quality (LLM-as-judge >= 4.0/5.0) must be maintained at the reduced latency. Quality regressions nullify latency gains."
+      },
+      {
+        "criterion": "throughput_improvement",
+        "weight": 0.20,
+        "description": "Requests per second improvement at the same hardware budget. Reflects overall system efficiency."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "novel_capability",
+    "name": "Novel Capability Assessment",
+    "category": "novelty",
+    "description": "Determines whether a technique or repo introduces genuinely new capabilities not achievable with existing tools in the ecosystem.",
+    "scoring_criteria": [
+      {
+        "criterion": "prior_art_differentiation",
+        "weight": 0.30,
+        "description": "Degree to which the technique differs from existing repos in the tracker. Scored by automated similarity + human review."
+      },
+      {
+        "criterion": "capability_unlocked",
+        "weight": 0.35,
+        "description": "Whether the technique enables tasks that were previously impossible or required significant manual workarounds. Binary + magnitude."
+      },
+      {
+        "criterion": "integration_potential",
+        "weight": 0.20,
+        "description": "How readily the novel capability can be integrated into the future-agents framework without major refactoring."
+      },
+      {
+        "criterion": "reproducibility",
+        "weight": 0.15,
+        "description": "Whether the claimed novel results can be reproduced with the provided code and documentation."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "integration_fit_baseline",
+    "name": "Integration Fit",
+    "category": "integration_fit",
+    "description": "Assesses how well a discovered repo or technique fits into the future-agents architecture, considering API compatibility, dependency overhead, and maintenance burden.",
+    "scoring_criteria": [
+      {
+        "criterion": "api_compatibility",
+        "weight": 0.30,
+        "description": "Compatibility with existing BaseAgent, EventBus, and Orchestrator interfaces. Drop-in = full score; adapter required = partial."
+      },
+      {
+        "criterion": "dependency_overhead",
+        "weight": 0.25,
+        "description": "Number and size of new transitive dependencies introduced. Penalizes heavy deps that conflict with existing packages."
+      },
+      {
+        "criterion": "maintenance_health",
+        "weight": 0.25,
+        "description": "Repo health signals: recent commits, issue response time, test coverage, semantic versioning. Scored from GitHub metadata."
+      },
+      {
+        "criterion": "configuration_complexity",
+        "weight": 0.20,
+        "description": "Effort required to configure and deploy. Simple env-var config = full score; complex infra setup = low score."
+      }
+    ],
+    "max_score": 100
+  },
+  {
+    "id": "reflection_loop_quality",
+    "name": "Reflection Loop Quality",
+    "category": "agent_patterns",
+    "description": "Evaluates whether a technique improves the ReflectionRunner's ability to self-critique, identify flaws, and produce meaningfully improved outputs on the second pass.",
+    "scoring_criteria": [
+      {
+        "criterion": "critique_specificity",
+        "weight": 0.30,
+        "description": "How specific and actionable the self-critique is. Vague critiques ('could be better') score zero; line-level issues score full."
+      },
+      {
+        "criterion": "improvement_delta",
+        "weight": 0.40,
+        "description": "Quality gain from first-pass to final output as judged by LLM-as-judge. Delta >= 0.5 points on 5-point scale = full score."
+      },
+      {
+        "criterion": "convergence_speed",
+        "weight": 0.20,
+        "description": "Number of reflection iterations required to reach a stable high-quality output. Fewer = better."
+      },
+      {
+        "criterion": "regression_rate",
+        "weight": 0.10,
+        "description": "Rate at which reflection introduces new errors while fixing others. Lower = better."
+      }
+    ],
+    "max_score": 100
+  }
+]

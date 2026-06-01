@@ -48,15 +48,13 @@ class EventBus:
     def unsubscribe(self, event_type: str, handler: EventHandler) -> None:
         """Remove a handler from an event type."""
         if event_type in self._handlers:
-            self._handlers[event_type] = [
-                h for h in self._handlers[event_type] if h is not handler
-            ]
+            self._handlers[event_type] = [h for h in self._handlers[event_type] if h is not handler]
 
     async def emit(self, event: Event) -> None:
         """Emit an event to all matching subscribers."""
         self._history.append(event)
         if len(self._history) > self._max_history:
-            self._history = self._history[-self._max_history:]
+            self._history = self._history[-self._max_history :]
 
         handlers = self._matching_handlers(event.type)
         if not handlers:

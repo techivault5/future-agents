@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 class MessageType(str, Enum):
     """Type of inter-agent message."""
+
     REQUEST = "request"  # Ask an agent to do something
     RESPONSE = "response"  # Agent's reply
     DELEGATION = "delegation"  # Master delegating to a sub-agent
@@ -26,6 +27,7 @@ class MessageType(str, Enum):
 
 class MessageRole(str, Enum):
     """Who is sending the message."""
+
     USER = "user"  # External caller / human
     MASTER = "master"  # Master agent
     AGENT = "agent"  # Domain agent

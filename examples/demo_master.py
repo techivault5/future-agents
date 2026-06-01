@@ -44,7 +44,9 @@ async def main() -> None:
         skills_count = len(agent.get("skills", agent.get("capabilities", [])))
         domain = agent.get("domain", "n/a")
         name = agent.get("name", agent.get("type", "unknown"))
-        print(f"  [{agent.get('type', '?'):12s}]  {name:25s}  domain={domain:15s}  skills={skills_count}")
+        print(
+            f"  [{agent.get('type', '?'):12s}]  {name:25s}  domain={domain:15s}  skills={skills_count}"
+        )
 
     # ── 2. Print the agent catalog (what the Master sees) ─────
     section("2. MASTER AGENT'S VIEW (catalog)")
@@ -58,62 +60,77 @@ async def main() -> None:
     section("3. ROUTE TASKS VIA MASTER AGENT")
 
     print("\n  >> Register a capability (Master routes to Capability Agent)")
-    result = await system.ask("capability.register", {
-        "name": "Machine Learning",
-        "description": "Build and deploy ML models",
-        "domain": "engineering",
-        "level": "advanced",
-        "tags": ["ml", "ai", "data-science"],
-    })
+    result = await system.ask(
+        "capability.register",
+        {
+            "name": "Machine Learning",
+            "description": "Build and deploy ML models",
+            "domain": "engineering",
+            "level": "advanced",
+            "tags": ["ml", "ai", "data-science"],
+        },
+    )
     cap_id = result["data"]["result"]["capability_id"]
     print(f"     Delegated to: {result['data']['agent_type']}")
     print(f"     Result: capability_id={cap_id}")
 
     print("\n  >> Define a policy (Master routes to Policy Agent)")
-    result = await system.ask("policy.define", {
-        "name": "ML Model Validation",
-        "description": "All ML models must pass validation before deployment",
-        "scope": "domain",
-        "scope_target": "engineering",
-        "rules": [
-            {
-                "condition": "deploying ML model",
-                "action": "must pass accuracy threshold",
-                "severity": "critical",
-                "auto_enforce": True,
-            },
-        ],
-        "tags": ["ml", "validation"],
-    })
+    result = await system.ask(
+        "policy.define",
+        {
+            "name": "ML Model Validation",
+            "description": "All ML models must pass validation before deployment",
+            "scope": "domain",
+            "scope_target": "engineering",
+            "rules": [
+                {
+                    "condition": "deploying ML model",
+                    "action": "must pass accuracy threshold",
+                    "severity": "critical",
+                    "auto_enforce": True,
+                },
+            ],
+            "tags": ["ml", "validation"],
+        },
+    )
     print(f"     Delegated to: {result['data']['agent_type']}")
     print(f"     Result: policy_id={result['data']['result']['policy_id']}")
 
     print("\n  >> Register a skill (Master routes to Skills Agent)")
-    result = await system.ask("skill.register", {
-        "name": "PyTorch",
-        "description": "Deep learning framework proficiency",
-        "category": "technical",
-        "proficiency": 0.4,
-    })
+    result = await system.ask(
+        "skill.register",
+        {
+            "name": "PyTorch",
+            "description": "Deep learning framework proficiency",
+            "category": "technical",
+            "proficiency": 0.4,
+        },
+    )
     skill_id = result["data"]["result"]["skill_id"]
     print(f"     Delegated to: {result['data']['agent_type']}")
     print(f"     Result: skill_id={skill_id}")
 
     print("\n  >> Add skill evidence (Master routes to Skills Agent)")
-    result = await system.ask("skill.add_evidence", {
-        "skill_id": skill_id,
-        "description": "Built a CNN image classifier with 95% accuracy",
-        "proficiency_delta": 0.1,
-    })
+    result = await system.ask(
+        "skill.add_evidence",
+        {
+            "skill_id": skill_id,
+            "description": "Built a CNN image classifier with 95% accuracy",
+            "proficiency_delta": 0.1,
+        },
+    )
     print(f"     New proficiency: {result['data']['result']['new_proficiency']}")
 
     print("\n  >> Add knowledge (Master routes to Knowledge Agent)")
-    result = await system.ask("knowledge.add", {
-        "title": "ML Deployment Checklist",
-        "content": "1. Validate model accuracy. 2. Check for bias. 3. Test edge cases. 4. Deploy canary. 5. Monitor metrics.",
-        "domain": "engineering",
-        "tags": ["ml", "deployment", "checklist"],
-    })
+    result = await system.ask(
+        "knowledge.add",
+        {
+            "title": "ML Deployment Checklist",
+            "content": "1. Validate model accuracy. 2. Check for bias. 3. Test edge cases. 4. Deploy canary. 5. Monitor metrics.",
+            "domain": "engineering",
+            "tags": ["ml", "deployment", "checklist"],
+        },
+    )
     print(f"     Delegated to: {result['data']['agent_type']}")
     print(f"     Result: entry_id={result['data']['result']['entry_id']}")
 
@@ -122,48 +139,51 @@ async def main() -> None:
     print("  Workflow: 'Onboard New ML Capability'")
     print("  Steps: register capability -> define process -> check compliance -> add knowledge\n")
 
-    result = await system.workflow("Onboard New ML Capability", [
-        {
-            "intent": "capability.register",
-            "parameters": {
-                "name": "NLP Processing",
-                "description": "Natural language processing and text analysis",
-                "domain": "engineering",
-                "level": "intermediate",
-                "tags": ["nlp", "text", "ai"],
+    result = await system.workflow(
+        "Onboard New ML Capability",
+        [
+            {
+                "intent": "capability.register",
+                "parameters": {
+                    "name": "NLP Processing",
+                    "description": "Natural language processing and text analysis",
+                    "domain": "engineering",
+                    "level": "intermediate",
+                    "tags": ["nlp", "text", "ai"],
+                },
             },
-        },
-        {
-            "intent": "process.define",
-            "parameters": {
-                "name": "NLP Model Development",
-                "domain": "engineering",
-                "steps": [
-                    {"name": "Data Collection", "description": "Gather training data"},
-                    {"name": "Preprocessing", "description": "Clean and tokenize text"},
-                    {"name": "Training", "description": "Train the NLP model"},
-                    {"name": "Evaluation", "description": "Evaluate model performance"},
-                    {"name": "Deployment", "description": "Deploy to production"},
-                ],
+            {
+                "intent": "process.define",
+                "parameters": {
+                    "name": "NLP Model Development",
+                    "domain": "engineering",
+                    "steps": [
+                        {"name": "Data Collection", "description": "Gather training data"},
+                        {"name": "Preprocessing", "description": "Clean and tokenize text"},
+                        {"name": "Training", "description": "Train the NLP model"},
+                        {"name": "Evaluation", "description": "Evaluate model performance"},
+                        {"name": "Deployment", "description": "Deploy to production"},
+                    ],
+                },
             },
-        },
-        {
-            "intent": "policy.check",
-            "parameters": {
-                "context": {"action": "deploying NLP model"},
-                "domain": "engineering",
+            {
+                "intent": "policy.check",
+                "parameters": {
+                    "context": {"action": "deploying NLP model"},
+                    "domain": "engineering",
+                },
             },
-        },
-        {
-            "intent": "knowledge.add",
-            "parameters": {
-                "title": "NLP Best Practices",
-                "content": "Use pre-trained embeddings. Fine-tune on domain data. Monitor for drift.",
-                "domain": "engineering",
-                "tags": ["nlp", "best-practices"],
+            {
+                "intent": "knowledge.add",
+                "parameters": {
+                    "title": "NLP Best Practices",
+                    "content": "Use pre-trained embeddings. Fine-tune on domain data. Monitor for drift.",
+                    "domain": "engineering",
+                    "tags": ["nlp", "best-practices"],
+                },
             },
-        },
-    ])
+        ],
+    )
 
     wf_data = result["data"]
     print(f"  Outcome: {result['outcome']}")
@@ -175,14 +195,19 @@ async def main() -> None:
     # ── 5. Record some capability usage for metrics ───────────
     section("5. CAPABILITY USAGE TRACKING")
     for i in range(10):
-        await system.ask("capability.record_usage", {
-            "capability_id": cap_id,
-            "success": i % 4 != 0,
-        })
+        await system.ask(
+            "capability.record_usage",
+            {
+                "capability_id": cap_id,
+                "success": i % 4 != 0,
+            },
+        )
     result = await system.ask("capability.query", {"domain": "engineering"})
     for cap in result["data"]["result"]["capabilities"]:
-        print(f"  {cap['name']:25s}  level={cap['level']:15s}  "
-              f"usage={cap['usage_count']}  success={cap['success_rate']:.2f}")
+        print(
+            f"  {cap['name']:25s}  level={cap['level']:15s}  "
+            f"usage={cap['usage_count']}  success={cap['success_rate']:.2f}"
+        )
 
     # ── 6. Run the improvement cycle ──────────────────────────
     section("6. SYNC ENGINE (improvement cycle)")
@@ -208,8 +233,10 @@ async def main() -> None:
         )
 
     improvements = status.get("improvements", {})
-    print(f"\n  Improvements: {improvements.get('applied', 0)} applied, "
-          f"{improvements.get('proposed', 0)} pending")
+    print(
+        f"\n  Improvements: {improvements.get('applied', 0)} applied, "
+        f"{improvements.get('proposed', 0)} pending"
+    )
 
     await system.stop()
     print(f"\n{'=' * 60}")

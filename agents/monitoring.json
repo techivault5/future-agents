@@ -1,0 +1,81 @@
+{
+  "id": "monitoring_agent",
+  "name": "Monitoring Agent",
+  "type": "monitoring",
+  "version": "0.1.0",
+  "description": "Health monitoring, alerting, and metrics collection",
+  "skills": [
+    {
+      "name": "monitoring_health",
+      "description": "Handles monitoring.health operations",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "options": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "monitoring_alert",
+      "description": "Handles monitoring.alert operations",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "options": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "monitoring_metrics",
+      "description": "Handles monitoring.metrics operations",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "options": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    }
+  ],
+  "constraints": {
+    "max_concurrent_tasks": 5,
+    "timeout_seconds": 30
+  },
+  "metadata": {
+    "auto_generated": true,
+    "status": "skeleton",
+    "importance": 0.9
+  }
+}

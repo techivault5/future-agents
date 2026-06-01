@@ -1,0 +1,81 @@
+{
+  "id": "security_agent",
+  "name": "Security Agent",
+  "type": "security",
+  "version": "0.1.0",
+  "description": "Security auditing, scanning, and policy enforcement",
+  "skills": [
+    {
+      "name": "security_audit",
+      "description": "Handles security.audit operations",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "options": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "security_scan",
+      "description": "Handles security.scan operations",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "options": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "security_policy",
+      "description": "Handles security.policy operations",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string"
+          },
+          "options": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "target"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    }
+  ],
+  "constraints": {
+    "max_concurrent_tasks": 5,
+    "timeout_seconds": 30
+  },
+  "metadata": {
+    "auto_generated": true,
+    "status": "skeleton",
+    "importance": 0.9
+  }
+}

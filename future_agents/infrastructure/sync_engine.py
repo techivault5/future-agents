@@ -18,7 +18,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from future_agents.core.base_agent import BaseAgent
 from future_agents.core.events import Event, EventBus
 from future_agents.core.registry import AgentRegistry
 from future_agents.infrastructure.knowledge_store import KnowledgeStore

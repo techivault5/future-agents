@@ -153,6 +153,4 @@ class BaseAgent(ABC):
 
     async def emit(self, event_type: str, data: dict[str, Any] | None = None) -> None:
         """Convenience method to emit an event from this agent."""
-        await self.event_bus.emit(
-            Event(type=event_type, source=self.agent_id, data=data or {})
-        )
+        await self.event_bus.emit(Event(type=event_type, source=self.agent_id, data=data or {}))
