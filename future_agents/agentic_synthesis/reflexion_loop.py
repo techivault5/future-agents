@@ -40,7 +40,8 @@ class ReflexionResult:
     def summary(self) -> str:
         lines = [
             f"Task     : {self.task[:80]}",
-            f"Attempts : {self.attempts}  Best score: {self.best_score:.2f}  Success: {self.success}",
+            f"Attempts : {self.attempts}  Best score: {self.best_score:.2f}"
+            f"  Success: {self.success}",
         ]
         for t in self.traces:
             lines.append(f"  [{t.attempt}] score={t.score:.2f} — {t.reflection[:100]}")
@@ -132,7 +133,9 @@ class ReflexionLoop:
                 f"  Attempt {i + 1}: {r}" for i, r in enumerate(prior_reflections)
             )
 
-        ctx_block = "\n".join(f"  {k}: {str(v)[:200]}" for k, v in context.items()) if context else ""
+        ctx_block = (
+            "\n".join(f"  {k}: {str(v)[:200]}" for k, v in context.items()) if context else ""
+        )
 
         prompt = f"Task: {task}\n{ctx_block}{reflection_block}\n\nProvide your best response."
         try:
@@ -176,18 +179,22 @@ class ReflexionLoop:
                         score = max(0.0, min(1.0, float(line[6:].strip())))
                     except ValueError:
                         pass
-            return evaluation or text[:200], score, resp.usage.input_tokens + resp.usage.output_tokens
+            tokens = resp.usage.input_tokens + resp.usage.output_tokens
+            return evaluation or text[:200], score, tokens
         except Exception as exc:
             return f"Eval error: {exc}", 0.5, 0
 
-    async def _reflect(self, task: str, action: str, evaluation: str, score: float) -> tuple[str, int]:
+    async def _reflect(
+        self, task: str, action: str, evaluation: str, score: float
+    ) -> tuple[str, int]:
         if self._client is None:
             return f"[stub reflection, score={score:.2f}]", 0
 
         prompt = (
             f"Task: {task}\n\nMy response (excerpt): {action[:400]}\n\n"
             f"Evaluation: {evaluation}\nScore: {score:.2f}\n\n"
-            "In 2–3 specific, actionable sentences: what went wrong and what will you do differently next time?"
+            "In 2–3 specific, actionable sentences: what went wrong and what will you"
+            " do differently next time?"
         )
         try:
             resp = self._client.messages.create(

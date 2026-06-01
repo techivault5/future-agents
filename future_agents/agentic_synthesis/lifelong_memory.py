@@ -130,7 +130,9 @@ class LifelongMemory:
                 overlap = set(tags) & set(entry.tags)
                 if overlap:
                     entry.touch()
-                    results.append(MemorySearchResult(entry=entry, match_type="tag", score=len(overlap) / len(tags)))
+                    results.append(MemorySearchResult(
+                        entry=entry, match_type="tag", score=len(overlap) / len(tags)
+                    ))
                     continue
 
             # Keyword match (Jaccard similarity)
@@ -159,12 +161,21 @@ class LifelongMemory:
         by_type: dict[str, int] = {}
         for e in self._entries.values():
             by_type[e.memory_type] = by_type.get(e.memory_type, 0) + 1
-        return {"total": len(self._entries), "by_type": by_type, "capacity": self._max, "path": str(self._path)}
+        return {
+            "total": len(self._entries),
+            "by_type": by_type,
+            "capacity": self._max,
+            "path": str(self._path),
+        }
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
     def _tokenize(self, text: str) -> list[str]:
-        return [w.strip(".,;:!?\"'()[]") for w in text.lower().split() if w not in _STOP_WORDS and len(w) > 2]
+        return [
+            w.strip(".,;:!?\"'()[]")
+            for w in text.lower().split()
+            if w not in _STOP_WORDS and len(w) > 2
+        ]
 
     def _consolidate(self) -> None:
         """Evict lowest-scored entries when over capacity."""
