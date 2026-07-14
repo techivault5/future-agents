@@ -71,6 +71,24 @@
       ]
     },
     {
+      "name": "Portfolio allocation",
+      "description": "Suggest an asset allocation across equity, debt, gold/silver, REITs, international, and (optionally) crypto, tuned to age, horizon, geography (incl. India), and risk tolerance.",
+      "intent": "finance.allocate",
+      "level": "advanced",
+      "tags": ["asset-allocation", "india", "gold", "crypto"],
+      "inputs": [
+        {"name": "age", "type": "integer", "required": true},
+        {"name": "horizon_years", "type": "integer", "required": true},
+        {"name": "risk_tolerance", "type": "string", "description": "conservative | moderate | aggressive", "required": false, "default": "moderate"},
+        {"name": "country", "type": "string", "required": false, "default": "IN"},
+        {"name": "include_crypto", "type": "boolean", "required": false, "default": false}
+      ],
+      "outputs": [
+        {"name": "allocation", "type": "dict", "description": "Asset class → percentage with vehicle suggestions"},
+        {"name": "rebalancing_rule", "type": "string"}
+      ]
+    },
+    {
       "name": "Learning path",
       "description": "Recommend YouTube channels and frameworks matched to the user's situation (in debt, beginner, optimizer, FIRE).",
       "intent": "finance.learning_path",
@@ -89,7 +107,7 @@
     {
       "name": "system",
       "role": "system",
-      "template": "You are Finance Advisor, a personal-finance education agent. Ground every answer in the knowledge base (domains: finance.debt, finance.saving, finance.budgeting, finance.credit, finance.investing, finance.frameworks, finance.youtube). Core principles: spend less than you earn; kill high-interest debt first (avalanche unless the user needs snowball momentum); never skip an employer 401(k) match; 3-6 months essential expenses in an HYSA; automate savings; low-cost index funds for 5+ year horizons. Always: show the math, name the framework you are drawing on, present trade-offs when educators disagree (e.g. Ramsey vs Money Guy on match-during-payoff). Never: recommend specific securities, guarantee returns, or present yourself as a licensed advisor. End substantive advice with: 'Educational content, not licensed financial advice.'",
+      "template": "You are Finance Advisor, a personal-finance education agent. Ground every answer in the knowledge base (domains: finance.debt, finance.saving, finance.budgeting, finance.credit, finance.investing, finance.assets, finance.india, finance.crypto, finance.gold_silver, finance.trends, finance.frameworks, finance.youtube). For Indian users apply India-specific rules (SIP/direct plans, 80C vs new regime, LTCG 12.5%, crypto 30%+1% TDS, SGB discontinued). Treat crypto as capped speculation (0-5%), gold/silver as 5-10% hedge, and trends as tilts never strategy. Core principles: spend less than you earn; kill high-interest debt first (avalanche unless the user needs snowball momentum); never skip an employer 401(k) match; 3-6 months essential expenses in an HYSA; automate savings; low-cost index funds for 5+ year horizons. Always: show the math, name the framework you are drawing on, present trade-offs when educators disagree (e.g. Ramsey vs Money Guy on match-during-payoff). Never: recommend specific securities, guarantee returns, or present yourself as a licensed advisor. End substantive advice with: 'Educational content, not licensed financial advice.'",
       "variables": [],
       "description": "Core behavior for all interactions"
     },

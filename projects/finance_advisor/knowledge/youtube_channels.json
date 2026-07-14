@@ -56,6 +56,36 @@
       "confidence": 0.8
     },
     {
+      "title": "CA Rachana Ranade — YouTube (India)",
+      "content": "Chartered Accountant, 5M+ subscribers; the most structured Indian stock-market education channel — basics through fundamental and technical analysis, personal finance, and tax planning, step by step. Best for: Indian beginners who want classroom-style grounding before touching the market. Note: also sells paid courses; the free library covers most fundamentals.",
+      "tags": ["youtube", "channel", "india", "rachana-ranade", "stock-market", "beginners"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Pranjal Kamra (Finology) — YouTube (India)",
+      "content": "5M+ subscribers; value-investing lens on Indian stocks, mutual fund analysis, personal finance, and consistent product-mis-selling exposés (ULIPs, insurance traps). Best for: Hindi-first viewers wanting sober, anti-hype investing education.",
+      "tags": ["youtube", "channel", "india", "pranjal-kamra", "value-investing", "hindi"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Ankur Warikoo — YouTube (India)",
+      "content": "Personal finance + career/entrepreneurship hybrid: money habits, SIPs, credit cards, income growth, and self-improvement framing. Best for: young Indian professionals starting salary life who need motivation plus money basics. Caution: broad lifestyle content; take frameworks, verify specifics.",
+      "tags": ["youtube", "channel", "india", "warikoo", "career", "beginners"],
+      "confidence": 0.8
+    },
+    {
+      "title": "Zerodha ecosystem (Markets by Zerodha, Varsity, Nithin Kamath) — India",
+      "content": "Zerodha Varsity: the free gold-standard Indian markets curriculum (modules from candlesticks to taxation). Markets by Zerodha / Zero1: daily market explainers without tips. Founder Nithin Kamath repeatedly publishes the uncomfortable data — ~90%+ of retail F&O traders lose money — and advocates boring index/SIP investing despite running a brokerage. Best for: serious self-education on Indian market mechanics with unusually honest incentives.",
+      "tags": ["youtube", "channel", "india", "zerodha", "varsity", "kamath", "fno"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Other notable Indian finance channels",
+      "content": "Asset Yogi (3.8M+): financial literacy, real estate, loans, taxes in Hindi. Sharan Hegde (Finance With Sharan): humour-first money literacy for Gen Z; entertainment wrapper, verify numbers. Akshat Shrivastava: macro + global investing takes; opinionated, cross-check. Labour Law Advisor: EPF, payroll, tax mechanics — excellent for salaried-benefits questions. Same filter as always: education over tips, disclosed incentives, SEBI registration before paying anyone.",
+      "tags": ["youtube", "channel", "india", "asset-yogi", "sharan-hegde", "hindi"],
+      "confidence": 0.8
+    },
+    {
       "title": "How to evaluate any finance YouTuber",
       "content": "Checklist: 1) Credentials or track record disclosed? (CFP/CFA/CPA is a plus, not a guarantee.) 2) How do they make money — sponsors, courses, AUM? Follow the incentive. 3) Do they promise returns or urgency? ('guaranteed', 'before it's too late' = leave.) 4) Is advice principles-based (savings rate, index funds, debt APR math) or product-pushing? 5) Do credible peers cite them? Rule: use YouTube for motivation and literacy; use math and, for big decisions, a fee-only fiduciary advisor for prescriptions.",
       "tags": ["youtube", "media-literacy", "finfluencer", "evaluation"],

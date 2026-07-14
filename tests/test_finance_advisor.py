@@ -28,7 +28,7 @@ def test_knowledge_files_are_valid_json():
 
 def test_load_knowledge_populates_store():
     store = load_knowledge()
-    assert store.size >= 40
+    assert store.size >= 75
     domains = store.stats()["domains"]
     for expected in (
         "finance.debt",
@@ -36,6 +36,11 @@ def test_load_knowledge_populates_store():
         "finance.budgeting",
         "finance.credit",
         "finance.investing",
+        "finance.assets",
+        "finance.india",
+        "finance.crypto",
+        "finance.gold_silver",
+        "finance.trends",
         "finance.frameworks",
         "finance.youtube",
     ):
@@ -46,15 +51,21 @@ def test_search_and_tags():
     store = load_knowledge()
     assert store.search("avalanche", domain="finance.debt")
     assert store.search("emergency fund")
+    assert store.search("SIP", domain="finance.india")
+    assert store.search("30%", domain="finance.crypto")
+    assert store.search("SGB", domain="finance.gold_silver")
     assert store.by_tag("youtube")
     assert store.by_tag("emergency-fund")
+    assert store.by_tag("asset-allocation")
+    assert store.by_tag("india")
 
 
 def test_advisor_definition_is_valid():
     defn = build_advisor()
     assert defn.type == "finance_advisor"
-    assert len(defn.skills) == 5
+    assert len(defn.skills) == 6
     assert "finance.debt_plan" in defn.intents
+    assert "finance.allocate" in defn.intents
     assert defn.get_prompt("system") is not None
     warnings = DefinitionLoader().validate(defn)
     assert warnings == []

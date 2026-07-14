@@ -27,6 +27,24 @@ Research gathered July 2026. Curated into `knowledge/*.json`.
 - [Checklist-Style Financial Planning — Kitces](https://www.kitces.com/blog/checklist-style-financial-planning-dave-ramsey-baby-steps-money-guy-show-order-of-operations/)
 - [Dave Ramsey's Baby Steps — PocketSmith](https://www.pocketsmith.com/methodologies/dave-ramsey-s-baby-steps/)
 
+## India investing
+- [AMFI SIP data — Vrid](https://vrid.in/mutual_fund_insights) (₹30,954 cr May 2026 inflows, 9.64 cr accounts, ₹17.12 lakh cr SIP AUM)
+- [Best SIP funds 2026 — Univest](https://univest.in/blogs/best-sip-mutual-funds) / [Groww](https://groww.in/blog/best-mutual-fund-sip-plan) (category leaders context)
+- SEBI 2026 category review coverage (80% equity mandate retained; solution-oriented schemes removed)
+
+## Crypto (India)
+- [CoinDesk — India Budget 2026 keeps 30% crypto tax + TDS](https://www.coindesk.com/markets/2026/02/02/india-s-budget-2026-keeps-crypto-taxes-tds-unchanged-adds-usd545-penalty-for-lapses)
+- [ClearTax crypto tax guide 2026](https://cleartax.in/s/cryptocurrency-taxation-guide) / [Koinly India guide](https://koinly.io/guides/crypto-tax-india/) (30% VDA, 1% TDS, no loss offset, April 2026 exchange reporting)
+
+## Gold & silver
+- [Business Standard — Gold/Silver 2026 outlook](https://www.business-standard.com/markets/commodities/gold-silver-outlook-2026-after-record-rally-2025-gold-silver-price-prediction-2026-india-outlook-125123000073_1.html) (2025: gold +72.7%, silver +174%)
+- [StackWealth — SGB discontinued](https://stackwealth.in/blog/news/union-government-discontinues-sovereign-gold-bonds) / [GoldenPi](https://goldenpi.com/blog/bond-news/sovereign-gold-bond-scheme-discontinued-for-new-issues/) (no tranche since Feb 2024)
+- [Outlook Money — India gold ETF inflows June 2026 (WGC)](https://www.outlookmoney.com/invest/gold-etf-inflows-india-june-2026-wgc-report)
+
+## Indian finance YouTube
+- [The Money Decoded — 22 best finance channels India & US 2026](https://themoneydecoded.com/blog/best-finance-youtube-channels)
+- [Pocketful — best stock market channels India 2026](https://www.pocketful.in/blog/best-youtube-channels-for-stock-market-in-india/)
+
 ## Notes
 - Rate-sensitive facts (APRs, APYs, prime rate) are stamped in entry content as 2026 conditions; refresh periodically.
 - `gather.py --youtube` pulls latest uploads (needs `YOUTUBE_API_KEY`) at lower confidence (0.6) than curated entries.
