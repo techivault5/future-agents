@@ -8,7 +8,6 @@ Returns a scored report with actionable feedback, just like a senior design lead
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
@@ -73,11 +72,11 @@ RUBRIC = {
 
 GRADE_MAP = {
     (9.0, 10.0): ("A+", "World-class — ready for C-suite presentation"),
-    (8.0, 9.0):  ("A",  "Excellent — minor polish only"),
-    (7.0, 8.0):  ("B+", "Very good — some improvements recommended"),
-    (6.0, 7.0):  ("B",  "Good — notable gaps, addressable"),
-    (5.0, 6.0):  ("C",  "Adequate — significant improvements needed"),
-    (0.0, 5.0):  ("D",  "Needs major rework"),
+    (8.0, 9.0): ("A", "Excellent — minor polish only"),
+    (7.0, 8.0): ("B+", "Very good — some improvements recommended"),
+    (6.0, 7.0): ("B", "Good — notable gaps, addressable"),
+    (5.0, 6.0): ("C", "Adequate — significant improvements needed"),
+    (0.0, 5.0): ("D", "Needs major rework"),
 }
 
 
@@ -114,7 +113,8 @@ class QualityAssessorAgent(BaseAgent):
         handler = handlers.get(context.intent)
         if not handler:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"Unknown intent: {context.intent}"],
             )
@@ -126,27 +126,42 @@ class QualityAssessorAgent(BaseAgent):
         """Extract structural metadata from a PPTX file."""
         try:
             from pptx import Presentation
+
             prs = Presentation(str(path))
             slides = list(prs.slides)
             slide_count = len(slides)
 
             has_title_slide = slide_count > 0
             has_toc = any(
-                any("contents" in str(shape.text).lower() or "index" in str(shape.text).lower()
-                    for shape in s.shapes if shape.has_text_frame)
+                any(
+                    "contents" in str(shape.text).lower() or "index" in str(shape.text).lower()
+                    for shape in s.shapes
+                    if shape.has_text_frame
+                )
                 for s in slides[:3]
             )
             has_summary = any(
-                any("summary" in str(shape.text).lower() for shape in s.shapes if shape.has_text_frame)
+                any(
+                    "summary" in str(shape.text).lower()
+                    for shape in s.shapes
+                    if shape.has_text_frame
+                )
                 for s in slides
             )
             has_qa = any(
-                any("q" in str(shape.text).lower() and "a" in str(shape.text).lower()
-                    for shape in s.shapes if shape.has_text_frame)
+                any(
+                    "q" in str(shape.text).lower() and "a" in str(shape.text).lower()
+                    for shape in s.shapes
+                    if shape.has_text_frame
+                )
                 for s in slides
             )
             has_architecture = any(
-                any("architect" in str(shape.text).lower() for shape in s.shapes if shape.has_text_frame)
+                any(
+                    "architect" in str(shape.text).lower()
+                    for shape in s.shapes
+                    if shape.has_text_frame
+                )
                 for s in slides
             )
             shape_count = sum(len(s.shapes) for s in slides)
@@ -184,6 +199,7 @@ class QualityAssessorAgent(BaseAgent):
         """Extract structural metadata from a DOCX file."""
         try:
             from docx import Document
+
             doc = Document(str(path))
 
             headings = [p for p in doc.paragraphs if p.style.name.startswith("Heading")]
@@ -192,12 +208,9 @@ class QualityAssessorAgent(BaseAgent):
             tables = doc.tables
 
             has_toc = any(
-                "contents" in p.text.lower() or "toc" in p.text.lower()
-                for p in doc.paragraphs[:10]
+                "contents" in p.text.lower() or "toc" in p.text.lower() for p in doc.paragraphs[:10]
             )
-            has_summary = any(
-                "summary" in p.text.lower() for p in doc.paragraphs
-            )
+            has_summary = any("summary" in p.text.lower() for p in doc.paragraphs)
             has_header = bool(doc.sections and doc.sections[0].header.paragraphs)
             has_footer = bool(doc.sections and doc.sections[0].footer.paragraphs)
 
@@ -221,11 +234,8 @@ class QualityAssessorAgent(BaseAgent):
     def _inspect_pdf(self, path: Path) -> dict:
         """Extract structural metadata from a PDF file."""
         try:
-            import struct
-
             # Basic PDF inspection without heavy deps
             raw = path.read_bytes()
-            text_sample = raw[:8192].decode("latin-1", errors="ignore")
 
             is_valid_pdf = raw[:4] == b"%PDF"
             # Count /Type /Page occurrences — standard page marker in all PDF generators
@@ -372,9 +382,13 @@ class QualityAssessorAgent(BaseAgent):
                 criteria = RUBRIC[dim]["criteria"]
                 feedback.append(f"[{dim.upper()}] Score {score:.1f}/10 — Focus on: {criteria[0]}")
             elif score >= 9.0:
-                feedback.append(f"[{dim.upper()}] Score {score:.1f}/10 — Excellent. Keep this standard.")
+                feedback.append(
+                    f"[{dim.upper()}] Score {score:.1f}/10 — Excellent. Keep this standard."
+                )
             else:
-                feedback.append(f"[{dim.upper()}] Score {score:.1f}/10 — Good. Minor refinements possible.")
+                feedback.append(
+                    f"[{dim.upper()}] Score {score:.1f}/10 — Good. Minor refinements possible."
+                )
 
         if file_type == "pptx":
             if not meta.get("has_toc"):
@@ -386,13 +400,17 @@ class QualityAssessorAgent(BaseAgent):
 
         elif file_type == "docx":
             if not meta.get("has_toc"):
-                feedback.append("ACTION: Insert a Table of Contents (Ctrl+A, F9 to update in Word).")
+                feedback.append(
+                    "ACTION: Insert a Table of Contents (Ctrl+A, F9 to update in Word)."
+                )
             if not meta.get("has_header") or not meta.get("has_footer"):
                 feedback.append("ACTION: Add consistent headers and footers with page numbers.")
 
         elif file_type == "pdf":
             if not meta.get("has_images"):
-                feedback.append("ACTION: Add background imagery — set UNSPLASH_ACCESS_KEY or PEXELS_API_KEY.")
+                feedback.append(
+                    "ACTION: Add background imagery — set UNSPLASH_ACCESS_KEY or PEXELS_API_KEY."
+                )
             if not meta.get("has_bookmarks"):
                 feedback.append("ACTION: Add PDF bookmarks/outlines for navigation.")
 
@@ -400,20 +418,30 @@ class QualityAssessorAgent(BaseAgent):
 
     def _vp_verdict(self, score: float) -> str:
         if score >= 9.0:
-            return ("APPROVED — Board ready. This document meets the highest standard of "
-                    "professional quality, visual design, and inclusive representation.")
+            return (
+                "APPROVED — Board ready. This document meets the highest standard of "
+                "professional quality, visual design, and inclusive representation."
+            )
         elif score >= 8.0:
-            return ("APPROVED WITH NOTES — Executive ready. Strong quality overall with minor "
-                    "polish needed before wider distribution.")
+            return (
+                "APPROVED WITH NOTES — Executive ready. Strong quality overall with minor "
+                "polish needed before wider distribution."
+            )
         elif score >= 7.0:
-            return ("CONDITIONAL APPROVAL — Very good but requires specific improvements before "
-                    "external-facing use. See actionable feedback below.")
+            return (
+                "CONDITIONAL APPROVAL — Very good but requires specific improvements before "
+                "external-facing use. See actionable feedback below."
+            )
         elif score >= 6.0:
-            return ("REVISION REQUIRED — Meets baseline but notable gaps in design or structure "
-                    "must be addressed. Internal use only until revised.")
+            return (
+                "REVISION REQUIRED — Meets baseline but notable gaps in design or structure "
+                "must be addressed. Internal use only until revised."
+            )
         else:
-            return ("REJECTED — Significant rework required. Document does not meet professional "
-                    "standards for distribution. Follow the full improvement plan.")
+            return (
+                "REJECTED — Significant rework required. Document does not meet professional "
+                "standards for distribution. Follow the full improvement plan."
+            )
 
     # ── Intent handlers ───────────────────────────────────────────────────────
 
@@ -430,7 +458,8 @@ class QualityAssessorAgent(BaseAgent):
 
         if not path.exists():
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"File not found: {file_path}"],
             )
@@ -448,7 +477,8 @@ class QualityAssessorAgent(BaseAgent):
             scores = self._score_pdf(meta)
         else:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"Unsupported file type: {file_type}. Use pptx, docx, or pdf."],
             )
@@ -461,7 +491,8 @@ class QualityAssessorAgent(BaseAgent):
         logger.info("Quality assessment: %s → %.1f/10 (%s)", path.name, overall, letter)
 
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={
                 "file": str(path),
@@ -500,7 +531,8 @@ class QualityAssessorAgent(BaseAgent):
 
         if len(results) < 2:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=["Could not assess both documents"],
             )
@@ -509,18 +541,17 @@ class QualityAssessorAgent(BaseAgent):
         winner = "A" if a.get("overall_score", 0) >= b.get("overall_score", 0) else "B"
 
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={
                 "document_a": {"file": file_a, **a},
                 "document_b": {"file": file_b, **b},
                 "winner": winner,
-                "score_delta": round(
-                    abs(a.get("overall_score", 0) - b.get("overall_score", 0)), 2
-                ),
+                "score_delta": round(abs(a.get("overall_score", 0) - b.get("overall_score", 0)), 2),
                 "recommendation": (
                     f"Document {winner} scores higher by "
-                    f"{abs(a.get('overall_score',0)-b.get('overall_score',0)):.1f} points."
+                    f"{abs(a.get('overall_score', 0) - b.get('overall_score', 0)):.1f} points."
                 ),
             },
         )
@@ -545,7 +576,8 @@ class QualityAssessorAgent(BaseAgent):
 
         if not data:
             return TaskResult(
-                task_id=context.task_id, agent_id=self.agent_id,
+                task_id=context.task_id,
+                agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=assessment.errors,
             )
@@ -598,7 +630,8 @@ class QualityAssessorAgent(BaseAgent):
         report_path.write_text(report_text, encoding="utf-8")
 
         return TaskResult(
-            task_id=context.task_id, agent_id=self.agent_id,
+            task_id=context.task_id,
+            agent_id=self.agent_id,
             outcome=ExecutionOutcome.SUCCESS,
             data={
                 "report_path": str(report_path),

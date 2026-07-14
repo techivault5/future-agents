@@ -261,7 +261,8 @@ def post_github_issue(ideas_data: dict) -> None:
             "### Source Repos",
             ", ".join(f"`{r}`" for r in idea.get("source_repos", [])),
             "",
-            f"**Estimated Impact:** {idea.get('estimated_impact', 'medium').upper()} — {idea.get('impact_reason', '')}",
+            f"**Estimated Impact:** {idea.get('estimated_impact', 'medium').upper()} — "
+            f"{idea.get('impact_reason', '')}",
             "",
         ]
 
