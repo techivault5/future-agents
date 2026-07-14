@@ -1,0 +1,53 @@
+{
+  "domain": "finance.saving",
+  "entries": [
+    {
+      "title": "Emergency fund — how much",
+      "content": "Target 3-6 months of ESSENTIAL expenses (not income): rent/mortgage, food, utilities, insurance, minimum debt payments. $3,000/month essentials → $9,000-$18,000 target. Adjust by risk: 3 months for dual-income stable jobs; 6+ for single income, variable income, contractors, or specialized roles; up to 12 for retirees or very volatile income. Start with a $1,000-$2,000 starter fund before aggressive debt payoff, then build the full fund after high-interest debt is gone.",
+      "tags": ["saving", "emergency-fund", "essentials"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Where to keep the emergency fund",
+      "content": "High-yield savings account (HYSA) at an FDIC/NCUA-insured online bank. In 2026 top HYSAs pay 4.00-5.00% APY vs ~0.6% national average — on a $10,000 fund that's $400-500/yr vs ~$40. Requirements: liquid (1-2 day access), separate from checking (friction against impulse spending), insured. Do NOT invest the emergency fund in stocks — its job is availability, not growth. Money market funds and T-bill ladders are acceptable for the 6+ month tier.",
+      "tags": ["saving", "emergency-fund", "hysa", "apy", "fdic"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Pay yourself first / automation",
+      "content": "The single highest-leverage savings habit: automate a transfer to savings on payday, before discretionary spending. Savings become a fixed 'bill'; you adapt spending to what remains. Willpower-based saving (saving what's left over) reliably fails. Start at any rate — even 5% — and ratchet up 1% every raise. Direct-deposit splits (part of paycheck straight to HYSA) remove the decision entirely.",
+      "tags": ["saving", "automation", "pay-yourself-first", "habits"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Savings rate beats returns (early on)",
+      "content": "In the first decade of wealth-building, how much you save matters far more than investment returns. Saving $500/mo at 0% beats saving $100/mo at 10%. Benchmark savings rates: 10% floor, 15-20% solid, 25%+ (Money Guy recommendation) for financial independence trajectories. Track savings rate = (all saving + debt principal + retirement contributions) / gross income.",
+      "tags": ["saving", "savings-rate", "wealth-building"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Sinking funds",
+      "content": "Pre-fund known irregular expenses (car repairs, holidays, insurance premiums, travel, annual subscriptions) with small monthly transfers into labeled buckets. A $600 December gift budget = $50/mo starting January. Kills the 'everything is an emergency' pattern that drains emergency funds and reloads credit cards. Most online banks support multiple named sub-accounts/buckets for this.",
+      "tags": ["saving", "sinking-funds", "planning", "irregular-expenses"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Cutting expenses that actually matter",
+      "content": "Order of impact: 1) Housing (aim ≤30% of take-home; the single biggest lever — house-hacking, roommates, renegotiating rent). 2) Transportation (car payment + insurance + fuel; a modest used car vs new saves hundreds/mo). 3) Food (meal planning and groceries vs delivery — delivery apps often cost 50-90% over menu). 4) Recurring subscriptions — audit quarterly, cancel by default. Micro-frugality (lattes) is behaviorally useful but mathematically minor; fix the big three first. Ramit Sethi's framing: cut mercilessly on things you don't care about, spend extravagantly on what you love.",
+      "tags": ["saving", "expenses", "housing", "big-three", "ramit-sethi"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Lifestyle inflation",
+      "content": "Raises get absorbed by upgraded spending unless intercepted. Rule: bank at least 50% of every raise/bonus by raising your automatic transfers the same week the raise lands. Keeping fixed costs flat while income grows is how ordinary incomes build wealth. The Financial Diet and Money Guy both flag lifestyle creep as the top silent wealth-killer for professionals.",
+      "tags": ["saving", "lifestyle-inflation", "raises", "behavior"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Short-term vs long-term savings buckets",
+      "content": "Match the vehicle to the horizon: <1 year (emergency fund, near purchases) → HYSA. 1-5 years (house down payment, car) → HYSA, CDs, or T-bills; not stocks — a 30-40% drawdown the year you need the money is unacceptable. 5+ years → invest (index funds, retirement accounts). Never invest money with a known near-term due date.",
+      "tags": ["saving", "time-horizon", "buckets", "cds", "t-bills"],
+      "confidence": 0.95
+    }
+  ]
+}

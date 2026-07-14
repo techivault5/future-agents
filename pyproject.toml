@@ -34,6 +34,9 @@ dev = [
     "ruff>=0.1.0",
 ]
 
+[tool.setuptools.packages.find]
+include = ["future_agents*", "guardrails*"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 

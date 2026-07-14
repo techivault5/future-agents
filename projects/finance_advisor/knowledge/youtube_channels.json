@@ -1,0 +1,65 @@
+{
+  "domain": "finance.youtube",
+  "entries": [
+    {
+      "title": "The Money Guy Show — YouTube channel",
+      "content": "Hosts: Brian Preston & Bo Hanson, both CFP/CPA credentials. Focus: the Financial Order of Operations (FOO), wealth-building by age/income, retirement math, 25% savings-rate target. Style: data-heavy, optimistic, credentialed. Best for: viewers past the debt phase who want an exact 'what to do with the next dollar' checklist. Signature content: FOO deep dives, 'Are You On Track' by-age series, net-worth-by-age benchmarks.",
+      "tags": ["youtube", "channel", "money-guy", "cfp", "foo", "retirement"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Caleb Hammer — Financial Audit",
+      "content": "Focus: line-by-line audits of real guests' disastrous finances — card debt, payday loans, gambling, doordash leakage. Style: confrontational tough love, entertainment-first but the prescriptions are standard (bare-bones budget, kill high-APR debt, raise income). Best for: people who need to feel the consequences of card debt viscerally; excellent cautionary-tale library. Caution: entertainment format, individual advice is situational.",
+      "tags": ["youtube", "channel", "caleb-hammer", "financial-audit", "debt"],
+      "confidence": 0.9
+    },
+    {
+      "title": "The Ramsey Show (Dave Ramsey) — YouTube",
+      "content": "Focus: Baby Steps, debt-free screams, caller Q&A on debt crises. Style: absolutist, anti-debt, behavior-first. Best for: motivation to escape consumer debt; the debt-payoff content is the strongest. Caution points cited by other educators: 12% return assumptions and 8% withdrawal-rate comments are widely criticized as unrealistic; anti-credit-card absolutism and skipping the 401(k) match during payoff cost optimizers money. Massive back catalog of real caller situations.",
+      "tags": ["youtube", "channel", "dave-ramsey", "baby-steps", "debt"],
+      "confidence": 0.9
+    },
+    {
+      "title": "I Will Teach You To Be Rich (Ramit Sethi) — YouTube",
+      "content": "Focus: money psychology, couples' finances (real couples on camera discussing money), conscious spending, automation, negotiation. Style: behavioral, anti-frugality-theater, systems over willpower. Best for: earners whose problem is psychology/relationships with money, not arithmetic. Signature: 'What's your rich life?', money dials, fixed-cost audits.",
+      "tags": ["youtube", "channel", "ramit-sethi", "psychology", "couples"],
+      "confidence": 0.9
+    },
+    {
+      "title": "The Financial Diet — YouTube",
+      "content": "Focus: money + emotions, lifestyle inflation, consumer culture, financial wellness, women and money. Style: accessible, jargon-free, essayistic. Best for: beginners intimidated by finance content and viewers interested in the cultural/behavioral side of spending. One of the longest-running personal finance channels.",
+      "tags": ["youtube", "channel", "financial-diet", "behavior", "beginners"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Debt Free Millennials (Justine Nelson) — YouTube",
+      "content": "Focus: debt payoff for millennials/Gen Z — host paid off $35K of student loans on a $37K income in 2.5 years. Content: budget breakdowns, debt payoff plans, living debt-free on modest income. Best for: normal-income viewers who want relatable, non-guru payoff content.",
+      "tags": ["youtube", "channel", "debt-free-millennials", "student-loans", "debt"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Two Cents (PBS) — YouTube",
+      "content": "Focus: short, research-cited explainers on personal finance fundamentals — credit scores, inflation, insurance, behavioral biases. Hosts are CFPs; PBS-funded so no affiliate/product conflicts. Best for: trustworthy fundamentals without sales pressure; great first channel.",
+      "tags": ["youtube", "channel", "two-cents", "pbs", "fundamentals", "no-conflicts"],
+      "confidence": 0.9
+    },
+    {
+      "title": "The Plain Bagel (Richard Coffin) — YouTube",
+      "content": "Focus: investing education and financial-scam/hype debunking from a CFA/CFP. Style: sober, balanced, explicitly non-sensational; excellent 'is this a scam?' series. Best for: building investing literacy and immunity to finfluencer hype.",
+      "tags": ["youtube", "channel", "plain-bagel", "investing", "debunking", "cfa"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Graham Stephan — YouTube",
+      "content": "Focus: real estate, credit-card rewards, market news commentary, extreme savings-rate lifestyle. Style: high-volume, news-reactive, monetization-savvy. Best for: real-estate interest and rewards optimization. Caution: sponsorship-heavy; past promotion of failed platforms (e.g. FTX era) is a reminder to separate education from endorsement.",
+      "tags": ["youtube", "channel", "graham-stephan", "real-estate", "credit-cards"],
+      "confidence": 0.8
+    },
+    {
+      "title": "How to evaluate any finance YouTuber",
+      "content": "Checklist: 1) Credentials or track record disclosed? (CFP/CFA/CPA is a plus, not a guarantee.) 2) How do they make money — sponsors, courses, AUM? Follow the incentive. 3) Do they promise returns or urgency? ('guaranteed', 'before it's too late' = leave.) 4) Is advice principles-based (savings rate, index funds, debt APR math) or product-pushing? 5) Do credible peers cite them? Rule: use YouTube for motivation and literacy; use math and, for big decisions, a fee-only fiduciary advisor for prescriptions.",
+      "tags": ["youtube", "media-literacy", "finfluencer", "evaluation"],
+      "confidence": 0.9
+    }
+  ]
+}
