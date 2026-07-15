@@ -24,6 +24,20 @@ projects/finance_advisor/
   SOURCES.md               # Research sources
 ```
 
+## Dashboard + alerts
+
+```bash
+pip install -e ".[api]"
+uvicorn projects.finance_advisor.app:app --port 8600
+# open http://localhost:8600
+```
+
+- **Markets & signals**: gold/silver ETFs (INR), Nifty 50/Sensex/NIFTYBEES, Bitcoin — live via Yahoo Finance/CoinGecko, with rule-based dip-watch / neutral / extended zones (52-week-high gap + 50-day trend) and curated analyst-outlook notes.
+- **Indian mutual funds**: SIP watchlist NAVs from AMFI (Parag Parikh/HDFC Flexi, Nippon/ICICI large cap, UTI/HDFC Nifty index, quant ELSS, Mirae L&M).
+- **Property watch**: NHB RESIDEX (India) + CSO RPPI (Ireland), curated quarterly data.
+- **Guidance**: saving/budgeting/debt/India/trends tips from the knowledge base.
+- **Alerts → email**: create rules in the UI (price above/below, % drop from 52-week high, sharp daily moves, dip-watch signal). The scheduled worker (`.github/workflows/finance-alerts.yml`, 3×/day) evaluates rules and emails via SMTP. Configure repo secrets: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` (Gmail app password), `ALERT_EMAIL` (default recipient). Test locally: `python -m projects.finance_advisor.alerts --dry-run`.
+
 ## Usage
 
 ```python

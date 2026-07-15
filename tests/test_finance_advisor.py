@@ -79,3 +79,60 @@ def test_youtube_refresh_skips_without_key(monkeypatch):
     before = store.size
     assert refresh_youtube(store) == 0
     assert store.size == before
+
+
+def test_alert_rule_evaluation_offline():
+    from projects.finance_advisor.alerts import AlertRule, evaluate_all, evaluate_rule
+
+    quote = {
+        "key": "gold",
+        "name": "Gold ETF",
+        "price": 110.0,
+        "pct_from_52w_high": -21.4,
+        "change_1d_pct": -3.2,
+        "signal": "dip-watch",
+        "signal_reason": "21.4% below 52-week high",
+    }
+    assert evaluate_rule(AlertRule(asset="gold", condition="price_below", threshold=115), quote)
+    assert not evaluate_rule(AlertRule(asset="gold", condition="price_below", threshold=100), quote)
+    assert evaluate_rule(
+        AlertRule(asset="gold", condition="drop_from_52w_high_pct", threshold=10), quote
+    )
+    assert evaluate_rule(
+        AlertRule(asset="gold", condition="day_change_below_pct", threshold=2), quote
+    )
+    assert evaluate_rule(AlertRule(asset="gold", condition="signal_dip_watch"), quote)
+
+    rules = [
+        AlertRule(asset="gold", condition="price_above", threshold=100),
+        AlertRule(asset="gold", condition="price_above", threshold=100, active=False),
+        AlertRule(asset="bitcoin", condition="price_below", threshold=1),
+    ]
+    triggered = evaluate_all(rules, [quote])
+    assert len(triggered) == 1
+
+
+def test_signal_zones():
+    from projects.finance_advisor.market_data import AssetQuote, compute_signal
+
+    dip = AssetQuote(key="x", name="x", kind="metal", pct_from_52w_high=-18, vs_sma50_pct=-4)
+    assert compute_signal(dip)[0] == "dip-watch"
+    hot = AssetQuote(key="x", name="x", kind="metal", pct_from_52w_high=-1, vs_sma50_pct=14)
+    assert compute_signal(hot)[0] == "extended"
+    mid = AssetQuote(key="x", name="x", kind="metal", pct_from_52w_high=-5, vs_sma50_pct=2)
+    assert compute_signal(mid)[0] == "neutral"
+
+
+def test_property_watch_data():
+    data = json.loads((PROJECT_DIR / "data" / "property_watch.json").read_text())
+    assert data["india"]["cities"] and data["ireland"]["regions"]
+    for row in data["india"]["cities"]:
+        assert isinstance(row["yoy_pct"], (int, float))
+
+
+def test_email_skipped_without_smtp_config(monkeypatch):
+    from projects.finance_advisor.alerts import send_email
+
+    for var in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"):
+        monkeypatch.delenv(var, raising=False)
+    assert send_email("s", "b", "x@example.com") is False

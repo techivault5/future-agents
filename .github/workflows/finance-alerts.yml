@@ -1,0 +1,32 @@
+name: Finance Advisor Alerts
+
+on:
+  schedule:
+    - cron: "30 4,10,14 * * *" # ~10:00, 15:30 IST (market hours) + evening check
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  check-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install pydantic
+
+      - name: Evaluate alert rules and send emails
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+        run: python -m projects.finance_advisor.alerts --check
