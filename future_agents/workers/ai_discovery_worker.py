@@ -75,7 +75,7 @@ class AIDiscoveryWorker(BaseWorker):
             f"## Agent Implementations\n{agent_summary}\n\n"
             f"## Known Agentic Patterns\n{pattern_summary}\n\n"
             f"Please:\n"
-            f"1. Identify 2-3 new agentic patterns or capabilities that would improve this system.\n"
+            f"1. Identify 2-3 new agentic patterns or capabilities that would improve this system.\n"  # noqa: E501
             f"2. For each suggestion, explain what it does and why it would help.\n"
             f"3. Identify any underutilised patterns already in the library.\n"
             f"4. Suggest concrete implementation steps for the highest-priority suggestion.\n"

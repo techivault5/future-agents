@@ -305,7 +305,7 @@ class MasterAgent(BaseAgent):
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"No agent of type '{agent_type}' found"],
                 suggestions=[
-                    f"Available types: {list(set(a.agent_type for a in self.registry.agents.values()))}"
+                    f"Available types: {list(set(a.agent_type for a in self.registry.agents.values()))}"  # noqa: E501
                 ],
             )
 

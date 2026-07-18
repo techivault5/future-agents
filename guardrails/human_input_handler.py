@@ -4,13 +4,14 @@ Human Input Handler
 Manages human-in-the-loop escalations when guardrails are triggered.
 Supports interactive CLI Q&A, webhook notifications, and structured approval flows.
 """
+
+import json
 import os
 import sys
-import json
 import time
-import uuid
-import urllib.request
 import urllib.error
+import urllib.request
+import uuid
 from datetime import datetime, timezone
 
 
@@ -85,8 +86,8 @@ class HumanInputHandler:
         options = context.get("options", ["approve", "deny", "skip"])
         hints = {
             "approve": "Allow this action to proceed",
-            "deny":    "Block this action",
-            "skip":    "Skip guardrail for this item only (log reason)"
+            "deny": "Block this action",
+            "skip": "Skip guardrail for this item only (log reason)",
         }
 
         print("\n  Options:")
@@ -116,7 +117,7 @@ class HumanInputHandler:
                     "choice": chosen,
                     "reason": reason_text,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "responder": "human-cli"
+                    "responder": "human-cli",
                 }
             except (EOFError, KeyboardInterrupt):
                 print("\n  Input interrupted. Denying by default.")
@@ -145,7 +146,7 @@ class HumanInputHandler:
                         "selected": label,
                         "choice": label,
                         "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "responder": "human-cli"
+                        "responder": "human-cli",
                     }
                 print(f"  Enter a number between 1 and {len(choices)}.")
             except (EOFError, KeyboardInterrupt):
@@ -161,7 +162,7 @@ class HumanInputHandler:
                 "approved": True,
                 "input": text,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "responder": "human-cli"
+                "responder": "human-cli",
             }
         except (EOFError, KeyboardInterrupt):
             return self._non_interactive_response(reason, "input")
@@ -174,7 +175,7 @@ class HumanInputHandler:
             "choice": self.non_interactive_default,
             "reason": "Non-interactive mode: using default policy",
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "responder": "auto-policy"
+            "responder": "auto-policy",
         }
 
     def _log_decision(self, escalation: dict, response: dict):
@@ -183,7 +184,7 @@ class HumanInputHandler:
             "id": str(uuid.uuid4()),
             "escalation": escalation,
             "response": response,
-            "logged_at": datetime.now(timezone.utc).isoformat()
+            "logged_at": datetime.now(timezone.utc).isoformat(),
         }
         try:
             with open(self.log_file, "a") as f:
@@ -198,7 +199,7 @@ class HumanInputHandler:
             "decision": response.get("choice"),
             "approved": response.get("approved"),
             "timestamp": response.get("timestamp"),
-            "responder": response.get("responder")
+            "responder": response.get("responder"),
         }
 
         # Generic webhook
@@ -210,14 +211,24 @@ class HumanInputHandler:
             icon = ":white_check_mark:" if response.get("approved") else ":x:"
             slack_payload = {
                 "text": f"{icon} *Guardrails Escalation Decision*",
-                "attachments": [{
-                    "color": "good" if response.get("approved") else "danger",
-                    "fields": [
-                        {"title": "Reason",   "value": escalation.get("reason", "-"), "short": False},
-                        {"title": "Decision", "value": response.get("choice", "-"),   "short": True},
-                        {"title": "By",       "value": response.get("responder", "-"),"short": True},
-                    ]
-                }]
+                "attachments": [
+                    {
+                        "color": "good" if response.get("approved") else "danger",
+                        "fields": [
+                            {
+                                "title": "Reason",
+                                "value": escalation.get("reason", "-"),
+                                "short": False,
+                            },  # noqa: E501
+                            {
+                                "title": "Decision",
+                                "value": response.get("choice", "-"),
+                                "short": True,
+                            },  # noqa: E501
+                            {"title": "By", "value": response.get("responder", "-"), "short": True},  # noqa: E501
+                        ],
+                    }
+                ],
             }
             self._post_json(self.slack_webhook, slack_payload)
 
@@ -225,9 +236,7 @@ class HumanInputHandler:
         try:
             data = json.dumps(payload).encode()
             req = urllib.request.Request(
-                url, data=data,
-                headers={"Content-Type": "application/json"},
-                method="POST"
+                url, data=data, headers={"Content-Type": "application/json"}, method="POST"
             )
             urllib.request.urlopen(req, timeout=5)
         except Exception:
@@ -248,5 +257,5 @@ class HumanInputHandler:
             "context": escalation.get("context", {}),
             "status": "pending",
             "required_approvers": 1,
-            "approvals": []
+            "approvals": [],
         }

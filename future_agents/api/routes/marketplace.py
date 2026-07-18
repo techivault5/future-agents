@@ -100,7 +100,7 @@ def test_agent(agent_id: str, body: TestRequest) -> TestResponse:
         relevant = skills[:3]  # fallback: show first 3
 
     response_text = (
-        f"As a **{data.get('seniority', '').title()} {data.get('role', '').replace('-', ' ').title()}**, "
+        f"As a **{data.get('seniority', '').title()} {data.get('role', '').replace('-', ' ').title()}**, "  # noqa: E501
         f"I would approach this by leveraging my expertise in: "
         f"{', '.join(relevant[:5]) if relevant else 'general IT practices'}.\n\n"
         f"My primary stack is **{data.get('primary_stack', 'N/A')}** "

@@ -166,7 +166,7 @@ class ProcessAgent(BaseAgent):
                         "process_id": process.id,
                         "name": process.name,
                         "avg_completion_rate": process.avg_completion_rate,
-                        "suggestion": "Review failing steps; consider splitting or adding prerequisites",
+                        "suggestion": "Review failing steps; consider splitting or adding prerequisites",  # noqa: E501
                     }
                 )
             # Flag processes with unused optional steps
@@ -176,7 +176,7 @@ class ProcessAgent(BaseAgent):
                     {
                         "process_id": process.id,
                         "name": process.name,
-                        "suggestion": "Too many optional steps — consider splitting into separate processes",
+                        "suggestion": "Too many optional steps — consider splitting into separate processes",  # noqa: E501
                     }
                 )
 
