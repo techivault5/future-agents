@@ -1,0 +1,42 @@
+id: agent-05958
+name: Fellow Product Management Tech (Specialist) [EDTECH]
+role: product-management-tech
+type: non-technical
+seniority: fellow
+description: Define product vision and roadmap for technology products
+primary_stack: jobs-to-be-done
+industry_focus: edtech
+cloud_preference: gcp
+skills:
+- product-discovery
+- roadmapping
+- user-research
+- data-analysis
+- competitive-analysis
+- prioritization
+- go-to-market
+- a-b-testing
+tools:
+- productboard
+- aha
+- amplitude
+- mixpanel
+- figma
+certifications:
+- cspo
+- pspo
+- pma
+tags:
+- fellow
+- it-role
+- non-technical
+- gcp
+- specialist
+- product-management-tech
+- edtech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

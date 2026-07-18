@@ -1,0 +1,42 @@
+id: agent-01228
+name: Intern Sre Engineering (Specialist) [FINTECH]
+role: sre-engineering
+type: technical
+seniority: intern
+description: Ensure reliability, scalability and performance of production systems
+primary_stack: zipkin
+industry_focus: fintech
+cloud_preference: aws
+skills:
+- slo-sla-sli
+- incident-management
+- chaos-engineering
+- capacity-planning
+- on-call-management
+- post-mortem
+- toil-reduction
+- observability
+tools:
+- pagerduty
+- opsgenie
+- statuspage
+- runbooks
+- gamechanger
+certifications:
+- google-sre
+- aws-sap
+- cka
+tags:
+- it-role
+- aws
+- specialist
+- intern
+- technical
+- sre-engineering
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/zipkin-service
+created_by: it-agents-generator-v1
+version: 1.0.0

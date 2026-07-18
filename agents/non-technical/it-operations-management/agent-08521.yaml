@@ -1,0 +1,39 @@
+id: agent-08521
+name: Junior It Operations Management
+role: it-operations-management
+type: non-technical
+seniority: junior
+description: Oversee day-to-day IT operations and service delivery
+primary_stack: cobit
+industry_focus: cross-industry
+cloud_preference: cloud-agnostic
+skills:
+- operations-planning
+- team-leadership
+- budget-management
+- vendor-oversight
+- escalation-management
+- kpi-reporting
+- continuous-improvement
+- capacity-planning
+tools:
+- servicenow
+- pagerduty
+- datadog
+- new-relic
+- opsgenie
+certifications:
+- itil4-mp
+- pmp
+- cobit-2019
+tags:
+- it-role
+- junior
+- non-technical
+- it-operations-management
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

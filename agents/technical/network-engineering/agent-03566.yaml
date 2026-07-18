@@ -1,0 +1,41 @@
+id: agent-03566
+name: Fellow Network Engineering [GOVTECH]
+role: network-engineering
+type: technical
+seniority: fellow
+description: Design, implement and manage network infrastructure
+primary_stack: aruba
+industry_focus: govtech
+cloud_preference: aws
+skills:
+- routing-switching
+- firewall-management
+- vpn
+- load-balancing
+- network-monitoring
+- traffic-analysis
+- wireless
+- voip
+tools:
+- wireshark
+- gns3
+- netbox
+- napalm
+- nornir
+certifications:
+- ccna
+- ccnp
+- ccie
+tags:
+- fellow
+- it-role
+- govtech
+- aws
+- network-engineering
+- technical
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/aruba-service
+created_by: it-agents-generator-v1
+version: 1.0.0

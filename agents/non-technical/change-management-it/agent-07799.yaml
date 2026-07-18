@@ -1,0 +1,42 @@
+id: agent-07799
+name: Lead Change Management It (Consultant) [RETAILTECH]
+role: change-management-it
+type: non-technical
+seniority: lead
+description: Manage organizational change driven by technology transformation
+primary_stack: mckinsey-7s
+industry_focus: retailtech
+cloud_preference: gcp
+skills:
+- change-impact-assessment
+- stakeholder-engagement
+- training-design
+- communication-planning
+- resistance-management
+- adoption-measurement
+- sponsorship-alignment
+- sustainment
+tools:
+- prosci-tools
+- whatfix
+- walkme
+- pendo
+- appcues
+certifications:
+- prosci-pct
+- ccm
+- acmp
+tags:
+- it-role
+- non-technical
+- retailtech
+- consultant
+- gcp
+- change-management-it
+- lead
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

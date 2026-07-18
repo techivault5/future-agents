@@ -1,0 +1,41 @@
+id: agent-06816
+name: Staff Vendor Management [GOVTECH]
+role: vendor-management
+type: non-technical
+seniority: staff
+description: Manage technology vendor relationships and performance
+primary_stack: itil-supplier
+industry_focus: govtech
+cloud_preference: gcp
+skills:
+- contract-negotiation
+- vendor-selection
+- sla-management
+- performance-monitoring
+- relationship-management
+- spend-optimization
+- risk-assessment
+- sourcing-strategy
+tools:
+- coupa
+- ariba
+- servicenow
+- apttus
+- ivalua
+certifications:
+- ctpe
+- cppm
+- vm-certification
+tags:
+- it-role
+- govtech
+- non-technical
+- vendor-management
+- staff
+- gcp
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,41 @@
+id: agent-05546
+name: Staff Program Management [FINTECH]
+role: program-management
+type: non-technical
+seniority: staff
+description: Manage portfolios of related IT programs and initiatives
+primary_stack: agile-portfolio
+industry_focus: fintech
+cloud_preference: aws
+skills:
+- portfolio-management
+- strategic-alignment
+- governance
+- dependency-management
+- executive-reporting
+- benefits-realization
+- organizational-change
+- roadmapping
+tools:
+- planview
+- clarity
+- jira-align
+- aha
+- productboard
+certifications:
+- pgmp
+- safe-spct
+- togaf
+tags:
+- it-role
+- non-technical
+- staff
+- aws
+- program-management
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-08972
+name: Lead It Marketing (Generalist) [GOVTECH]
+role: it-marketing
+type: non-technical
+seniority: lead
+description: Market technology products, services and the IT brand
+primary_stack: account-based-marketing
+industry_focus: govtech
+cloud_preference: azure
+skills:
+- product-positioning
+- content-marketing
+- digital-marketing
+- event-marketing
+- analyst-relations
+- campaign-management
+- seo-sem
+- marketing-analytics
+tools:
+- marketo
+- hubspot
+- salesforce
+- google-analytics
+- semrush
+certifications:
+- pma
+- hubspot-certified
+- google-ads
+tags:
+- it-role
+- govtech
+- generalist
+- non-technical
+- it-marketing
+- lead
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

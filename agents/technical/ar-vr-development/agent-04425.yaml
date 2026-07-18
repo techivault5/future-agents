@@ -1,0 +1,40 @@
+id: agent-04425
+name: Staff Ar Vr Development (Contractor) [RETAILTECH]
+role: ar-vr-development
+type: technical
+seniority: staff
+description: Build augmented, virtual, and mixed reality experiences
+primary_stack: webxr
+industry_focus: retailtech
+cloud_preference: cloud-agnostic
+skills:
+- spatial-computing
+- 3d-interaction
+- hand-tracking
+- eye-tracking
+- haptics
+- spatial-audio
+- world-mapping
+- 6dof-locomotion
+tools:
+- unity
+- unreal
+- blender
+- maya
+- substance-painter
+certifications:
+- unity-certified
+- arvr-specialist
+tags:
+- it-role
+- contractor
+- retailtech
+- staff
+- technical
+- ar-vr-development
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/webxr-service
+created_by: it-agents-generator-v1
+version: 1.0.0

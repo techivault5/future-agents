@@ -1,0 +1,42 @@
+id: agent-00158
+name: Junior Frontend Development (Specialist) [FINTECH]
+role: frontend-development
+type: technical
+seniority: junior
+description: Build user-facing web interfaces and experiences
+primary_stack: nuxt
+industry_focus: fintech
+cloud_preference: gcp
+skills:
+- ui-design
+- accessibility
+- performance
+- seo
+- pwa
+- micro-frontends
+- design-systems
+- testing
+tools:
+- webpack
+- vite
+- storybook
+- playwright
+- cypress
+certifications:
+- google-ux
+- aws-clf
+- meta-frontend
+tags:
+- it-role
+- gcp
+- specialist
+- technical
+- junior
+- frontend-development
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/nuxt-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,41 @@
+id: agent-00855
+name: Architect Devops Engineering (Contractor)
+role: devops-engineering
+type: technical
+seniority: architect
+description: Enable continuous delivery and operational excellence
+primary_stack: circleci
+industry_focus: cross-industry
+cloud_preference: azure
+skills:
+- ci-cd
+- infrastructure-as-code
+- gitops
+- release-management
+- pipeline-design
+- artifact-management
+- environment-management
+- shift-left-testing
+tools:
+- terraform
+- ansible
+- packer
+- vagrant
+- helm
+certifications:
+- cka
+- ckad
+- aws-devops-pro
+tags:
+- it-role
+- architect
+- contractor
+- devops-engineering
+- technical
+- azure
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/circleci-service
+created_by: it-agents-generator-v1
+version: 1.0.0

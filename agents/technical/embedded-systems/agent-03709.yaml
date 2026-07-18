@@ -1,0 +1,41 @@
+id: agent-03709
+name: Intern Embedded Systems (Consultant) [RETAILTECH]
+role: embedded-systems
+type: technical
+seniority: intern
+description: Develop firmware and software for embedded and real-time systems
+primary_stack: freertos
+industry_focus: retailtech
+cloud_preference: aws
+skills:
+- firmware-development
+- rtos
+- hardware-interfaces
+- low-power-design
+- debugging-jtag
+- bootloaders
+- device-drivers
+- communication-protocols
+tools:
+- gdb
+- openocd
+- segger-jlink
+- oscilloscope
+- logic-analyzer
+certifications:
+- arm-embedded
+- ieee-embedded
+tags:
+- it-role
+- embedded-systems
+- retailtech
+- aws
+- consultant
+- intern
+- technical
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/freertos-service
+created_by: it-agents-generator-v1
+version: 1.0.0

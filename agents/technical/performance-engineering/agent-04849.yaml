@@ -1,0 +1,42 @@
+id: agent-04849
+name: Intern Performance Engineering (Consultant) [HEALTHTECH]
+role: performance-engineering
+type: technical
+seniority: intern
+description: Ensure systems meet performance, scalability and reliability targets
+primary_stack: hey
+industry_focus: healthtech
+cloud_preference: aws
+skills:
+- load-testing
+- stress-testing
+- scalability-testing
+- profiling
+- bottleneck-analysis
+- capacity-planning
+- benchmark-design
+- chaos-engineering
+tools:
+- grafana
+- prometheus
+- flamegraphs
+- async-profiler
+- perf
+certifications:
+- ptl
+- cpe
+- aws-sap
+tags:
+- it-role
+- aws
+- consultant
+- performance-engineering
+- healthtech
+- intern
+- technical
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/hey-service
+created_by: it-agents-generator-v1
+version: 1.0.0

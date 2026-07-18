@@ -1,0 +1,42 @@
+id: agent-07967
+name: Staff Itsm Management (Generalist) [HEALTHTECH]
+role: itsm-management
+type: non-technical
+seniority: staff
+description: Manage IT service delivery and support operations
+primary_stack: verizon-itom
+industry_focus: healthtech
+cloud_preference: aws
+skills:
+- incident-management
+- problem-management
+- change-management
+- service-catalog
+- capacity-management
+- availability-management
+- service-level-management
+- continuous-improvement
+tools:
+- servicenow
+- jira-service-management
+- freshservice
+- ivanti
+- cherwell
+certifications:
+- itil4-foundation
+- itil4-mp
+- itil4-sv
+tags:
+- it-role
+- non-technical
+- generalist
+- itsm-management
+- staff
+- aws
+- healthtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

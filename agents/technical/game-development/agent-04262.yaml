@@ -1,0 +1,41 @@
+id: agent-04262
+name: Principal Game Development (Generalist) [EDTECH]
+role: game-development
+type: technical
+seniority: principal
+description: Create interactive games across platforms
+primary_stack: directx
+industry_focus: edtech
+cloud_preference: cloud-agnostic
+skills:
+- gameplay-programming
+- physics-simulation
+- ai-game
+- graphics-programming
+- shader-development
+- networking-game
+- audio-programming
+- ui-hud
+tools:
+- unity-editor
+- unreal-editor
+- blender
+- maya
+- substance
+certifications:
+- unity-certified
+- unreal-certified
+- adobe-certified
+tags:
+- it-role
+- generalist
+- principal
+- game-development
+- technical
+- edtech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/directx-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,40 @@
+id: agent-00419
+name: Senior Fullstack Development (Consultant) [HEALTHTECH]
+role: fullstack-development
+type: technical
+seniority: senior
+description: Build complete end-to-end applications across frontend and backend
+primary_stack: spring-react
+industry_focus: healthtech
+cloud_preference: gcp
+skills:
+- full-sdlc
+- database-design
+- api-design
+- ui-ux
+- deployment
+- monitoring
+- ci-cd
+- testing-full-stack
+tools:
+- monorepo-tools
+- nx
+- turborepo
+- lerna
+certifications:
+- aws-saa
+- gcp-ace
+tags:
+- senior
+- it-role
+- consultant
+- gcp
+- healthtech
+- technical
+- fullstack-development
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/spring-service
+created_by: it-agents-generator-v1
+version: 1.0.0

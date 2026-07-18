@@ -1,0 +1,42 @@
+id: agent-01020
+name: Distinguished Platform Engineering (Contractor) [HEALTHTECH]
+role: platform-engineering
+type: technical
+seniority: distinguished
+description: Build internal developer platforms and golden paths
+primary_stack: kubernetes
+industry_focus: healthtech
+cloud_preference: gcp
+skills:
+- idp-design
+- developer-experience
+- self-service-infra
+- golden-paths
+- platform-apis
+- service-catalog
+- cost-optimization
+- capacity-planning
+tools:
+- backstage
+- argocd
+- vault
+- consul
+- boundary
+certifications:
+- cka
+- ckad
+- cks
+tags:
+- it-role
+- contractor
+- platform-engineering
+- gcp
+- distinguished
+- healthtech
+- technical
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/kubernetes-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-03088
+name: Principal Database Administration (Specialist) [GOVTECH]
+role: database-administration
+type: technical
+seniority: principal
+description: Manage, optimize and secure database systems
+primary_stack: tidb
+industry_focus: govtech
+cloud_preference: aws
+skills:
+- query-optimization
+- index-design
+- replication
+- sharding
+- backup-recovery
+- high-availability
+- migration
+- capacity-planning
+tools:
+- pgbadger
+- explain-analyzer
+- percona
+- debezium
+- flyway
+certifications:
+- oracle-dba
+- mongodb-dba
+- aws-database
+tags:
+- it-role
+- govtech
+- aws
+- principal
+- specialist
+- technical
+- database-administration
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/tidb-service
+created_by: it-agents-generator-v1
+version: 1.0.0

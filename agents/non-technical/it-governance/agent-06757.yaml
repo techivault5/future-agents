@@ -1,0 +1,41 @@
+id: agent-06757
+name: Staff It Governance (Generalist) [FINTECH]
+role: it-governance
+type: non-technical
+seniority: staff
+description: Establish and maintain IT governance frameworks and controls
+primary_stack: itil
+industry_focus: fintech
+cloud_preference: gcp
+skills:
+- policy-development
+- control-design
+- audit-support
+- risk-management
+- compliance-monitoring
+- vendor-governance
+- metrics-reporting
+- board-reporting
+tools:
+- servicenow-grc
+- archer
+- metricstream
+- LogicGate
+certifications:
+- cgeit
+- cisa
+- crisc
+tags:
+- it-role
+- non-technical
+- generalist
+- staff
+- it-governance
+- gcp
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

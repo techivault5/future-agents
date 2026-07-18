@@ -1,0 +1,41 @@
+id: agent-00368
+name: Senior Backend Development (Specialist)
+role: backend-development
+type: technical
+seniority: senior
+description: Design and build server-side applications and APIs
+primary_stack: dotnet
+industry_focus: cross-industry
+cloud_preference: aws
+skills:
+- rest-api
+- graphql
+- grpc
+- microservices
+- monolith
+- event-driven
+- cqrs
+- ddd
+tools:
+- docker
+- kubernetes
+- redis
+- rabbitmq
+- kafka
+certifications:
+- aws-dva
+- cka
+- oracle-java
+tags:
+- senior
+- it-role
+- backend-development
+- aws
+- specialist
+- technical
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/dotnet-service
+created_by: it-agents-generator-v1
+version: 1.0.0

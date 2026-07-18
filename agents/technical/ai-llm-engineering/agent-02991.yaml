@@ -1,0 +1,41 @@
+id: agent-02991
+name: Lead Ai Llm Engineering [RETAILTECH]
+role: ai-llm-engineering
+type: technical
+seniority: lead
+description: Build applications and systems powered by large language models
+primary_stack: meta-llama
+industry_focus: retailtech
+cloud_preference: azure
+skills:
+- prompt-engineering
+- rag
+- fine-tuning
+- agent-design
+- llm-evaluation
+- llm-security
+- context-management
+- embeddings
+tools:
+- langsmith
+- promptlayer
+- trulens
+- arize
+- helicone
+certifications:
+- deeplearning-ai
+- google-genai
+- aws-bedrock
+tags:
+- it-role
+- retailtech
+- technical
+- lead
+- ai-llm-engineering
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/meta-service
+created_by: it-agents-generator-v1
+version: 1.0.0

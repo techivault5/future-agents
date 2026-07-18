@@ -1,0 +1,41 @@
+id: agent-01572
+name: Senior Security Engineering (Generalist)
+role: security-engineering
+type: technical
+seniority: senior
+description: Design and implement security controls and processes
+primary_stack: edr
+industry_focus: cross-industry
+cloud_preference: azure
+skills:
+- threat-modeling
+- security-architecture
+- iam
+- pki
+- encryption
+- key-management
+- network-security
+- endpoint-security
+tools:
+- splunk
+- qradar
+- sentinel
+- crowdstrike
+- paloalto
+certifications:
+- cissp
+- cism
+- cisa
+tags:
+- senior
+- it-role
+- generalist
+- technical
+- security-engineering
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/edr-service
+created_by: it-agents-generator-v1
+version: 1.0.0

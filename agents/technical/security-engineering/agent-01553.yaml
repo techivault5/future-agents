@@ -1,0 +1,42 @@
+id: agent-01553
+name: Mid Security Engineering (Specialist) [RETAILTECH]
+role: security-engineering
+type: technical
+seniority: mid
+description: Design and implement security controls and processes
+primary_stack: xdr
+industry_focus: retailtech
+cloud_preference: azure
+skills:
+- threat-modeling
+- security-architecture
+- iam
+- pki
+- encryption
+- key-management
+- network-security
+- endpoint-security
+tools:
+- splunk
+- qradar
+- sentinel
+- crowdstrike
+- paloalto
+certifications:
+- cissp
+- cism
+- cisa
+tags:
+- it-role
+- retailtech
+- specialist
+- technical
+- security-engineering
+- mid
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/xdr-service
+created_by: it-agents-generator-v1
+version: 1.0.0

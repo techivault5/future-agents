@@ -1,0 +1,41 @@
+id: agent-04968
+name: Junior Technical Writing (Specialist) [HEALTHTECH]
+role: technical-writing
+type: technical
+seniority: junior
+description: Create clear technical documentation and content
+primary_stack: swagger-openapi
+industry_focus: healthtech
+cloud_preference: aws
+skills:
+- api-documentation
+- user-guides
+- tutorials
+- reference-docs
+- release-notes
+- architecture-docs
+- runbooks
+- rfcs
+tools:
+- grammarly
+- hemingway
+- vale
+- redocly
+- readme-io
+certifications:
+- stc-cptc
+- google-technical-writer
+tags:
+- it-role
+- aws
+- technical-writing
+- specialist
+- healthtech
+- technical
+- junior
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/swagger-service
+created_by: it-agents-generator-v1
+version: 1.0.0

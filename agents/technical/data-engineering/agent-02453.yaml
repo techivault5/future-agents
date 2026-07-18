@@ -1,0 +1,42 @@
+id: agent-02453
+name: Intern Data Engineering (Specialist) [HEALTHTECH]
+role: data-engineering
+type: technical
+seniority: intern
+description: Build data pipelines and infrastructure for analytics
+primary_stack: apache-airflow
+industry_focus: healthtech
+cloud_preference: azure
+skills:
+- etl-elt
+- stream-processing
+- batch-processing
+- data-modeling
+- data-quality
+- data-governance
+- data-catalog
+- lakehouse
+tools:
+- great-expectations
+- monte-carlo
+- dbt
+- fivetran
+- airbyte
+certifications:
+- aws-data
+- gcp-data
+- databricks-associate
+tags:
+- it-role
+- data-engineering
+- specialist
+- healthtech
+- intern
+- technical
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/apache-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-01735
+name: Lead Appsec Engineering (Contractor) [HEALTHTECH]
+role: appsec-engineering
+type: technical
+seniority: lead
+description: Embed security into software development lifecycle
+primary_stack: waf
+industry_focus: healthtech
+cloud_preference: azure
+skills:
+- secure-code-review
+- threat-modeling
+- pentest-web
+- owasp-top10
+- devsecops
+- security-testing
+- vulnerability-management
+- sbom
+tools:
+- sonarqube
+- snyk
+- veracode
+- checkmarx
+- burpsuite
+certifications:
+- oscp
+- gweb
+- csslp
+tags:
+- it-role
+- contractor
+- healthtech
+- technical
+- lead
+- appsec-engineering
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/waf-service
+created_by: it-agents-generator-v1
+version: 1.0.0

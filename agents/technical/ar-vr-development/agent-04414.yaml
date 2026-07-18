@@ -1,0 +1,41 @@
+id: agent-04414
+name: Staff Ar Vr Development (Consultant) [GOVTECH]
+role: ar-vr-development
+type: technical
+seniority: staff
+description: Build augmented, virtual, and mixed reality experiences
+primary_stack: webxr
+industry_focus: govtech
+cloud_preference: azure
+skills:
+- spatial-computing
+- 3d-interaction
+- hand-tracking
+- eye-tracking
+- haptics
+- spatial-audio
+- world-mapping
+- 6dof-locomotion
+tools:
+- unity
+- unreal
+- blender
+- maya
+- substance-painter
+certifications:
+- unity-certified
+- arvr-specialist
+tags:
+- it-role
+- govtech
+- staff
+- consultant
+- technical
+- ar-vr-development
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/webxr-service
+created_by: it-agents-generator-v1
+version: 1.0.0

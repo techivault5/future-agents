@@ -1,0 +1,41 @@
+id: agent-00863
+name: Architect Devops Engineering (Specialist) [FINTECH]
+role: devops-engineering
+type: technical
+seniority: architect
+description: Enable continuous delivery and operational excellence
+primary_stack: bamboo
+industry_focus: fintech
+cloud_preference: cloud-agnostic
+skills:
+- ci-cd
+- infrastructure-as-code
+- gitops
+- release-management
+- pipeline-design
+- artifact-management
+- environment-management
+- shift-left-testing
+tools:
+- terraform
+- ansible
+- packer
+- vagrant
+- helm
+certifications:
+- cka
+- ckad
+- aws-devops-pro
+tags:
+- it-role
+- architect
+- devops-engineering
+- specialist
+- technical
+- fintech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/bamboo-service
+created_by: it-agents-generator-v1
+version: 1.0.0

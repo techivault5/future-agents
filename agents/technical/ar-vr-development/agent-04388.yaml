@@ -1,0 +1,41 @@
+id: agent-04388
+name: Staff Ar Vr Development (Specialist) [EDTECH]
+role: ar-vr-development
+type: technical
+seniority: staff
+description: Build augmented, virtual, and mixed reality experiences
+primary_stack: mixed-reality-toolkit
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- spatial-computing
+- 3d-interaction
+- hand-tracking
+- eye-tracking
+- haptics
+- spatial-audio
+- world-mapping
+- 6dof-locomotion
+tools:
+- unity
+- unreal
+- blender
+- maya
+- substance-painter
+certifications:
+- unity-certified
+- arvr-specialist
+tags:
+- it-role
+- staff
+- aws
+- specialist
+- technical
+- ar-vr-development
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/mixed-service
+created_by: it-agents-generator-v1
+version: 1.0.0

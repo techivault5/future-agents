@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Guardrails: Check",
+      "type": "shell",
+      "command": "python3 guardrails/guardrails_engine.py . --mode check",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Guardrails: Fix",
+      "type": "shell",
+      "command": "python3 guardrails/guardrails_engine.py . --mode fix",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Guardrails: Scan Secrets",
+      "type": "shell",
+      "command": "python3 -c \"from guardrails.secrets_scanner import SecretsScanner; [print(f'[{f[\\\"severity\\\"].upper()}] {f[\\\"file\\\"]}:{f[\\\"line\\\"]} — {f[\\\"description\\\"]}') for f in SecretsScanner().scan_directory('.')]\"",
+      "group": "test",
+      "presentation": { "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "python3 -m pytest tests/ -v --tb=short",
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always" },
+      "problemMatcher": ["$python"]
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "ruff check . && ruff format --check .",
+      "group": "build",
+      "presentation": { "reveal": "always" },
+      "problemMatcher": []
+    }
+  ]
+}

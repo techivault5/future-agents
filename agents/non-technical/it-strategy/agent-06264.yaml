@@ -1,0 +1,41 @@
+id: agent-06264
+name: Mid It Strategy (Consultant) [FINTECH]
+role: it-strategy
+type: non-technical
+seniority: mid
+description: Develop and execute technology strategy aligned with business goals
+primary_stack: feaf
+industry_focus: fintech
+cloud_preference: cloud-agnostic
+skills:
+- strategic-planning
+- technology-roadmapping
+- digital-transformation
+- investment-planning
+- vendor-strategy
+- innovation-management
+- executive-communication
+- benchmarking
+tools:
+- tableau
+- powerbi
+- gartner-tools
+- ibo
+- planview
+certifications:
+- togaf
+- cio-certification
+- itil-4-managing-professional
+tags:
+- it-role
+- non-technical
+- consultant
+- it-strategy
+- mid
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

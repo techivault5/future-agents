@@ -1,0 +1,41 @@
+id: agent-01182
+name: Fellow Sre Engineering (Generalist) [RETAILTECH]
+role: sre-engineering
+type: technical
+seniority: fellow
+description: Ensure reliability, scalability and performance of production systems
+primary_stack: datadog
+industry_focus: retailtech
+cloud_preference: cloud-agnostic
+skills:
+- slo-sla-sli
+- incident-management
+- chaos-engineering
+- capacity-planning
+- on-call-management
+- post-mortem
+- toil-reduction
+- observability
+tools:
+- pagerduty
+- opsgenie
+- statuspage
+- runbooks
+- gamechanger
+certifications:
+- google-sre
+- aws-sap
+- cka
+tags:
+- fellow
+- it-role
+- generalist
+- retailtech
+- technical
+- sre-engineering
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/datadog-service
+created_by: it-agents-generator-v1
+version: 1.0.0

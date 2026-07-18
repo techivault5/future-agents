@@ -1,0 +1,40 @@
+id: agent-00530
+name: Lead Fullstack Development (Contractor) [HEALTHTECH]
+role: fullstack-development
+type: technical
+seniority: lead
+description: Build complete end-to-end applications across frontend and backend
+primary_stack: remix-node
+industry_focus: healthtech
+cloud_preference: aws
+skills:
+- full-sdlc
+- database-design
+- api-design
+- ui-ux
+- deployment
+- monitoring
+- ci-cd
+- testing-full-stack
+tools:
+- monorepo-tools
+- nx
+- turborepo
+- lerna
+certifications:
+- aws-saa
+- gcp-ace
+tags:
+- it-role
+- contractor
+- aws
+- healthtech
+- technical
+- fullstack-development
+- lead
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/remix-service
+created_by: it-agents-generator-v1
+version: 1.0.0

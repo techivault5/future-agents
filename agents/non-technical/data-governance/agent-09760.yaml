@@ -1,0 +1,42 @@
+id: agent-09760
+name: Junior Data Governance (Contractor) [FINTECH]
+role: data-governance
+type: non-technical
+seniority: junior
+description: Establish and enforce data policies, standards and stewardship
+primary_stack: cmmi-data
+industry_focus: fintech
+cloud_preference: gcp
+skills:
+- data-policy
+- metadata-management
+- data-quality-program
+- data-stewardship
+- master-data
+- data-lineage
+- privacy-governance
+- data-literacy
+tools:
+- collibra
+- alation
+- atlan
+- informatica-axon
+- microsoft-purview
+certifications:
+- cdmp
+- dcam
+- cipp
+tags:
+- it-role
+- contractor
+- non-technical
+- gcp
+- data-governance
+- junior
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

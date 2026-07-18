@@ -1,0 +1,42 @@
+id: agent-03313
+name: Architect Systems Administration (Specialist) [EDTECH]
+role: systems-administration
+type: technical
+seniority: architect
+description: Manage and maintain computing infrastructure and operating systems
+primary_stack: puppet
+industry_focus: edtech
+cloud_preference: azure
+skills:
+- os-hardening
+- patch-management
+- user-management
+- scripting
+- backup-restore
+- monitoring
+- performance-tuning
+- virtualization
+tools:
+- ansible
+- puppet
+- chef
+- nagios
+- zabbix
+certifications:
+- rhcsa
+- rhce
+- mcsa
+tags:
+- it-role
+- architect
+- systems-administration
+- specialist
+- technical
+- edtech
+- azure
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/puppet-service
+created_by: it-agents-generator-v1
+version: 1.0.0

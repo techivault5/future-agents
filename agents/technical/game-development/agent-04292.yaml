@@ -1,0 +1,42 @@
+id: agent-04292
+name: Principal Game Development (Generalist) [GOVTECH]
+role: game-development
+type: technical
+seniority: principal
+description: Create interactive games across platforms
+primary_stack: godot
+industry_focus: govtech
+cloud_preference: azure
+skills:
+- gameplay-programming
+- physics-simulation
+- ai-game
+- graphics-programming
+- shader-development
+- networking-game
+- audio-programming
+- ui-hud
+tools:
+- unity-editor
+- unreal-editor
+- blender
+- maya
+- substance
+certifications:
+- unity-certified
+- unreal-certified
+- adobe-certified
+tags:
+- it-role
+- govtech
+- generalist
+- principal
+- game-development
+- technical
+- azure
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/godot-service
+created_by: it-agents-generator-v1
+version: 1.0.0

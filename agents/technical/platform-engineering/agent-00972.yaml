@@ -1,0 +1,41 @@
+id: agent-00972
+name: Distinguished Platform Engineering (Generalist)
+role: platform-engineering
+type: technical
+seniority: distinguished
+description: Build internal developer platforms and golden paths
+primary_stack: kubernetes
+industry_focus: cross-industry
+cloud_preference: azure
+skills:
+- idp-design
+- developer-experience
+- self-service-infra
+- golden-paths
+- platform-apis
+- service-catalog
+- cost-optimization
+- capacity-planning
+tools:
+- backstage
+- argocd
+- vault
+- consul
+- boundary
+certifications:
+- cka
+- ckad
+- cks
+tags:
+- it-role
+- platform-engineering
+- generalist
+- distinguished
+- technical
+- azure
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/kubernetes-service
+created_by: it-agents-generator-v1
+version: 1.0.0

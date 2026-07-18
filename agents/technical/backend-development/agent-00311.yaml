@@ -1,0 +1,41 @@
+id: agent-00311
+name: Mid Backend Development [EDTECH]
+role: backend-development
+type: technical
+seniority: mid
+description: Design and build server-side applications and APIs
+primary_stack: haskell
+industry_focus: edtech
+cloud_preference: azure
+skills:
+- rest-api
+- graphql
+- grpc
+- microservices
+- monolith
+- event-driven
+- cqrs
+- ddd
+tools:
+- docker
+- kubernetes
+- redis
+- rabbitmq
+- kafka
+certifications:
+- aws-dva
+- cka
+- oracle-java
+tags:
+- it-role
+- backend-development
+- technical
+- mid
+- edtech
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/haskell-service
+created_by: it-agents-generator-v1
+version: 1.0.0

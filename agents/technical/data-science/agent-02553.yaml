@@ -1,0 +1,42 @@
+id: agent-02553
+name: Junior Data Science (Specialist) [FINTECH]
+role: data-science
+type: technical
+seniority: junior
+description: Extract insights and value from data using statistical methods
+primary_stack: scala
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- statistical-analysis
+- data-visualization
+- hypothesis-testing
+- regression
+- classification
+- clustering
+- time-series
+- a-b-testing
+tools:
+- pandas
+- numpy
+- scipy
+- sklearn
+- matplotlib
+certifications:
+- ibm-data-science
+- google-data-analytics
+- sas
+tags:
+- data-science
+- it-role
+- fintech
+- specialist
+- technical
+- junior
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/scala-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-04870
+name: Intern Performance Engineering (Contractor) [EDTECH]
+role: performance-engineering
+type: technical
+seniority: intern
+description: Ensure systems meet performance, scalability and reliability targets
+primary_stack: k6
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- load-testing
+- stress-testing
+- scalability-testing
+- profiling
+- bottleneck-analysis
+- capacity-planning
+- benchmark-design
+- chaos-engineering
+tools:
+- grafana
+- prometheus
+- flamegraphs
+- async-profiler
+- perf
+certifications:
+- ptl
+- cpe
+- aws-sap
+tags:
+- it-role
+- contractor
+- aws
+- performance-engineering
+- intern
+- technical
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/k6-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-01714
+name: Lead Appsec Engineering (Consultant) [FINTECH]
+role: appsec-engineering
+type: technical
+seniority: lead
+description: Embed security into software development lifecycle
+primary_stack: iast
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- secure-code-review
+- threat-modeling
+- pentest-web
+- owasp-top10
+- devsecops
+- security-testing
+- vulnerability-management
+- sbom
+tools:
+- sonarqube
+- snyk
+- veracode
+- checkmarx
+- burpsuite
+certifications:
+- oscp
+- gweb
+- csslp
+tags:
+- it-role
+- azure
+- consultant
+- technical
+- lead
+- appsec-engineering
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/iast-service
+created_by: it-agents-generator-v1
+version: 1.0.0

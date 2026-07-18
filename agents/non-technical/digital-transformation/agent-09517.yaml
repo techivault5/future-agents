@@ -1,0 +1,42 @@
+id: agent-09517
+name: Fellow Digital Transformation (Generalist) [FINTECH]
+role: digital-transformation
+type: non-technical
+seniority: fellow
+description: Lead organizational digital transformation initiatives
+primary_stack: mit-dt
+industry_focus: fintech
+cloud_preference: gcp
+skills:
+- transformation-strategy
+- innovation-management
+- cultural-change
+- capability-building
+- ecosystem-design
+- data-strategy
+- customer-journey
+- operating-model-design
+tools:
+- miro
+- mural
+- aha
+- planview
+- servicenow
+certifications:
+- dta-certified
+- togaf
+- prosci-pct
+tags:
+- fellow
+- it-role
+- non-technical
+- generalist
+- digital-transformation
+- gcp
+- fintech
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

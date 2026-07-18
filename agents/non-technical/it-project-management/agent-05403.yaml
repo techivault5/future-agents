@@ -1,0 +1,40 @@
+id: agent-05403
+name: Principal It Project Management (Specialist)
+role: it-project-management
+type: non-technical
+seniority: principal
+description: Lead IT projects from initiation to delivery
+primary_stack: safe
+industry_focus: cross-industry
+cloud_preference: cloud-agnostic
+skills:
+- project-planning
+- risk-management
+- stakeholder-management
+- budget-management
+- resource-planning
+- reporting
+- vendor-management
+- change-management
+tools:
+- jira
+- ms-project
+- asana
+- monday
+- smartsheet
+certifications:
+- pmp
+- capm
+- prince2
+tags:
+- it-role
+- non-technical
+- it-project-management
+- principal
+- specialist
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

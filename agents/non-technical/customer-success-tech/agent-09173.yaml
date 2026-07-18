@@ -1,0 +1,42 @@
+id: agent-09173
+name: Staff Customer Success Tech (Specialist) [HEALTHTECH]
+role: customer-success-tech
+type: non-technical
+seniority: staff
+description: Ensure technology customers achieve their desired outcomes
+primary_stack: health-scoring
+industry_focus: healthtech
+cloud_preference: azure
+skills:
+- onboarding
+- adoption-strategy
+- churn-prevention
+- upselling
+- technical-escalation
+- success-planning
+- advocacy
+- renewal-management
+tools:
+- gainsight
+- totango
+- churnzero
+- catalyst
+- salesforce
+certifications:
+- csm-certified
+- ccsm
+- pcsm
+tags:
+- it-role
+- non-technical
+- staff
+- specialist
+- healthtech
+- customer-success-tech
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

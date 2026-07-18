@@ -1,0 +1,42 @@
+id: agent-01550
+name: Mid Security Engineering (Contractor) [RETAILTECH]
+role: security-engineering
+type: technical
+seniority: mid
+description: Design and implement security controls and processes
+primary_stack: siem
+industry_focus: retailtech
+cloud_preference: aws
+skills:
+- threat-modeling
+- security-architecture
+- iam
+- pki
+- encryption
+- key-management
+- network-security
+- endpoint-security
+tools:
+- splunk
+- qradar
+- sentinel
+- crowdstrike
+- paloalto
+certifications:
+- cissp
+- cism
+- cisa
+tags:
+- it-role
+- contractor
+- retailtech
+- aws
+- technical
+- security-engineering
+- mid
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/siem-service
+created_by: it-agents-generator-v1
+version: 1.0.0

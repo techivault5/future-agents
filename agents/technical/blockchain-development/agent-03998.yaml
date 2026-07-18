@@ -1,0 +1,42 @@
+id: agent-03998
+name: Senior Blockchain Development (Specialist) [FINTECH]
+role: blockchain-development
+type: technical
+seniority: senior
+description: Build decentralized applications and blockchain infrastructure
+primary_stack: polkadot
+industry_focus: fintech
+cloud_preference: gcp
+skills:
+- smart-contracts
+- defi-protocols
+- nft-platforms
+- dao-governance
+- cross-chain
+- layer2
+- wallet-integration
+- cryptography
+tools:
+- hardhat
+- foundry
+- truffle
+- web3js
+- ethersjs
+certifications:
+- certified-blockchain
+- solidity-developer
+- hyperledger-admin
+tags:
+- senior
+- it-role
+- blockchain-development
+- gcp
+- specialist
+- technical
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/polkadot-service
+created_by: it-agents-generator-v1
+version: 1.0.0

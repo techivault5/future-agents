@@ -1,0 +1,40 @@
+id: agent-06496
+name: Lead Enterprise Architecture
+role: enterprise-architecture
+type: non-technical
+seniority: lead
+description: Design and govern enterprise-wide technology architecture
+primary_stack: zachman
+industry_focus: cross-industry
+cloud_preference: gcp
+skills:
+- business-architecture
+- application-architecture
+- data-architecture
+- technology-architecture
+- security-architecture
+- architecture-governance
+- pattern-design
+- roadmapping
+tools:
+- archimate
+- sparx-ea
+- bizzdesign
+- leanix
+- ardoq
+certifications:
+- togaf
+- dodaf
+- feac
+tags:
+- it-role
+- non-technical
+- enterprise-architecture
+- gcp
+- lead
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

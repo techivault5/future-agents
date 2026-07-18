@@ -1,0 +1,42 @@
+id: agent-01598
+name: Senior Security Engineering (Specialist) [FINTECH]
+role: security-engineering
+type: technical
+seniority: senior
+description: Design and implement security controls and processes
+primary_stack: dlp
+industry_focus: fintech
+cloud_preference: gcp
+skills:
+- threat-modeling
+- security-architecture
+- iam
+- pki
+- encryption
+- key-management
+- network-security
+- endpoint-security
+tools:
+- splunk
+- qradar
+- sentinel
+- crowdstrike
+- paloalto
+certifications:
+- cissp
+- cism
+- cisa
+tags:
+- senior
+- it-role
+- gcp
+- specialist
+- technical
+- security-engineering
+- fintech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/dlp-service
+created_by: it-agents-generator-v1
+version: 1.0.0

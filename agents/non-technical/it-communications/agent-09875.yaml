@@ -1,0 +1,42 @@
+id: agent-09875
+name: Mid It Communications (Contractor) [FINTECH]
+role: it-communications
+type: non-technical
+seniority: mid
+description: Manage internal and external IT communications and stakeholder relations
+primary_stack: crisis-comms
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- executive-communications
+- technical-writing
+- newsletter
+- intranet-management
+- town-halls
+- crisis-communications
+- social-media
+- pr-media-relations
+tools:
+- poppulo
+- staffbase
+- mailchimp
+- wordpress
+- sharepoint
+certifications:
+- iabc
+- prsa
+- google-analytics
+tags:
+- it-role
+- it-communications
+- contractor
+- non-technical
+- fintech
+- mid
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,42 @@
+id: agent-00172
+name: Junior Frontend Development (Generalist) [HEALTHTECH]
+role: frontend-development
+type: technical
+seniority: junior
+description: Build user-facing web interfaces and experiences
+primary_stack: angular
+industry_focus: healthtech
+cloud_preference: azure
+skills:
+- ui-design
+- accessibility
+- performance
+- seo
+- pwa
+- micro-frontends
+- design-systems
+- testing
+tools:
+- webpack
+- vite
+- storybook
+- playwright
+- cypress
+certifications:
+- google-ux
+- aws-clf
+- meta-frontend
+tags:
+- it-role
+- generalist
+- healthtech
+- technical
+- junior
+- frontend-development
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/angular-service
+created_by: it-agents-generator-v1
+version: 1.0.0

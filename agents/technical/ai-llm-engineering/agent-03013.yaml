@@ -1,0 +1,41 @@
+id: agent-03013
+name: Principal Ai Llm Engineering (Specialist)
+role: ai-llm-engineering
+type: technical
+seniority: principal
+description: Build applications and systems powered by large language models
+primary_stack: anthropic
+industry_focus: cross-industry
+cloud_preference: azure
+skills:
+- prompt-engineering
+- rag
+- fine-tuning
+- agent-design
+- llm-evaluation
+- llm-security
+- context-management
+- embeddings
+tools:
+- langsmith
+- promptlayer
+- trulens
+- arize
+- helicone
+certifications:
+- deeplearning-ai
+- google-genai
+- aws-bedrock
+tags:
+- it-role
+- principal
+- specialist
+- technical
+- ai-llm-engineering
+- azure
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/anthropic-service
+created_by: it-agents-generator-v1
+version: 1.0.0

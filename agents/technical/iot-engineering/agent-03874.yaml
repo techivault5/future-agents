@@ -1,0 +1,42 @@
+id: agent-03874
+name: Mid Iot Engineering (Consultant) [FINTECH]
+role: iot-engineering
+type: technical
+seniority: mid
+description: Build connected device ecosystems and IoT platforms
+primary_stack: nodered
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- device-provisioning
+- edge-computing
+- fleet-management
+- telemetry-collection
+- ota-firmware
+- security-iot
+- data-ingestion
+- digital-twin
+tools:
+- mosquitto
+- emqx
+- influxdb
+- grafana
+- node-red
+certifications:
+- aws-iot
+- azure-iot
+- ieee-iot
+tags:
+- it-role
+- iot-engineering
+- fintech
+- consultant
+- technical
+- mid
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/nodered-service
+created_by: it-agents-generator-v1
+version: 1.0.0

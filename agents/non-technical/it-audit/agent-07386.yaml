@@ -1,0 +1,41 @@
+id: agent-07386
+name: Junior It Audit [EDTECH]
+role: it-audit
+type: non-technical
+seniority: junior
+description: Assess IT controls, risks and compliance through independent review
+primary_stack: cobit
+industry_focus: edtech
+cloud_preference: aws
+skills:
+- audit-planning
+- control-testing
+- evidence-collection
+- finding-documentation
+- remediation-tracking
+- report-writing
+- data-analytics-audit
+- continuous-auditing
+tools:
+- acl-galvanize
+- teammate
+- teammate-analytics
+- idea
+- arbutus
+certifications:
+- cisa
+- cia
+- cissp
+tags:
+- it-role
+- non-technical
+- aws
+- it-audit
+- junior
+- edtech
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

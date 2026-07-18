@@ -1,0 +1,41 @@
+id: agent-04955
+name: Junior Technical Writing (Contractor) [FINTECH]
+role: technical-writing
+type: technical
+seniority: junior
+description: Create clear technical documentation and content
+primary_stack: mkdocs
+industry_focus: fintech
+cloud_preference: azure
+skills:
+- api-documentation
+- user-guides
+- tutorials
+- reference-docs
+- release-notes
+- architecture-docs
+- runbooks
+- rfcs
+tools:
+- grammarly
+- hemingway
+- vale
+- redocly
+- readme-io
+certifications:
+- stc-cptc
+- google-technical-writer
+tags:
+- it-role
+- contractor
+- fintech
+- technical-writing
+- technical
+- junior
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/mkdocs-service
+created_by: it-agents-generator-v1
+version: 1.0.0

@@ -1,0 +1,41 @@
+id: agent-00574
+name: Lead Mobile Development (Consultant) [GOVTECH]
+role: mobile-development
+type: technical
+seniority: lead
+description: Build native and cross-platform mobile applications
+primary_stack: android-kotlin
+industry_focus: govtech
+cloud_preference: azure
+skills:
+- app-store-optimization
+- push-notifications
+- offline-first
+- biometrics
+- camera-apis
+- gps-location
+- bluetooth
+- in-app-purchases
+tools:
+- xcode
+- android-studio
+- fastlane
+- firebase
+- testflight
+certifications:
+- google-android
+- apple-developer
+tags:
+- it-role
+- govtech
+- mobile-development
+- consultant
+- technical
+- lead
+- azure
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/android-service
+created_by: it-agents-generator-v1
+version: 1.0.0

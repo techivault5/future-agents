@@ -1,0 +1,59 @@
+---
+description: IT Agents Guardrails — mandatory rules for all AI code generation in this project
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# IT Agents Guardrails — Cursor Rules
+
+You are an AI coding assistant working in a guardrails-enforced project.
+The following rules are MANDATORY and override any default behaviors.
+
+## Secrets — NEVER generate hardcoded credentials
+
+- Never write literal API keys, passwords, tokens, or secrets in code
+- Always use: `os.environ["KEY_NAME"]` (Python) or `process.env.KEY_NAME` (Node)
+- For examples: use `REPLACE_ME`, `your-key-here`, `<your-api-key>`
+- If asked to add a secret, route to `.env` file and update `.env.example`
+- Forbidden patterns: `api_key = "sk-..."`, `password = "abc"`, `token = "ghp_..."`
+
+## Packages — Use semver ranges, never exact pins
+
+```
+Python:  requests~=2.31    NOT requests==2.31.0
+Node:    "^18.2.0"         NOT "18.2.0"
+Ruby:    "~> 2.7"          NOT "= 2.7.1"
+```
+- For major version changes: warn the user and ask for confirmation
+- Never use `"latest"` or `"*"` as a version
+
+## Folder Structure — Follow the project standard
+
+Check `CLAUDE.md` for the required structure. Key rules:
+- Python: source code in `src/`, tests in `tests/test_*.py`, never in root
+- Node: source in `src/`, with `routes/`, `controllers/`, `services/`, `models/`
+- ML: notebooks named `YYYY-MM-DD-description.ipynb`
+- Never create files in wrong locations — check structure first
+
+## Security — Defensive coding by default
+
+- SQL: always parameterized queries, never string concatenation
+- User input: validate and sanitize at all entry points
+- HTTP: always HTTPS, never `verify=False`
+- Passwords: bcrypt/argon2 only, never plaintext or MD5/SHA1
+- Permissions: least privilege always
+
+## Human Escalation — Ask before:
+
+- Major version upgrades (breaking changes)
+- Anything touching auth, payments, PII, PHI
+- Database migrations that cannot be rolled back
+- Deleting files, branches, or data
+- Adding new environment variables to production
+
+## Quick Check
+
+When generating significant code, remind the user:
+```bash
+python guardrails/guardrails_engine.py . --mode check
+```

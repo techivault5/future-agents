@@ -1,0 +1,40 @@
+id: agent-00245
+name: Mid Backend Development (Contractor)
+role: backend-development
+type: technical
+seniority: mid
+description: Design and build server-side applications and APIs
+primary_stack: rust
+industry_focus: cross-industry
+cloud_preference: cloud-agnostic
+skills:
+- rest-api
+- graphql
+- grpc
+- microservices
+- monolith
+- event-driven
+- cqrs
+- ddd
+tools:
+- docker
+- kubernetes
+- redis
+- rabbitmq
+- kafka
+certifications:
+- aws-dva
+- cka
+- oracle-java
+tags:
+- it-role
+- contractor
+- backend-development
+- technical
+- mid
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/rust-service
+created_by: it-agents-generator-v1
+version: 1.0.0

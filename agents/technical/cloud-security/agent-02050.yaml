@@ -1,0 +1,39 @@
+id: agent-02050
+name: Architect Cloud Security (Contractor)
+role: cloud-security
+type: technical
+seniority: architect
+description: Secure cloud infrastructure and workloads
+primary_stack: ciem
+industry_focus: cross-industry
+cloud_preference: aws
+skills:
+- cloud-iam
+- cloud-networking-security
+- data-security-cloud
+- compliance-cloud
+- incident-response-cloud
+- threat-detection
+tools:
+- prisma-cloud
+- wiz
+- orca
+- lacework
+- aquasec
+certifications:
+- ccsp
+- aws-security
+- azure-security
+tags:
+- it-role
+- architect
+- contractor
+- cloud-security
+- aws
+- technical
+guardrails_profile: standard
+human_input_required: true
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/ciem-service
+created_by: it-agents-generator-v1
+version: 1.0.0

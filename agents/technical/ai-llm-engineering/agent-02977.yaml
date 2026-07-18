@@ -1,0 +1,42 @@
+id: agent-02977
+name: Lead Ai Llm Engineering (Generalist) [GOVTECH]
+role: ai-llm-engineering
+type: technical
+seniority: lead
+description: Build applications and systems powered by large language models
+primary_stack: anthropic
+industry_focus: govtech
+cloud_preference: gcp
+skills:
+- prompt-engineering
+- rag
+- fine-tuning
+- agent-design
+- llm-evaluation
+- llm-security
+- context-management
+- embeddings
+tools:
+- langsmith
+- promptlayer
+- trulens
+- arize
+- helicone
+certifications:
+- deeplearning-ai
+- google-genai
+- aws-bedrock
+tags:
+- it-role
+- govtech
+- generalist
+- gcp
+- technical
+- lead
+- ai-llm-engineering
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/anthropic-service
+created_by: it-agents-generator-v1
+version: 1.0.0

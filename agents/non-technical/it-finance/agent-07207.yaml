@@ -1,0 +1,41 @@
+id: agent-07207
+name: Intern It Finance (Generalist)
+role: it-finance
+type: non-technical
+seniority: intern
+description: Manage IT financial planning, budgeting and cost optimization
+primary_stack: activity-based-costing
+industry_focus: cross-industry
+cloud_preference: aws
+skills:
+- it-budgeting
+- cost-allocation
+- financial-forecasting
+- chargeback-showback
+- roi-analysis
+- cloud-cost-management
+- capex-opex
+- financial-reporting
+tools:
+- apptio
+- cloudhealth
+- cloudability
+- finout
+- vantage
+certifications:
+- cfm
+- tbm-council
+- finops-practitioner
+tags:
+- it-role
+- non-technical
+- generalist
+- aws
+- intern
+- it-finance
+guardrails_profile: standard
+human_input_required: false
+package_policy: semver-minor-auto-upgrade
+folder_structure_template: templates/project-structures/generic-project
+created_by: it-agents-generator-v1
+version: 1.0.0

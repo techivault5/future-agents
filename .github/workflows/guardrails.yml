@@ -1,0 +1,63 @@
+name: Guardrails
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main, master, "release/**"]
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  guardrails:
+    name: IT Agents Guardrails
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install pyyaml packaging
+
+      - name: Run guardrails
+        run: python guardrails/guardrails_engine.py . --mode block
+        env:
+          GUARDRAILS_INTERACTIVE: "false"
+          GUARDRAILS_CONFIG: config/guardrails_config.yaml
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardrails-report-${{ github.run_id }}
+          path: .guardrails-report.json
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = {};
+            try { report = JSON.parse(fs.readFileSync('.guardrails-report.json','utf8')); } catch(e) { return; }
+            const icon = report.passed ? '✅' : '❌';
+            const body = `## ${icon} Guardrails — ${report.passed ? 'PASSED' : 'FAILED'}
+            | | Count |
+            |---|---|
+            | 🚫 Violations | ${report.summary?.violations ?? 0} |
+            | ⚠️ Warnings | ${report.summary?.warnings ?? 0} |
+            | 🔧 Auto Fixes | ${report.summary?.auto_fixes ?? 0} |
+            ${report.violations?.length ? '\n**Violations:**\n' + report.violations.map(v=>`- \`${v.rule}\` (${v.severity}): ${v.message}`).join('\n') : ''}
+            `;
+            await github.rest.issues.createComment({issue_number:context.issue.number,owner:context.repo.owner,repo:context.repo.repo,body});
