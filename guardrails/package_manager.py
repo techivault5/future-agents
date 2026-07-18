@@ -133,7 +133,7 @@ class PackageManager:
             return findings
 
         deps = (data.get("project", {}).get("dependencies", []) +
-                data.get("tool", {}).get("poetry", {}).get("dependencies", {}).keys())
+                list(data.get("tool", {}).get("poetry", {}).get("dependencies", {}).keys()))
 
         for dep in deps:
             if isinstance(dep, str):
@@ -240,7 +240,7 @@ class PackageManager:
                 continue
 
             # gem 'name', '1.2.3' exact pin
-            exact = re.search(r"gem\s+['\"]([^'\"]+)['\"],\s*['\"](\d+\.\d+\.\d+)['\"]", line)
+            exact = re.search(r"gem\s+['\"]([^'\"]+)['\"],\s*['\"](\.\d+\.\d+)['\"]\s*", line)
             if exact:
                 pkg, ver = exact.group(1), exact.group(2)
                 if pkg not in self.pinned_exceptions:
