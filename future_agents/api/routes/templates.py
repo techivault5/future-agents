@@ -8,7 +8,6 @@ scaffold new projects that match their chosen agent's stack.
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 
 from future_agents.api import loader
 
@@ -76,24 +75,38 @@ def get_template_for_agent(agent_id: str) -> dict:
             **match,
             "description": _template_description(template_name or ""),
             "use_cases": _template_use_cases(template_name or ""),
-        } if match else None,
+        }
+        if match
+        else None,
         "scaffold_command": (
             f"python guardrails/guardrails_engine.py . --mode fix "
             f"--project-type {template_name or 'python-service'} "
             f"--project-name my-project"
-        ) if match else None,
+        )
+        if match
+        else None,
     }
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 _DESCRIPTIONS = {
-    "python-service": "Python microservice with FastAPI/Flask — src/, tests/, pyproject.toml, Dockerfile",
-    "node-service": "Node/TypeScript service — src/routes, controllers, services, models, tests/",
-    "ml-project": "Machine learning project — src/features, models, evaluation, serving, notebooks/",
-    "data-pipeline": "Data pipeline / dbt project — dags/, models/staging|marts|intermediate, docs/",
-    "fullstack-app": "Full-stack application — frontend + backend with shared types and Docker Compose",
-    "sqlserver-service": "SQL Server–backed service with migration scripts, stored procedures, and ORM layer",
+    "python-service": (
+        "Python microservice with FastAPI/Flask — src/, tests/, pyproject.toml, Dockerfile"
+    ),
+    "node-service": ("Node/TypeScript service — src/routes, controllers, services, models, tests/"),
+    "ml-project": (
+        "Machine learning project — src/features, models, evaluation, serving, notebooks/"
+    ),
+    "data-pipeline": (
+        "Data pipeline / dbt project — dags/, models/staging|marts|intermediate, docs/"
+    ),
+    "fullstack-app": (
+        "Full-stack application — frontend + backend with shared types and Docker Compose"
+    ),
+    "sqlserver-service": (
+        "SQL Server–backed service with migration scripts, stored procedures, and ORM layer"
+    ),
 }
 
 _USE_CASES = {
@@ -102,7 +115,12 @@ _USE_CASES = {
     "ml-project": ["Model training", "RAG pipelines", "Feature engineering", "Model serving"],
     "data-pipeline": ["ETL pipelines", "Data warehousing", "Analytics", "dbt projects"],
     "fullstack-app": ["SaaS apps", "Internal tools", "Developer portals", "Admin UIs"],
-    "sqlserver-service": ["Enterprise apps", "ERP integrations", "Reporting services", "OLTP systems"],
+    "sqlserver-service": [
+        "Enterprise apps",
+        "ERP integrations",
+        "Reporting services",
+        "OLTP systems",
+    ],
 }
 
 

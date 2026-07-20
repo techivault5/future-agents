@@ -13,9 +13,9 @@ GET  /api/orchestrator/intents      Supported intent categories
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Optional
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from future_agents.agents.orchestrator_agent import (
@@ -32,6 +32,7 @@ _orchestrator = OrchestratorAgent()
 
 
 # ── Request models ─────────────────────────────────────────────────────────────
+
 
 class AskRequest(BaseModel):
     question: str
@@ -55,6 +56,7 @@ class GuardrailsCheckRequest(BaseModel):
 
 
 # ── Response shaping helpers ──────────────────────────────────────────────────
+
 
 def _agent_match_dict(m: AgentMatch) -> dict:
     return {
@@ -103,6 +105,7 @@ def _response_dict(r: OrchestratorResponse) -> dict:
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
+
 @router.post("/api/orchestrator/ask", summary="Route a question to the best IT role agent")
 def ask(body: AskRequest) -> dict:
     """Classify intent, score 10K catalog, build expert persona + guardrails.
@@ -126,7 +129,9 @@ def ask(body: AskRequest) -> dict:
     return _response_dict(resp)
 
 
-@router.post("/api/orchestrator/find-agents", summary="Search the 10K catalog and return scored matches")
+@router.post(
+    "/api/orchestrator/find-agents", summary="Search the 10K catalog and return scored matches"
+)
 def find_agents(body: FindAgentsRequest) -> dict:
     if not body.task.strip():
         raise HTTPException(400, "task must not be empty")
@@ -176,7 +181,8 @@ def status() -> dict:
 
 @router.get("/api/orchestrator/intents", summary="Supported intent categories with keyword hints")
 def intents() -> dict:
-    from future_agents.agents.orchestrator_agent import _INTENT_KEYWORDS, _DOMAIN_KEYWORDS
+    from future_agents.agents.orchestrator_agent import _DOMAIN_KEYWORDS, _INTENT_KEYWORDS
+
     return {
         "intents": {intent: kws[:5] for intent, kws in _INTENT_KEYWORDS.items()},
         "domains": {domain: kws[:5] for domain, kws in _DOMAIN_KEYWORDS.items()},
