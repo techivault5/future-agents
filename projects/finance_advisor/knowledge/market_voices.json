@@ -1,0 +1,35 @@
+{
+  "domain": "finance.trends",
+  "entries": [
+    {
+      "title": "Timeless guru principles that survive every cycle",
+      "content": "Warren Buffett: buy wonderful businesses at fair prices, hold decades; 'be fearful when others are greedy'; for most people, a low-cost S&P 500 index fund. Jack Bogle: costs matter — you get what you DON'T pay for; own the whole market. Charlie Munger: avoid stupidity over seeking brilliance; envy and leverage destroy investors. Peter Lynch: know what you own; more money lost preparing for corrections than in them. Morgan Housel (Psychology of Money): wealth is what you don't see; reasonable beats rational; time in market is the superpower. Common core: low costs, long horizons, behavior over brilliance.",
+      "tags": ["gurus", "buffett", "bogle", "munger", "housel", "principles"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Indian market voices worth hearing (and how to filter)",
+      "content": "Credible-signal voices: Nithin Kamath (Zerodha) — publishes sobering data on trader losses and pushes index investing; Radhika Gupta (Edelweiss AMC) — SIP discipline, simple products; Monika Halan ('Let's Talk Money') — the serenity system: separate insure/save/invest; Pattu of freefincal — data-driven DIY planning, goal-based investing. Late Rakesh Jhunjhunwala's legacy lesson: conviction + patience, but his risk appetite isn't replicable. Filter: prefer voices who tell you to do LESS (index, SIP, hold) over those selling activity (tips, courses, F&O strategies); check SEBI registration before paying anyone for advice.",
+      "tags": ["india", "gurus", "kamath", "zerodha", "halan", "freefincal"],
+      "confidence": 0.85
+    },
+    {
+      "title": "2026 market trends snapshot",
+      "content": "As of mid-2026: India SIP flows at record ₹30,000+ crore/month — retail equity culture is structural now. Precious metals digesting the historic 2025 rally (gold +73%, silver +174%); analysts split between consolidation and 'higher-for-longer'. Crypto in India: taxes unchanged (30% + 1% TDS), enforcement sharply up (exchange reporting to ITD from April 2026), no ETFs planned. US rates: prime at multi-year lows makes debt refinancing attractive; HYSAs still 4%+. AI-sector concentration in global indices is a live concentration-risk debate. Standing rule: trends inform tilts of 5-10%, never wholesale strategy changes.",
+      "tags": ["trends", "2026", "sip", "gold", "crypto", "markets"],
+      "confidence": 0.75
+    },
+    {
+      "title": "How to actually 'make more money' — the honest playbook",
+      "content": "Ranked by reliability: 1) Increase income — skills, job switches (20-30% hikes beat 3% increments), side income; income growth compounds through higher SIPs. 2) Raise savings rate toward 25%+ and automate it — the biggest controllable lever. 3) Capture free money — employer EPF/match, tax deductions per your regime, LTCG exemption harvesting. 4) Cut costs — direct plans, index expense ratios, exit high-commission products. 5) Stay invested through crashes — missing the 10 best market days halves long-run returns. 6) Time — start now; every year of delay costs disproportionately. There is no reliable step 7: anyone selling faster wealth (trading systems, guaranteed schemes, crypto signals) is monetizing your impatience.",
+      "tags": ["wealth-building", "income", "savings-rate", "compounding", "playbook"],
+      "confidence": 0.95
+    },
+    {
+      "title": "News and noise — using market media",
+      "content": "Daily market news is entertainment; acting on it is where returns die. Protocol: automate investments so headlines can't reach the buy button; review portfolio quarterly, rebalance annually; treat 'market crashes' as scheduled sales for SIP buyers; read annual letters (Buffett, AMC fund commentaries) over daily tickers. When a trend is on magazine covers and family WhatsApp groups, the easy money is usually gone (gold 2026, crypto 2021, smallcaps 2024). Track: your savings rate and allocation vs plan — the only two numbers that respond to your effort.",
+      "tags": ["news", "noise", "behavior", "media-diet", "discipline"],
+      "confidence": 0.9
+    }
+  ]
+}

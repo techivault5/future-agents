@@ -160,7 +160,8 @@ def create_issue(agents: list[dict], workers: list[str], discoveries: str) -> No
     title = f"{ISSUE_TITLE_PREFIX} New patterns and capabilities — {today}"
 
     agent_rows = "\n".join(
-        f"| `{a['class']}` | `{a['agent_type']}` | {', '.join(f'`{c}`' for c in a['capabilities'][:3]) or '—'} |"  # noqa: E501
+        f"| `{a['class']}` | `{a['agent_type']}` "
+        f"| {', '.join(f'`{c}`' for c in a['capabilities'][:3]) or '—'} |"
         for a in agents
     )
     worker_rows = "\n".join(f"- `{w}`" for w in workers)

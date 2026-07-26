@@ -82,7 +82,7 @@ def get_openapi_connector(agent_id: str, base_url: str = "http://localhost:8000"
                                 "application/json": {
                                     "schema": {"$ref": "#/components/schemas/AgentDetail"}
                                 }
-                            },  # noqa: E501
+                            },
                         }
                     },
                 }
@@ -99,7 +99,7 @@ def get_openapi_connector(agent_id: str, base_url: str = "http://localhost:8000"
                                 "schema": {"$ref": "#/components/schemas/TestRequest"},
                                 "example": {
                                     "prompt": f"How would you approach a {role} challenge?"
-                                },  # noqa: E501
+                                },
                             }
                         },
                     },
@@ -110,7 +110,7 @@ def get_openapi_connector(agent_id: str, base_url: str = "http://localhost:8000"
                                 "application/json": {
                                     "schema": {"$ref": "#/components/schemas/TestResponse"}
                                 }
-                            },  # noqa: E501
+                            },
                         }
                     },
                 }
@@ -125,7 +125,7 @@ def get_openapi_connector(agent_id: str, base_url: str = "http://localhost:8000"
                         "prompt": {
                             "type": "string",
                             "description": "Your question or task for the agent",
-                        },  # noqa: E501
+                        },
                         "context": {"type": "object", "description": "Optional key-value context"},
                     },
                 },

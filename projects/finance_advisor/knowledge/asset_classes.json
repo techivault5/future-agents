@@ -1,0 +1,41 @@
+{
+  "domain": "finance.assets",
+  "entries": [
+    {
+      "title": "The full asset-class map",
+      "content": "EQUITY: direct stocks, domestic mutual funds/ETFs (index + active), international funds — the growth engine, 10-15%+ long-run nominal returns with deep drawdowns; needs 5+ year horizon. DEBT: FDs, government schemes (PPF/EPF), bonds, debt funds — stability and goals under 5 years. REAL ASSETS: gold/silver (5-10% hedge), real estate/REITs. ALTERNATIVES: crypto (0-5% speculation), P2P lending, unlisted equity, art — optional, risky, size accordingly. CASH: emergency fund in HYSA/liquid funds. A complete portfolio needs only equity + debt + a little gold; everything else is optional complexity.",
+      "tags": ["asset-classes", "equity", "debt", "portfolio", "overview"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Asset allocation — the decision that matters most",
+      "content": "Allocation drives ~90% of portfolio variance; fund selection is secondary. Starting frameworks: (100 − age)% in equity; or by horizon — money needed <3yrs → debt/FD, 3-5yrs → hybrid/conservative, 5+ yrs → equity-heavy. Example aggressive 30-year-old (India): 65% equity (40 index/flexi, 15 midcap-small, 10 international), 25% debt (EPF/PPF/debt funds), 7% gold, 3% crypto-or-cash. Rebalance annually or at ±5% drift bands — this forces sell-high-buy-low mechanically. Increase debt share as goals approach; never hold a goal due next year in equity.",
+      "tags": ["asset-allocation", "rebalancing", "risk", "portfolio-construction"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Direct stocks vs funds",
+      "content": "Direct stock picking is a part-time job: needs accounting literacy, business analysis, temperament, and 15-20 stock diversification; most retail traders underperform index funds (and intraday/F&O studies — including SEBI's — show ~90% of retail F&O traders lose money). Do direct stocks only with a satellite allocation (≤20-25% of equity), long holding periods, and businesses you understand. Everyone else: index/flexi-cap funds capture market returns with zero stock-level homework. Avoid: F&O/options income strategies sold on YouTube, margin trading, tip-based buying.",
+      "tags": ["stocks", "index-funds", "fno", "sebi-study", "stock-picking"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Real estate and REITs",
+      "content": "Physical property: leveraged, illiquid, concentrated, 5-8% typical Indian rental yields ~2-3%; works when you'd rent the equivalent anyway (own home) or with genuine local edge — bad as a default 'safe' investment vs its EMI drag. REITs (Embassy, Mindspace, Brookfield, Nexus in India): commercial real-estate exposure from ~₹100-300/unit, 6-8% distribution yields plus appreciation potential, SEBI-regulated, liquid on exchanges. InvITs do the same for infrastructure. For most investors REITs/InvITs at 0-10% replace the 'second flat as investment' far more efficiently.",
+      "tags": ["real-estate", "reits", "invits", "india", "rental-yield"],
+      "confidence": 0.85
+    },
+    {
+      "title": "International diversification (India)",
+      "content": "Adding US/global equity (S&P 500, Nasdaq 100, global index feeder funds) hedges single-country and INR risk — the rupee has depreciated ~3-4%/yr against USD long-run, which adds to INR returns of dollar assets. Routes: international mutual funds/FoFs (mind AMC limits when RBI industry caps bind), direct US brokerage via LRS (note 20% TCS above ₹7 lakh/yr, adjustable against tax), Indian ETFs on global indices. Taxation: non-equity treatment for most international funds (slab or post-2023 rules). Sizing: 10-20% of equity is a common recommendation.",
+      "tags": ["international", "us-stocks", "lrs", "diversification", "inr"],
+      "confidence": 0.8
+    },
+    {
+      "title": "Products to avoid or treat with suspicion",
+      "content": "ULIPs and endowment/moneyback insurance (opaque, high-commission, ~4-5% real returns — buy term insurance + invest separately), guaranteed-income plans marketed at 'tax-free 6-7%' (IRR usually 5-6%), P2P lending at scale (credit risk without security), chit funds beyond community trust, NFO hype funds, sectoral/thematic funds as core holdings, market-linked debentures, F&O 'passive income' courses, forex/binary trading apps, and anything sold primarily through commissions or urgency. Test: if the seller earns more from your purchase than you likely will, walk away.",
+      "tags": ["avoid", "ulip", "endowment", "p2p", "mis-selling"],
+      "confidence": 0.9
+    }
+  ]
+}

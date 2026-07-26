@@ -129,7 +129,6 @@ class WordAgent(BaseAgent):
         pPr.append(pBdr)
 
     def _style_heading(self, doc, level: int, theme: dict) -> None:
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.shared import Pt, RGBColor
 
         style_name = f"Heading {level}"
@@ -174,7 +173,7 @@ class WordAgent(BaseAgent):
             from docx.enum.text import WD_ALIGN_PARAGRAPH
             from docx.oxml import OxmlElement
             from docx.oxml.ns import qn
-            from docx.shared import Cm, Inches, Pt, RGBColor
+            from docx.shared import Cm, Pt, RGBColor
         except ImportError:
             return TaskResult(
                 task_id=context.task_id,
@@ -351,9 +350,6 @@ class WordAgent(BaseAgent):
                     # Header row
                     hdr_row = tbl.rows[0]
                     th_hex = theme["table_header"]
-                    int(th_hex[0:2], 16)
-                    int(th_hex[2:4], 16)
-                    int(th_hex[4:6], 16)
                     for ci, hdr_text in enumerate(headers):
                         cell = hdr_row.cells[ci]
                         cell.text = hdr_text

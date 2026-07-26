@@ -1,0 +1,53 @@
+{
+  "domain": "finance.india",
+  "entries": [
+    {
+      "title": "India mutual funds — the SIP engine",
+      "content": "Systematic Investment Plans (SIPs) are India's default wealth-building vehicle: ~9.6 crore contributing SIP accounts, monthly inflows above ₹30,000 crore (May 2026, third straight month), SIP assets ₹17+ lakh crore ≈ 21% of the industry's ₹81.6 lakh crore AUM. Equity funds have seen uninterrupted net inflows since March 2021. Why SIPs work: rupee-cost averaging, automation (behavior-proof), and start-small (₹500/month). Rule: SIP date right after salary credit; step up the SIP 10% every year or with every raise.",
+      "tags": ["india", "mutual-funds", "sip", "rupee-cost-averaging", "amfi"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Choosing mutual fund categories (India)",
+      "content": "Sensible core-satellite structure: CORE (70-80%) — flexi cap, large cap, large & midcap, or broad index funds (Nifty 50/Nifty 500); consistently top-cited 2026 performers sit in these categories (e.g. flexi cap and large cap leaders). SATELLITE (20-30%) — midcap/smallcap (higher risk, 7-10yr horizon), international funds, thematic (cap at 5-10%). Always pick DIRECT plans over regular (saves ~0.5-1% commission annually — lakhs over decades) and growth option over IDCW. Check: expense ratio, 5-10yr rolling returns vs category, fund manager tenure — never chase last year's #1.",
+      "tags": ["india", "mutual-funds", "flexi-cap", "direct-plans", "index-funds"],
+      "confidence": 0.85
+    },
+    {
+      "title": "ELSS and Section 80C tax saving",
+      "content": "ELSS (Equity Linked Savings Scheme): equity mutual fund with 3-year lock-in — the shortest among 80C options. Old Tax Regime: up to ₹1.5 lakh deduction under 80C; gains after lock-in taxed as equity LTCG. Note: the New Tax Regime (default since FY 2023-24) does NOT give the 80C deduction — under the new regime, invest in ELSS only if it merits the allocation on its own. Other 80C options ranked by return potential: ELSS > NPS (extra ₹50k under 80CCD(1B), old regime) > PPF > 5-yr tax-saver FD > traditional insurance plans (avoid mixing insurance with investment).",
+      "tags": ["india", "elss", "80c", "tax-saving", "new-tax-regime"],
+      "confidence": 0.85
+    },
+    {
+      "title": "PPF, EPF, NPS — the government-backed stack",
+      "content": "EPF: 12% of basic auto-deducted + employer match; EEE tax status; the bedrock of salaried retirement — never withdraw between jobs. PPF: 15-year sovereign-guaranteed, tax-free (EEE), ~7.1% recent rates; good debt allocation for conservative money; extendable in 5-yr blocks. NPS: market-linked retirement with equity up to 75%; lowest fund-management costs in the industry; at 60, 60% lump sum tax-free, 40% must buy annuity. Order for most salaried: EPF (automatic) → term insurance + health insurance → equity SIPs → PPF/NPS per tax regime and risk appetite.",
+      "tags": ["india", "ppf", "epf", "nps", "retirement", "eee"],
+      "confidence": 0.9
+    },
+    {
+      "title": "FDs, RDs, and debt funds (India)",
+      "content": "Fixed deposits: capital-safe up to ₹5 lakh DICGC insurance per bank; interest taxed at slab rate — post-tax often barely beats inflation. Best use: emergency fund, near-term goals, senior citizens (extra 0.25-0.5%). Small finance banks pay more but stay within DICGC limits. Debt mutual funds (liquid, money market, short duration): more tax-efficient for large sums historically, though post-April 2023 debt fund gains are taxed at slab too. RDs: fine for disciplined short-term saving. Rule: debt instruments are for stability, not wealth creation — equity does the growing.",
+      "tags": ["india", "fd", "rd", "debt-funds", "dicgc", "emergency-fund"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Indian equity taxation (2026 rules of thumb)",
+      "content": "Equity shares & equity funds: LTCG (held >12 months) taxed at 12.5% above ₹1.25 lakh/yr exemption; STCG at 20% (post-July 2024 rates). Harvest the ₹1.25 lakh LTCG exemption annually where practical. Debt funds and FDs: slab rate. Crypto/VDAs: flat 30% + 1% TDS, no loss offset (see crypto entries). Dividends: taxed at slab. Keep it simple: buy-and-hold equity is the most tax-efficient wealth builder in India; frequent trading converts low-tax LTCG into higher-tax STCG plus costs.",
+      "tags": ["india", "tax", "ltcg", "stcg", "capital-gains"],
+      "confidence": 0.8
+    },
+    {
+      "title": "SEBI 2026 category cleanup — what changed",
+      "content": "SEBI's mutual fund category review (2026) kept the 80% equity mandate for large/mid/small-cap funds (reinforcing existing behavior) and removed solution-oriented schemes (children's and retirement funds) as a category — holders of those funds receive merger details from their AMC before schemes close to fresh investments. Practical takeaway: category rules rarely require action; check AMC communication, verify the merged scheme's mandate matches your goal, and continue SIPs unless the mandate changed materially.",
+      "tags": ["india", "sebi", "regulation", "mutual-funds", "2026"],
+      "confidence": 0.75
+    },
+    {
+      "title": "India investor protection basics",
+      "content": "1) Invest only via SEBI-registered intermediaries; verify RIA/broker registration on sebi.gov.in. 2) Demat safety: broker holds nothing — shares sit with NSDL/CDSL in your name; enable 2FA, check CDSL/NSDL monthly statements. 3) Red flags: 'guaranteed' returns, Telegram/WhatsApp stock tips, pump-and-dump smallcaps, unregistered portfolio 'gurus' charging for tips, apps promising fixed 2-5%/month. 4) Grievances: SCORES portal (SEBI), RBI ombudsman for banks. 5) Insurance ≠ investment: buy pure term + health cover; avoid endowment/ULIP bundling.",
+      "tags": ["india", "sebi", "investor-protection", "scams", "demat"],
+      "confidence": 0.9
+    }
+  ]
+}

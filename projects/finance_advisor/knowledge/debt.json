@@ -1,0 +1,65 @@
+{
+  "domain": "finance.debt",
+  "entries": [
+    {
+      "title": "Debt Avalanche Method",
+      "content": "Pay minimums on all debts, then direct every extra dollar at the debt with the HIGHEST interest rate. When it's gone, roll that payment into the next-highest APR. Mathematically optimal: comparison modelling shows avalanche beats snowball on total cost in ~94% of debt profiles, saving on average ~$1,800 in interest. Best when you are motivated by numbers and can stay consistent without quick wins. With average credit card APRs around 20-22% (2026), card balances are almost always the top avalanche target.",
+      "tags": ["debt", "avalanche", "payoff-strategy", "interest", "credit-cards"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Debt Snowball Method",
+      "content": "Pay minimums on all debts, then attack the SMALLEST balance first regardless of APR. Each payoff frees a payment that 'snowballs' into the next debt. Costs slightly more in interest than avalanche, but behavioral research (Kellogg School; popularized by Dave Ramsey) shows higher completion rates — quick wins keep people in the game. Choose snowball if you've failed payoff plans before or need momentum; choose avalanche if you'll stick with it either way.",
+      "tags": ["debt", "snowball", "payoff-strategy", "behavior", "dave-ramsey"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Avalanche vs Snowball — how to choose",
+      "content": "Decision rule: 1) List every debt with balance, APR, minimum. 2) If the APR spread between debts is small (<3-4 points), the methods cost nearly the same — pick snowball for motivation. 3) If you carry high-APR credit cards (20%+) alongside low-APR loans, avalanche saves real money. 4) The best method is the one you finish. Hybrid: knock out one tiny balance first for a quick win, then switch to avalanche.",
+      "tags": ["debt", "payoff-strategy", "decision-framework"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Balance transfers and 0% promotional APR",
+      "content": "Strong-credit borrowers (typically 670+) can qualify for 0% promotional APR balance-transfer cards, commonly 12-21 months with a 3-5% transfer fee (2026 conditions). Rule of thumb: worth it if you can clear the balance within the promo window — divide balance by months and check the payment is realistic. Traps: fee added upfront, deferred interest on some retail cards, promo rate voided by late payment, and continuing to spend on the old card.",
+      "tags": ["debt", "balance-transfer", "credit-cards", "0-percent-apr"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Debt consolidation loans",
+      "content": "A single fixed-rate personal loan replacing several high-APR debts. Makes sense when: loan APR is meaningfully below your blended card APR, the fixed term forces payoff, and you stop adding new card debt. With prime at ~6.75% (lowest since early 2022), 2026 consolidation rates are relatively favorable for good credit. Warning: consolidation fails if spending behavior doesn't change — the freed-up cards get re-maxed. Avoid rolling unsecured card debt into home equity unless you fully understand you're securing it against your house.",
+      "tags": ["debt", "consolidation", "personal-loans", "behavior"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Minimum payments are a trap",
+      "content": "Card minimums (typically 1-3% of balance) are designed to maximize interest paid. Example: $5,000 at 22% APR paying 2% minimums takes 30+ years and roughly triples the cost. Always pay more than the minimum on the target debt; even small fixed overpayments cut years off. Check your statement's mandated 'minimum payment warning' box for your own numbers.",
+      "tags": ["debt", "credit-cards", "minimum-payments", "interest"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Student loans — order of attack",
+      "content": "1) Never default — federal loans have income-driven repayment (IDR), deferment, and forgiveness paths that vanish on default. 2) Check eligibility for forgiveness programs (PSLF for public service) before aggressively prepaying. 3) Refinance private loans when you can beat the rate; refinancing FEDERAL loans into private permanently forfeits federal protections — do it only with stable income and no forgiveness path. 4) Treat high-rate private student loans like card debt in your avalanche.",
+      "tags": ["debt", "student-loans", "refinancing", "forgiveness"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Dealing with collections",
+      "content": "1) Validate the debt in writing within 30 days (FDCPA right) — collectors must prove it's yours and the amount is right. 2) Check your state's statute of limitations; a partial payment can restart the clock on time-barred debt. 3) Negotiate: collectors buy debt for cents on the dollar, settlements of 30-60% are common — get any deal in writing BEFORE paying, ideally with pay-for-delete. 4) Never give a collector direct bank access. 5) Know your rights: no calls before 8am/after 9pm, no harassment, no lying about legal consequences.",
+      "tags": ["debt", "collections", "negotiation", "consumer-rights"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Good debt vs bad debt",
+      "content": "Debt is a tool priced by risk. Generally acceptable: fixed-rate mortgage within budget (roughly ≤28% of gross income on payment), modest student loans with clear income payoff, sometimes a basic car loan. Wealth-destroying: revolving credit card balances (20%+ APR), payday loans (often 400%+ effective APR), rent-to-own, BNPL stacking, and 84-month loans on depreciating cars. Test: does the debt buy an appreciating asset or income capacity, at a rate below the asset's expected return?",
+      "tags": ["debt", "good-debt", "bad-debt", "payday-loans", "bnpl"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Stop the bleeding first",
+      "content": "Before any payoff strategy: 1) Stop adding new debt — freeze/remove cards from online wallets. 2) Build a small $1,000-$2,000 starter emergency fund so surprises don't go back on the card (the emergency→debt cycle is why most payoff attempts fail). 3) Cut the 2-3 biggest budget leaks rather than micro-optimizing lattes. 4) Then choose avalanche or snowball. Caleb Hammer's 'Financial Audit' formula: face the real numbers line-by-line, minimal lifestyle budget until high-interest debt is gone.",
+      "tags": ["debt", "starter-emergency-fund", "behavior", "caleb-hammer"],
+      "confidence": 0.9
+    }
+  ]
+}

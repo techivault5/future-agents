@@ -1,0 +1,29 @@
+{
+  "domain": "finance.gold_silver",
+  "entries": [
+    {
+      "title": "Gold & silver after the 2025 super-rally",
+      "content": "2025 was historic: gold rallied ~73% internationally and silver ~174%. 2026 outlook per analysts: short-term consolidation is 'natural' after such a run, but the fundamental backdrop (central-bank buying, rate environment, geopolitics) keeps a 'higher-for-longer' regime — some see gold gravitating toward ₹1.5 lakh/10g and $5,000/oz over 12-18 months. Discipline: never buy an asset BECAUSE it just doubled; enter via staggered purchases (SIP into gold ETFs/funds), keep allocation rules (5-10% of portfolio, max 15%), and rebalance — a rally that lifts gold above target weight is a signal to trim, not add.",
+      "tags": ["gold", "silver", "2026-outlook", "rally", "rebalancing"],
+      "confidence": 0.8
+    },
+    {
+      "title": "Ways to hold gold in India (SGB era over)",
+      "content": "Sovereign Gold Bonds — the best historical vehicle (2.5% interest + tax-free maturity gains) — are DISCONTINUED for new issues (no tranche since Feb 2024; government cited cost). Existing SGBs: hold to maturity for tax-free redemption; secondary-market SGBs can still be bought on exchanges, often at premiums. Current options ranked: 1) Gold ETFs (GOLDBEES, SBI/Kotak/ICICI Pru/HDFC Gold ETF) — low cost, demat, India saw record ETF inflows in 2026 (₹1.8+ lakh crore AUM). 2) Gold mutual funds — same exposure without demat, slightly higher cost, SIP-friendly. 3) Physical coins/bars — for possession preference; making charges, storage, purity (buy hallmarked, 24K BIS). 4) Digital gold apps — convenient but unregulated custody; keep small/temporary. Jewellery is consumption, not investment (20-30% lost to making charges/GST).",
+      "tags": ["gold", "india", "sgb", "gold-etf", "digital-gold", "physical-gold"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Silver — industrial metal with monetary echoes",
+      "content": "Silver is ~50% industrial demand (solar, EVs, electronics), making it more volatile and more economically cyclical than gold — the 2025 +174% move shows both the upside and the whiplash risk. Vehicles in India: silver ETFs and silver fund-of-funds (post-2021 SEBI approval); physical bars/coins carry GST and purity/storage friction. Role: small tactical satellite (0-5%), not a core holding; the gold:silver ratio is a trader's tool, not an investor's plan.",
+      "tags": ["silver", "silver-etf", "industrial-demand", "volatility", "india"],
+      "confidence": 0.8
+    },
+    {
+      "title": "Why hold precious metals at all",
+      "content": "Gold's job in a portfolio is insurance, not growth: low correlation to equities, crisis hedge, currency-debasement hedge — especially relevant for INR-earning households (gold has compounded INR weakness + global price). Long-run real returns trail equities badly, so over-allocating costs wealth. Standard guidance: 5-10% strategic allocation, bought systematically, rebalanced annually. Indians already carry large implicit gold exposure via household jewellery — count it before adding more.",
+      "tags": ["gold", "portfolio", "hedge", "allocation", "inflation"],
+      "confidence": 0.9
+    }
+  ]
+}

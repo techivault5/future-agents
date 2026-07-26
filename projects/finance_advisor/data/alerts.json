@@ -1,0 +1,13 @@
+[
+  {
+    "id": "588da2540a",
+    "asset": "gold",
+    "condition": "drop_from_52w_high_pct",
+    "threshold": 10.0,
+    "note": "Gold dip \u226510% \u2014 staggered buy window",
+    "email": "",
+    "active": true,
+    "created_at": "2026-07-15T11:41:08+00:00",
+    "last_triggered": null
+  }
+]

@@ -431,7 +431,7 @@ class WorkflowEngine:
             "context": context,
             "guardrails_profile": agent_def.get("guardrails_profile", "standard")
             if agent_def
-            else "standard",  # noqa: E501
+            else "standard",
         }
         return result, "main"
 
@@ -491,7 +491,6 @@ class WorkflowEngine:
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
                 raw = resp.read()
-                resp.headers.get("Content-Type", "")
                 status_code = resp.status
                 try:
                     response_body = json.loads(raw)
@@ -627,7 +626,7 @@ class WorkflowEngine:
                     raise ValueError("import statements are not allowed in code nodes")
             exec(
                 compile(tree, "<workflow_code>", "exec"), {"__builtins__": _SAFE_BUILTINS}, local_ns
-            )  # noqa: E501, S102
+            )  # noqa: S102
         except Exception as exc:
             raise RuntimeError(f"code node error: {exc}") from exc
 

@@ -6,7 +6,6 @@ Title → Index → Introduction → Topic slides → Architecture → Summary �
 
 from __future__ import annotations
 
-import io
 import logging
 from pathlib import Path
 from typing import Any
@@ -18,16 +17,16 @@ logger = logging.getLogger(__name__)
 
 # ── Light color palette ──────────────────────────────────────────────────────
 PALETTE = {
-    "sky": {"bg": (0xE3, 0xF2, 0xFD), "accent": (0x19, 0x76, 0xD2), "text": (0x0D, 0x47, 0xA1)},  # noqa: E501
-    "mint": {"bg": (0xE8, 0xF5, 0xE9), "accent": (0x2E, 0x7D, 0x32), "text": (0x1B, 0x5E, 0x20)},  # noqa: E501
+    "sky": {"bg": (0xE3, 0xF2, 0xFD), "accent": (0x19, 0x76, 0xD2), "text": (0x0D, 0x47, 0xA1)},
+    "mint": {"bg": (0xE8, 0xF5, 0xE9), "accent": (0x2E, 0x7D, 0x32), "text": (0x1B, 0x5E, 0x20)},
     "lavender": {
         "bg": (0xF3, 0xE5, 0xF5),
         "accent": (0x7B, 0x1F, 0xA2),
         "text": (0x4A, 0x14, 0x8C),
-    },  # noqa: E501
-    "sunrise": {"bg": (0xFF, 0xF8, 0xE1), "accent": (0xF5, 0x7F, 0x17), "text": (0xE6, 0x5C, 0x00)},  # noqa: E501
-    "coral": {"bg": (0xFF, 0xEB, 0xEE), "accent": (0xC6, 0x28, 0x28), "text": (0xB7, 0x1C, 0x1C)},  # noqa: E501
-    "teal": {"bg": (0xE0, 0xF2, 0xF1), "accent": (0x00, 0x69, 0x6C), "text": (0x00, 0x4D, 0x40)},  # noqa: E501
+    },
+    "sunrise": {"bg": (0xFF, 0xF8, 0xE1), "accent": (0xF5, 0x7F, 0x17), "text": (0xE6, 0x5C, 0x00)},
+    "coral": {"bg": (0xFF, 0xEB, 0xEE), "accent": (0xC6, 0x28, 0x28), "text": (0xB7, 0x1C, 0x1C)},
+    "teal": {"bg": (0xE0, 0xF2, 0xF1), "accent": (0x00, 0x69, 0x6C), "text": (0x00, 0x4D, 0x40)},
 }
 
 SLIDE_THEMES = [
@@ -116,7 +115,7 @@ class PPTAgent(BaseAgent):
             from pptx import Presentation
             from pptx.dml.color import RGBColor
             from pptx.enum.text import PP_ALIGN
-            from pptx.util import Cm, Inches, Pt
+            from pptx.util import Inches
         except ImportError:
             return TaskResult(
                 task_id=context.task_id,
@@ -145,8 +144,6 @@ class PPTAgent(BaseAgent):
         blank_layout = prs.slide_layouts[6]  # blank
 
         def add_bg(slide, color: RGBColor):
-            from pptx.util import Inches
-
             bg = slide.shapes.add_shape(
                 1,  # MSO_SHAPE_TYPE.RECTANGLE
                 0,
@@ -185,8 +182,8 @@ class PPTAgent(BaseAgent):
             color=None,
             align=PP_ALIGN.LEFT,
             italic=False,
-        ):  # noqa: E501
-            from pptx.util import Inches, Pt
+        ):
+            from pptx.util import Pt
 
             txb = slide.shapes.add_textbox(left, top, width, height)
             tf = txb.text_frame
@@ -214,7 +211,7 @@ class PPTAgent(BaseAgent):
         # Bottom bar
         bot_bar = slide.shapes.add_shape(
             1, 0, prs.slide_height - _emu(0.6), prs.slide_width, _emu(0.6)
-        )  # noqa: E501
+        )
         bot_bar.fill.solid()
         bot_bar.fill.fore_color.rgb = accent
         bot_bar.line.fill.background()
@@ -280,7 +277,7 @@ class PPTAgent(BaseAgent):
         toc_items = (
             ["Introduction"]
             + [t.get("title", f"Topic {i + 1}") for i, t in enumerate(topics)]
-            + [  # noqa: E501
+            + [
                 "Architecture Overview",
                 "Summary",
                 "Q & A",

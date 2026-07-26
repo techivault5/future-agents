@@ -55,11 +55,17 @@ _TOOLS: list[dict] = [
                 },
                 "domain": {
                     "type": "string",
-                    "description": "Optional domain hint: frontend | backend | devops | security | data | mobile | ml | cloud",  # noqa: E501
+                    "description": (
+                        "Optional domain hint: frontend | backend | devops | security "
+                        "| data | mobile | ml | cloud"
+                    ),
                 },
                 "seniority": {
                     "type": "string",
-                    "description": "Optional seniority preference: intern | junior | mid-level | senior | principal | architect",  # noqa: E501
+                    "description": (
+                        "Optional seniority preference: intern | junior | mid-level "
+                        "| senior | principal | architect"
+                    ),
                 },
                 "top_k": {
                     "type": "integer",
@@ -122,7 +128,10 @@ _TOOLS: list[dict] = [
                 },
                 "profile": {
                     "type": "string",
-                    "description": "Guardrails profile: standard | strict | relaxed | architect (default standard)",  # noqa: E501
+                    "description": (
+                        "Guardrails profile: standard | strict | relaxed | architect "
+                        "(default standard)"
+                    ),
                     "default": "standard",
                 },
             },
@@ -375,7 +384,7 @@ class MCPServer:
             for a in resp.matched_agents[1:]:
                 parts.append(
                     f"- **{a.agent_name}** (`{a.role}`, {a.seniority}) — {a.match_score:.0%}"
-                )  # noqa: E501
+                )
 
         return "\n".join(parts)
 

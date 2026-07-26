@@ -145,7 +145,7 @@ class QualityAssessorAgent(BaseAgent):
                     "summary" in str(shape.text).lower()
                     for shape in s.shapes
                     if shape.has_text_frame
-                )  # noqa: E501
+                )
                 for s in slides
             )
             has_qa = any(
@@ -161,7 +161,7 @@ class QualityAssessorAgent(BaseAgent):
                     "architect" in str(shape.text).lower()
                     for shape in s.shapes
                     if shape.has_text_frame
-                )  # noqa: E501
+                )
                 for s in slides
             )
             shape_count = sum(len(s.shapes) for s in slides)
@@ -236,7 +236,6 @@ class QualityAssessorAgent(BaseAgent):
         try:
             # Basic PDF inspection without heavy deps
             raw = path.read_bytes()
-            raw[:8192].decode("latin-1", errors="ignore")
 
             is_valid_pdf = raw[:4] == b"%PDF"
             # Count /Type /Page occurrences — standard page marker in all PDF generators
@@ -385,11 +384,11 @@ class QualityAssessorAgent(BaseAgent):
             elif score >= 9.0:
                 feedback.append(
                     f"[{dim.upper()}] Score {score:.1f}/10 — Excellent. Keep this standard."
-                )  # noqa: E501
+                )
             else:
                 feedback.append(
                     f"[{dim.upper()}] Score {score:.1f}/10 — Good. Minor refinements possible."
-                )  # noqa: E501
+                )
 
         if file_type == "pptx":
             if not meta.get("has_toc"):
@@ -403,7 +402,7 @@ class QualityAssessorAgent(BaseAgent):
             if not meta.get("has_toc"):
                 feedback.append(
                     "ACTION: Insert a Table of Contents (Ctrl+A, F9 to update in Word)."
-                )  # noqa: E501
+                )
             if not meta.get("has_header") or not meta.get("has_footer"):
                 feedback.append("ACTION: Add consistent headers and footers with page numbers.")
 
@@ -411,7 +410,7 @@ class QualityAssessorAgent(BaseAgent):
             if not meta.get("has_images"):
                 feedback.append(
                     "ACTION: Add background imagery — set UNSPLASH_ACCESS_KEY or PEXELS_API_KEY."
-                )  # noqa: E501
+                )
             if not meta.get("has_bookmarks"):
                 feedback.append("ACTION: Add PDF bookmarks/outlines for navigation.")
 

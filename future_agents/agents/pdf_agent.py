@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import io
 import logging
-import math
 import os
 import urllib.request
 from pathlib import Path
@@ -160,7 +159,7 @@ class PDFAgent(BaseAgent):
     def _make_gradient_background(self, w: int, h: int, theme: dict) -> bytes:
         """Generate a gradient background image as JPEG bytes using PIL."""
         try:
-            from PIL import Image, ImageDraw, ImageFilter
+            from PIL import Image, ImageDraw
 
             img = Image.new("RGB", (w, h))
             draw = ImageDraw.Draw(img)
@@ -201,7 +200,7 @@ class PDFAgent(BaseAgent):
     @staticmethod
     def _draw_chapter_header_stripe(
         canvas, y: float, width: float, color_rgb: tuple, height: float = 4
-    ):  # noqa: E501
+    ):
         canvas.setFillColorRGB(*color_rgb)
         canvas.rect(0, y, width, height, fill=1, stroke=0)
 
@@ -215,8 +214,8 @@ class PDFAgent(BaseAgent):
             subtitle       (str): Optional subtitle
             author         (str): Author name
             organization   (str): Organization
-            people_type    (str): professionals|healthcare|community|technology|
-                            education|leadership|general
+            people_type    (str): professionals|healthcare|community|technology|education|
+                                  leadership|general
             color_theme    (str): professional|health|corporate|tech
             chapters       (list[dict]): Each has:
                              - title (str)
@@ -228,23 +227,7 @@ class PDFAgent(BaseAgent):
             output_name    (str): Filename without extension
         """
         try:
-            from reportlab.lib import colors
-            from reportlab.lib.colors import Color, HexColor, black, white
-            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
             from reportlab.lib.pagesizes import A4
-            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-            from reportlab.lib.units import cm, mm
-            from reportlab.pdfgen import canvas as rl_canvas
-            from reportlab.platypus import (
-                KeepTogether,
-                PageBreak,
-                Paragraph,
-                SimpleDocTemplate,
-                Spacer,
-                Table,
-                TableStyle,
-            )
-            from reportlab.platypus.flowables import HRFlowable
         except ImportError:
             return TaskResult(
                 task_id=context.task_id,
@@ -252,11 +235,6 @@ class PDFAgent(BaseAgent):
                 outcome=ExecutionOutcome.FAILURE,
                 errors=["reportlab not installed. Run: pip install reportlab"],
             )
-
-        try:
-            from PIL import Image
-        except ImportError:
-            pass
 
         p = context.parameters
         title = p.get("title", "Professional Report")
@@ -287,9 +265,7 @@ class PDFAgent(BaseAgent):
         # ── Canvas-based renderer (for image backgrounds) ─────────────────
         from reportlab.lib.units import cm
         from reportlab.pdfgen import canvas as rl_canvas
-        from reportlab.platypus import SimpleDocTemplate
 
-        io.BytesIO()
         c = rl_canvas.Canvas(str(out_path), pagesize=A4)
         c.setTitle(title)
         c.setAuthor(author)
@@ -320,7 +296,7 @@ class PDFAgent(BaseAgent):
                 img_reader = ImageReader(tmp)
                 canvas_obj.drawImage(
                     img_reader, 0, 0, width, height, preserveAspectRatio=False, mask=None
-                )  # noqa: E501
+                )
             except Exception as exc:
                 logger.debug("Image draw failed: %s", exc)
                 r, g, b = light
@@ -485,7 +461,7 @@ class PDFAgent(BaseAgent):
 
         intro_text = p.get(
             "introduction", f"This report provides a comprehensive overview of {title}."
-        )  # noqa: E501
+        )
         self._draw_body_text(
             c, intro_text, 2 * cm, page_h - 1.2 * cm - banner_h - 1.5 * cm, page_w - 4 * cm, theme
         )
@@ -640,7 +616,7 @@ class PDFAgent(BaseAgent):
                 "chapters": [c.get("title", "") for c in chapters],
                 "image_source": "unsplash/pexels"
                 if os.environ.get("UNSPLASH_ACCESS_KEY") or os.environ.get("PEXELS_API_KEY")
-                else "generated_gradient",  # noqa: E501
+                else "generated_gradient",
             },
         )
 

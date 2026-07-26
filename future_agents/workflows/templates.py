@@ -123,7 +123,10 @@ def _tpl_guardrails_check() -> WorkflowTemplate:
                     "Violations?",
                     600,
                     200,
-                    condition="{{ input.data.get('allowed', True) == False if isinstance(input, dict) else False }}",  # noqa: E501
+                    condition=(
+                        "{{ input.data.get('allowed', True) == False "
+                        "if isinstance(input, dict) else False }}"
+                    ),
                 ),
                 _node(
                     "n4",

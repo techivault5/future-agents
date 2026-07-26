@@ -252,7 +252,7 @@ class VoiceCloner:
         profile = VoiceProfile(
             name=name,
             description=description
-            or f"Voice profile created from sample: {Path(sample_path).name}",  # noqa: E501
+            or f"Voice profile created from sample: {Path(sample_path).name}",
             personality=personality,
             accent=AccentType.CUSTOM,
             tags=tags or [],

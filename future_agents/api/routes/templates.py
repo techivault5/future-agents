@@ -91,12 +91,22 @@ def get_template_for_agent(agent_id: str) -> dict:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 _DESCRIPTIONS = {
-    "python-service": "Python microservice with FastAPI/Flask — src/, tests/, pyproject.toml, Dockerfile",  # noqa: E501
+    "python-service": (
+        "Python microservice with FastAPI/Flask — src/, tests/, pyproject.toml, Dockerfile"
+    ),
     "node-service": "Node/TypeScript service — src/routes, controllers, services, models, tests/",
-    "ml-project": "Machine learning project — src/features, models, evaluation, serving, notebooks/",  # noqa: E501
-    "data-pipeline": "Data pipeline / dbt project — dags/, models/staging|marts|intermediate, docs/",  # noqa: E501
-    "fullstack-app": "Full-stack application — frontend + backend with shared types and Docker Compose",  # noqa: E501
-    "sqlserver-service": "SQL Server–backed service with migration scripts, stored procedures, and ORM layer",  # noqa: E501
+    "ml-project": (
+        "Machine learning project — src/features, models, evaluation, serving, notebooks/"
+    ),
+    "data-pipeline": (
+        "Data pipeline / dbt project — dags/, models/staging|marts|intermediate, docs/"
+    ),
+    "fullstack-app": (
+        "Full-stack application — frontend + backend with shared types and Docker Compose"
+    ),
+    "sqlserver-service": (
+        "SQL Server–backed service with migration scripts, stored procedures, and ORM layer"
+    ),
 }
 
 _USE_CASES = {
@@ -110,7 +120,7 @@ _USE_CASES = {
         "ERP integrations",
         "Reporting services",
         "OLTP systems",
-    ],  # noqa: E501
+    ],
 }
 
 

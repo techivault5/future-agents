@@ -252,7 +252,7 @@ class PackageManager:
                 continue
 
             # gem 'name', '1.2.3' exact pin
-            exact = re.search(r"gem\s+['\"]([^'\"]+)['\"],\s*['\"](\.\d+\.\d+)['\"]\s*", line)
+            exact = re.search(r"gem\s+['\"]([^'\"]+)['\"],\s*['\"](\d+\.\d+\.\d+)['\"]", line)
             if exact:
                 pkg, ver = exact.group(1), exact.group(2)
                 if pkg not in self.pinned_exceptions:

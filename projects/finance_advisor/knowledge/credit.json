@@ -1,0 +1,29 @@
+{
+  "domain": "finance.credit",
+  "entries": [
+    {
+      "title": "Credit score factors (FICO)",
+      "content": "Payment history 35% (never miss; one 30-day late can drop a good score 60-100+ pts), amounts owed/utilization 30% (keep total and per-card utilization under 30%, under 10% for best scores), length of history 15% (keep oldest cards open), new credit 10% (space out applications; hard pulls sting briefly), credit mix 10%. Ranges: 300-579 poor, 580-669 fair, 670-739 good, 740-799 very good, 800+ exceptional. 740+ unlocks most best rates.",
+      "tags": ["credit", "credit-score", "fico", "utilization"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Improving a credit score — playbook",
+      "content": "Fastest levers: 1) Automate at least minimum payments — payment history is king. 2) Pay card balances before the STATEMENT date to report low utilization (paying by due date avoids interest; paying before statement lowers reported utilization). 3) Ask for credit-limit increases (lowers utilization without new spending). 4) Dispute report errors at annualcreditreport.com — free weekly reports from all three bureaus. 5) Become an authorized user on an old, clean account. 6) Don't close old cards after payoff — age and limit help. Thin file: secured card or credit-builder loan.",
+      "tags": ["credit", "credit-score", "utilization", "credit-repair"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Credit cards used correctly",
+      "content": "Cards are a ~25-day interest-free loan plus rewards IF paid in full every month — carrying a balance at 20-22% APR erases years of rewards. Rules: pay statement balance in full, autopay full balance, never spend for points you wouldn't spend anyway, treat credit limit as irrelevant (your budget is the limit). If you've ever revolved a balance for months, Ramsey's advice applies: you may be better off without cards entirely.",
+      "tags": ["credit", "credit-cards", "rewards", "interest"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Credit reports vs scores",
+      "content": "Report = your history (accounts, balances, payment record, collections, inquiries) held by Equifax, Experian, TransUnion. Score = a number computed from a report (FICO, VantageScore — lenders mostly use FICO). Free weekly reports at annualcreditreport.com. Check yearly minimum for errors and fraud; ~1 in 4 reports contain errors. Freeze your credit at all three bureaus (free, unfreezable in minutes) as default identity-theft protection.",
+      "tags": ["credit", "credit-report", "bureaus", "credit-freeze", "identity-theft"],
+      "confidence": 0.95
+    }
+  ]
+}

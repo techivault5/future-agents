@@ -546,7 +546,7 @@ _SECRET_PATTERNS: list[re.Pattern] = [
     re.compile(
         r"(?:password|passwd|pwd)\s*[=:]\s*['\"](?!REPLACE_ME|your-|example|changeme)[^'\"]{6,}['\"]",
         re.I,
-    ),  # noqa: E501
+    ),
     re.compile(r"(?:api[_-]?key|apikey)\s*[=:]\s*['\"][A-Za-z0-9_\-]{16,}['\"]", re.I),
     re.compile(r"(?:secret|token)\s*[=:]\s*['\"][A-Za-z0-9_\-]{16,}['\"]", re.I),
     re.compile(r"sk-[A-Za-z0-9]{32,}", re.I),  # OpenAI style
@@ -615,18 +615,18 @@ class OrchestratorAgent:
     """
 
     GUARDRAILS_PROFILES = {
-        "strict": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},  # noqa: E501
+        "strict": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},
         "standard": {
             "escalate_all_secrets": False,
             "block_prod_ops": False,
             "require_review": False,
-        },  # noqa: E501
+        },
         "relaxed": {
             "escalate_all_secrets": False,
             "block_prod_ops": False,
             "require_review": False,
-        },  # noqa: E501
-        "architect": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},  # noqa: E501
+        },
+        "architect": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},
     }
 
     def __init__(
@@ -1024,7 +1024,7 @@ class OrchestratorAgent:
                 "staff",
                 "principal",
                 "distinguished",
-            ):  # noqa: E501
+            ):
                 score -= 15  # over-qualified for a beginner question
             elif target_seniority == "senior" and agent_seniority == "intern":
                 score -= 10
@@ -1082,13 +1082,13 @@ class OrchestratorAgent:
             if tools:
                 persona_lines.append(
                     f"You are proficient with: {', '.join(str(t) for t in tools[:6])}."
-                )  # noqa: E501
+                )
 
             languages = agent_def.get("languages") or []
             if languages and languages != stack:
                 persona_lines.append(
                     f"Languages you work in: {', '.join(str(lang) for lang in languages[:4])}."
-                )  # noqa: E501
+                )
 
         # Guardrails instructions
         persona_lines.append("")
@@ -1110,24 +1110,36 @@ class OrchestratorAgent:
                 persona_lines.append(f"   - {reason}")
             persona_lines.append(
                 "Acknowledge this and advise the user to involve appropriate stakeholders."
-            )  # noqa: E501
+            )
 
         if guardrails.secrets_found:
             persona_lines.append("")
             persona_lines.append("🔴 SECRETS DETECTED in the user's question.")
             persona_lines.append(
                 "Immediately point this out and advise removing credentials before sharing."
-            )  # noqa: E501
+            )
 
         # Intent-specific guidance
         intent_guidance = {
             "security": "Prioritise security best practices. Reference OWASP where relevant.",
-            "architecture": "Think in systems: consider scalability, fault tolerance, and maintainability.",  # noqa: E501
-            "code_review": "Be specific: cite line patterns, suggest concrete fixes, explain the 'why'.",  # noqa: E501
-            "debugging": "Follow systematic diagnosis: reproduce, isolate, hypothesise, verify.",  # noqa: E501
-            "deployment": "Consider rollback strategies, health checks, and zero-downtime approaches.",  # noqa: E501
-            "optimization": "Profile before optimising. Quote measurements. Prefer readability unless proven bottleneck.",  # noqa: E501
-            "testing": "Recommend arrange-act-assert. Aim for ≥80% coverage. Prefer unit over integration where possible.",  # noqa: E501
+            "architecture": (
+                "Think in systems: consider scalability, fault tolerance, and maintainability."
+            ),
+            "code_review": (
+                "Be specific: cite line patterns, suggest concrete fixes, explain the 'why'."
+            ),
+            "debugging": "Follow systematic diagnosis: reproduce, isolate, hypothesise, verify.",
+            "deployment": (
+                "Consider rollback strategies, health checks, and zero-downtime approaches."
+            ),
+            "optimization": (
+                "Profile before optimising. Quote measurements. "
+                "Prefer readability unless proven bottleneck."
+            ),
+            "testing": (
+                "Recommend arrange-act-assert. Aim for ≥80% coverage. "
+                "Prefer unit over integration where possible."
+            ),
         }
         if intent in intent_guidance:
             persona_lines.append("")
@@ -1213,7 +1225,7 @@ class OrchestratorAgent:
             triggers.append("Payment / financial data — PCI-DSS compliance required")
         if re.search(
             r"\b(pii|phi|hipaa|personal.?data|patient|medical|health.?record)\b", text, re.I
-        ):  # noqa: E501
+        ):
             triggers.append("PII/PHI data — privacy review required")
         if re.search(r"\b(prod(uction)?)\s+(database|db|secret|credential|key)\b", text, re.I):
             triggers.append("Production credentials mentioned — ops approval required")
@@ -1230,7 +1242,7 @@ class OrchestratorAgent:
         if re.search(r"shell\s*=\s*true", text, re.I):
             warnings.append(
                 "subprocess shell=True with potential user input — command injection risk"
-            )  # noqa: E501
+            )
         if re.search(r"\beval\s*\(", text, re.I):
             warnings.append("eval() detected — ensure input is fully trusted and sanitised")
         if re.search(r"pickle\.loads?\(", text, re.I):
@@ -1240,14 +1252,14 @@ class OrchestratorAgent:
             or re.search(r"(execute|query|select|insert|update|delete).*\+\s*\w", text, re.I)
             or re.search(
                 r"\+\s*(?:request|user|input|params|uid|id|name|email|var|data)\b", text, re.I
-            )  # noqa: E501
+            )
         )
         if sql_concat:
             warnings.append("Possible SQL injection — use parameterised queries")
         if profile == "strict" and intent == "deployment":
             warnings.append(
                 "Strict profile: deployment changes require peer review before applying"
-            )  # noqa: E501
+            )
         return warnings
 
     def _build_recommendations(self, intent: str, stack: list[str], profile: str) -> list[str]:
@@ -1297,7 +1309,7 @@ class OrchestratorAgent:
 
     def _compute_confidence(
         self, agents: list[AgentMatch], intent: str, domains: list[str]
-    ) -> float:  # noqa: E501
+    ) -> float:
         if not agents:
             return 0.1
         top_score = agents[0].match_score

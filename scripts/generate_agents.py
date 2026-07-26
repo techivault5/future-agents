@@ -1436,11 +1436,11 @@ def generate_agent(
         "guardrails_profile": "standard",
         "human_input_required": seniority in ["architect", "principal", "distinguished", "fellow"],
         "package_policy": "semver-minor-auto-upgrade",
-        "folder_structure_template": (  # noqa: E501
+        "folder_structure_template": (
             f"templates/project-structures/{primary_stack.split('-')[0]}-service"
-            if is_technical
-            else "templates/project-structures/generic-project"
-        ),
+        )
+        if is_technical
+        else "templates/project-structures/generic-project",
         "created_by": "it-agents-generator-v1",
         "version": "1.0.0",
     }

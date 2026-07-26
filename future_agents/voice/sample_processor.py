@@ -110,7 +110,7 @@ class SampleProcessor:
         if duration > MAX_DURATION_S:
             logger.info(
                 "Sample is %.1fs — trimming to %.1fs for embedding", duration, MAX_DURATION_S
-            )  # noqa: E501
+            )
 
         # Step 2: Convert + clean
         ref_clip = out_dir / "reference.wav"
