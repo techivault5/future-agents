@@ -39,14 +39,14 @@ class ReActResult:
 class ReActRunner:
     """Runs the ReAct loop: Claude reasons, calls tools, observes, repeats.
 
-    Uses claude-opus-4-7 with adaptive thinking. Loops until Claude
+    Uses claude-opus-5 with adaptive thinking. Loops until Claude
     returns a plain-text answer or max_iterations is reached.
     """
 
     def __init__(
         self,
         tool_registry: ToolRegistry | None = None,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         max_iterations: int = 10,
         system_prompt: str = "",
     ) -> None:
@@ -91,7 +91,7 @@ class ReActRunner:
                 answer = "\n".join(b.text for b in text_blocks if hasattr(b, "text"))
                 return ReActResult(
                     answer=answer, steps=steps, success=True, total_tokens=total_tokens
-                )
+                )  # noqa: E501
 
             messages.append({"role": "assistant", "content": response.content})
             tool_results = []

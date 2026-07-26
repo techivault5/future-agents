@@ -52,7 +52,7 @@ tests/             # pytest, asyncio_mode=auto
 - `KnowledgeStore._entries` — dict keyed by entry id
 - Workers: `CodeImprovementWorker`, `PatternDiscoveryWorker`, `AgentGathererWorker`, `KnowledgeSynthesisWorker`, `AIDiscoveryWorker`
 - `anthropic` is optional — import guards via `try/except ImportError`
-- Claude model: `claude-opus-4-7` with `thinking: {type: "adaptive"}`
+- Claude model: `claude-opus-5` with `thinking: {type: "adaptive"}`
 - Install AI extras: `pip install -e ".[ai]"`
 
 ## Commands

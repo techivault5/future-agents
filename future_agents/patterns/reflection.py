@@ -31,12 +31,12 @@ class ReflectionRunner:
     2. Critique — identify weaknesses, errors, and gaps.
     3. Refine   — produce an improved response addressing the critique.
 
-    Uses claude-opus-4-7 with adaptive thinking.
+    Uses claude-opus-5 with adaptive thinking.
     """
 
     def __init__(
         self,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         system_prompt: str = "",
     ) -> None:
         if not _ANTHROPIC_AVAILABLE:

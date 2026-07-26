@@ -56,15 +56,15 @@ _TOOLS: list[dict] = [
                 "domain": {
                     "type": "string",
                     "description": (
-                        "Optional domain hint: frontend | backend | devops | security | "
-                        "data | mobile | ml | cloud"
+                        "Optional domain hint: frontend | backend | devops | security "
+                        "| data | mobile | ml | cloud"
                     ),
                 },
                 "seniority": {
                     "type": "string",
                     "description": (
-                        "Optional seniority preference: intern | junior | mid-level | "
-                        "senior | principal | architect"
+                        "Optional seniority preference: intern | junior | mid-level "
+                        "| senior | principal | architect"
                     ),
                 },
                 "top_k": {

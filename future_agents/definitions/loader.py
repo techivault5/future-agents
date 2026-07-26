@@ -47,9 +47,8 @@ class DefinitionLoader:
         if path.suffix in (".yaml", ".yml"):
             if not HAS_YAML:
                 raise ImportError(
-                    "PyYAML is required to load YAML definitions. "
-                    "Install it with: pip install pyyaml"
-                )
+                    "PyYAML is required to load YAML definitions. Install it with: pip install pyyaml"  # noqa: E501
+                )  # noqa: E501
             data = yaml.safe_load(content)
         elif path.suffix == ".json":
             data = json.loads(content)
@@ -108,8 +107,7 @@ class DefinitionLoader:
             for var in prompt.variables:
                 if f"{{{var}}}" not in prompt.template:
                     warnings.append(
-                        f"Agent '{defn.name}': prompt '{prompt.name}' "
-                        f"declares variable '{var}' but doesn't use it"
+                        f"Agent '{defn.name}': prompt '{prompt.name}' declares variable '{var}' but doesn't use it"  # noqa: E501
                     )
 
         return warnings

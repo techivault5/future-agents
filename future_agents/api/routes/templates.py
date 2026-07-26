@@ -94,7 +94,7 @@ _DESCRIPTIONS = {
     "python-service": (
         "Python microservice with FastAPI/Flask — src/, tests/, pyproject.toml, Dockerfile"
     ),
-    "node-service": ("Node/TypeScript service — src/routes, controllers, services, models, tests/"),
+    "node-service": "Node/TypeScript service — src/routes, controllers, services, models, tests/",
     "ml-project": (
         "Machine learning project — src/features, models, evaluation, serving, notebooks/"
     ),

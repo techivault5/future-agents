@@ -38,7 +38,7 @@ class MetricTracker:
 
     def increment(
         self, name: str, value: float = 1.0, labels: dict[str, str] | None = None
-    ) -> None:
+    ) -> None:  # noqa: E501
         """Increment a counter metric."""
         key = self._key(name, labels)
         self._counters[key] += value
@@ -66,7 +66,7 @@ class MetricTracker:
 
     def get_series(
         self, name: str, labels: dict[str, str] | None = None, limit: int = 100
-    ) -> list[MetricPoint]:
+    ) -> list[MetricPoint]:  # noqa: E501
         key = self._key(name, labels)
         return self._series.get(key, [])[-limit:]
 

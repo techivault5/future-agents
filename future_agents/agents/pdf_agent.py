@@ -214,8 +214,8 @@ class PDFAgent(BaseAgent):
             subtitle       (str): Optional subtitle
             author         (str): Author name
             organization   (str): Organization
-            people_type    (str): professionals|healthcare|community|technology|
-                             education|leadership|general
+            people_type    (str): professionals|healthcare|community|technology|education|
+                                  leadership|general
             color_theme    (str): professional|health|corporate|tech
             chapters       (list[dict]): Each has:
                              - title (str)
@@ -231,19 +231,6 @@ class PDFAgent(BaseAgent):
             from reportlab.lib.colors import Color, HexColor, black, white  # noqa: F401
             from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT  # noqa: F401
             from reportlab.lib.pagesizes import A4
-            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet  # noqa: F401
-            from reportlab.lib.units import cm, mm  # noqa: F401
-            from reportlab.pdfgen import canvas as rl_canvas
-            from reportlab.platypus import (
-                KeepTogether,  # noqa: F401
-                PageBreak,  # noqa: F401
-                Paragraph,  # noqa: F401
-                SimpleDocTemplate,  # noqa: F401
-                Spacer,  # noqa: F401
-                Table,  # noqa: F401
-                TableStyle,  # noqa: F401
-            )
-            from reportlab.platypus.flowables import HRFlowable  # noqa: F401
         except ImportError:
             return TaskResult(
                 task_id=context.task_id,
@@ -251,11 +238,6 @@ class PDFAgent(BaseAgent):
                 outcome=ExecutionOutcome.FAILURE,
                 errors=["reportlab not installed. Run: pip install reportlab"],
             )
-
-        try:
-            from PIL import Image  # noqa: F401
-        except ImportError:
-            pass
 
         p = context.parameters
         title = p.get("title", "Professional Report")
@@ -287,7 +269,6 @@ class PDFAgent(BaseAgent):
         from reportlab.lib.units import cm
         from reportlab.pdfgen import canvas as rl_canvas
 
-        io.BytesIO()
         c = rl_canvas.Canvas(str(out_path), pagesize=A4)
         c.setTitle(title)
         c.setAuthor(author)

@@ -59,14 +59,11 @@ def load_knowledge_entries() -> list[dict]:
 
 def synthesise(entries: list[dict]) -> str:
     if not _ANTHROPIC_AVAILABLE:
-        return (
-            "anthropic package not installed. "
-            "Add ANTHROPIC_API_KEY secret and install with: pip install anthropic"
-        )
+        return "anthropic package not installed. Add ANTHROPIC_API_KEY secret and install with: pip install anthropic"  # noqa: E501
 
     entries_text = "\n\n".join(
         f"[{e.get('domain', 'unknown')}] {e.get('title', 'Untitled')}\n{e.get('content', '')}"
-        for e in entries[:20]
+        for e in entries[:20]  # noqa: E501
     )
     prompt = (
         f"Below are {len(entries[:20])} knowledge entries from an AI agent system.\n\n"
@@ -80,7 +77,7 @@ def synthesise(entries: list[dict]) -> str:
 
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-opus-5",
         max_tokens=2048,
         thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": prompt}],

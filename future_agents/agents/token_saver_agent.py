@@ -89,7 +89,7 @@ class TokenSaverAgent:
 
     def __init__(
         self,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         system: str = _DEFAULT_SYSTEM,
         memory_file: Path | str | None = None,
         fuzzy_threshold: float = 0.80,
@@ -108,9 +108,8 @@ class TokenSaverAgent:
         self._client: Any = None  # lazy-initialized on first API call
         if not _SDK_AVAILABLE:
             logger.warning(
-                "anthropic SDK not installed — only cached answers will work. "
-                "Run: pip install anthropic"
-            )
+                "anthropic SDK not installed — only cached answers will work. Run: pip install anthropic"  # noqa: E501
+            )  # noqa: E501
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -189,7 +188,7 @@ class TokenSaverAgent:
                 round(
                     self._total_tokens_saved
                     / max(1, self._total_tokens_used + self._total_tokens_saved)
-                    * 100,
+                    * 100,  # noqa: E501
                     1,
                 )
             ),
@@ -234,7 +233,7 @@ class TokenSaverAgent:
 
         answer = "".join(
             b.text for b in response.content if hasattr(b, "text") and b.type == "text"
-        )
+        )  # noqa: E501
         tokens = response.usage.input_tokens + response.usage.output_tokens
         self._total_tokens_used += tokens
 

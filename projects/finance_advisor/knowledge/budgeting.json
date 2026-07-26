@@ -1,0 +1,47 @@
+{
+  "domain": "finance.budgeting",
+  "entries": [
+    {
+      "title": "50/30/20 rule",
+      "content": "Allocate after-tax income: 50% needs (housing, utilities, groceries, insurance, minimum debt payments), 30% wants (dining, entertainment, travel), 20% savings + extra debt payoff. Popularized by Elizabeth Warren. Best as a starting framework, not gospel — in high-cost cities needs may exceed 50% (fix housing first); high earners should push well past 20% savings. If in high-interest debt, shrink wants toward 10-15% and redirect to payoff.",
+      "tags": ["budgeting", "50-30-20", "framework"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Zero-based budgeting",
+      "content": "Income minus all allocations = zero: every dollar gets a job (spending, saving, or debt) before the month starts. Highest-control method; the engine behind YNAB and Dave Ramsey's EveryDollar. Strengths: kills untracked leakage, forces trade-offs. Cost: 15-30 min/week maintenance. Best for people in debt payoff mode or with tight margins. Key rule: budget only money you actually have, and reassign (don't ignore) when categories bust.",
+      "tags": ["budgeting", "zero-based", "ynab", "everydollar"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Envelope / cash-stuffing method",
+      "content": "Divide spending money into physical or digital envelopes per category (groceries, gas, fun). When an envelope is empty, that category is done for the month. Works because spending becomes tangible and hard-capped — research shows cash spending registers more 'pain' than card taps. Cash-stuffing is a large budgeting community on YouTube/TikTok. Digital equivalents: bank sub-accounts, YNAB categories, prepaid category cards.",
+      "tags": ["budgeting", "envelope-method", "cash-stuffing", "behavior"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Pay-yourself-first (anti-budget)",
+      "content": "Skip category tracking: automate savings/investing/debt overpayment off the top (target 20%+), pay fixed bills, spend the rest guilt-free. Ramit Sethi's 'Conscious Spending Plan' variant: fixed costs 50-60%, investments 10%+, savings 5-10%, guilt-free spending 20-35%. Best for people who hate tracking but have income > expenses and no card debt. Fails if unconscious spending outruns the leftover.",
+      "tags": ["budgeting", "pay-yourself-first", "conscious-spending", "ramit-sethi"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Choosing a budgeting method",
+      "content": "Match method to situation: In debt / paycheck-to-paycheck → zero-based or envelope (maximum control). Stable but leaky spending → 50/30/20 with automation. High income, hates tracking → pay-yourself-first with automated 25%+ savings rate. Couples → any method + a monthly 30-minute money meeting and agreed no-ask spending limits. The method that survives 6 months beats the theoretically optimal one you abandon in 3 weeks.",
+      "tags": ["budgeting", "decision-framework", "couples"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Track before you cut",
+      "content": "Before optimizing, get 30-90 days of real data: export bank/card transactions, bucket into ~10 categories, find the top 3 leaks. Most people misestimate their spending by 20-40%, especially food delivery, subscriptions, and impulse online purchases. Caleb Hammer's audits invariably start here — the numbers, not the vibes. Tools: bank exports + spreadsheet, YNAB, Monarch, Copilot; or the statement highlighter method.",
+      "tags": ["budgeting", "tracking", "spending-audit", "caleb-hammer"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Irregular income budgeting",
+      "content": "For freelancers/commission/gig workers: 1) Compute your baseline month (essentials only). 2) Budget on last month's actual income, not this month's hoped income (one-month buffer). 3) Pay yourself a fixed 'salary' from a holding account; surplus months fill the buffer, then savings. 4) Keep a larger emergency fund (6+ months). 5) Set aside tax percentage (25-30%) on every deposit immediately.",
+      "tags": ["budgeting", "irregular-income", "freelance", "taxes"],
+      "confidence": 0.85
+    }
+  ]
+}

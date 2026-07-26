@@ -31,8 +31,8 @@ scanning = [
     "beautifulsoup4>=4.12",
 ]
 dev = [
-    "httpx>=0.27",
-    "beautifulsoup4>=4.12",
+    "httpx~=0.27",
+    "beautifulsoup4~=4.12",
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
     "pytest-xdist~=3.5",
@@ -41,13 +41,20 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["future_agents*"]
+include = ["future_agents*", "guardrails*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# Document agents use lazy try/except imports for optional heavy deps
+"future_agents/agents/pdf_agent.py" = ["F401"]
+"future_agents/agents/ppt_agent.py" = ["F401"]
+"future_agents/agents/word_agent.py" = ["F401"]

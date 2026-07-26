@@ -41,7 +41,7 @@ class AIDiscoveryWorker(BaseWorker):
         event_bus: EventBus,
         source_root: Path,
         pattern_library: PatternLibrary | None = None,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         interval_seconds: int = 3600,
         **kwargs: Any,
     ) -> None:
@@ -149,7 +149,7 @@ class AIDiscoveryWorker(BaseWorker):
                 base_names = [
                     b.id
                     if isinstance(b, ast.Name)
-                    else (b.attr if isinstance(b, ast.Attribute) else "")
+                    else (b.attr if isinstance(b, ast.Attribute) else "")  # noqa: E501
                     for b in node.bases
                 ]
                 if "BaseAgent" in base_names:

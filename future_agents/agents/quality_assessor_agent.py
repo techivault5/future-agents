@@ -236,7 +236,6 @@ class QualityAssessorAgent(BaseAgent):
         try:
             # Basic PDF inspection without heavy deps
             raw = path.read_bytes()
-            raw[:8192].decode("latin-1", errors="ignore")
 
             is_valid_pdf = raw[:4] == b"%PDF"
             # Count /Type /Page occurrences — standard page marker in all PDF generators

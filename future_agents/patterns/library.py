@@ -142,7 +142,7 @@ class PatternLibrary:
             for p in self._patterns.values()
             if kw in p.name.lower()
             or kw in p.description.lower()
-            or any(kw in uc.lower() for uc in p.use_cases)
+            or any(kw in uc.lower() for uc in p.use_cases)  # noqa: E501
         ]
 
     def all(self) -> list[AgentPattern]:

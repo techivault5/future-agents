@@ -36,7 +36,7 @@ def main() -> None:
     parser.add_argument("--list", "-l", action="store_true", help="List cached questions")
     parser.add_argument("--clear", action="store_true", help="Clear all cached entries")
     parser.add_argument("--forget", metavar="QUESTION", help="Remove one question from cache")
-    parser.add_argument("--model", default="claude-opus-4-7", help="Claude model to use")
+    parser.add_argument("--model", default="claude-opus-5", help="Claude model to use")
     args = parser.parse_args()
 
     agent = TokenSaverAgent(model=args.model)

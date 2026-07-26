@@ -115,7 +115,7 @@ class PPTAgent(BaseAgent):
             from pptx import Presentation
             from pptx.dml.color import RGBColor
             from pptx.enum.text import PP_ALIGN
-            from pptx.util import Cm, Inches, Pt  # noqa: F401
+            from pptx.util import Inches
         except ImportError:
             return TaskResult(
                 task_id=context.task_id,

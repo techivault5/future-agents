@@ -491,7 +491,6 @@ class WorkflowEngine:
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
                 raw = resp.read()
-                resp.headers.get("Content-Type", "")
                 status_code = resp.status
                 try:
                     response_body = json.loads(raw)

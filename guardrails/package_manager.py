@@ -7,19 +7,20 @@ Enforces package versioning policies:
 - Detects vulnerable packages via advisories
 - Handles auto-upgrade for minor/patch, human approval for major
 """
+
 import json
 import re
-import urllib.request
 import urllib.error
+import urllib.request
 from pathlib import Path
 from typing import Optional
+
 from packaging.version import Version
 
-
 SEMVER_RANGE_MAP = {
-    "exact":      lambda v: v,
-    "patch":      lambda v: f"~{v}",         # ~1.2.3 → >=1.2.3 <1.3.0
-    "minor":      lambda v: f"^{v}",         # ^1.2.3 → >=1.2.3 <2.0.0
+    "exact": lambda v: v,
+    "patch": lambda v: f"~{v}",  # ~1.2.3 → >=1.2.3 <1.3.0
+    "minor": lambda v: f"^{v}",  # ^1.2.3 → >=1.2.3 <2.0.0
     "compatible": lambda v: f">={v},<{next_major(v)}",
 }
 
@@ -35,7 +36,7 @@ def next_major(version_str: str) -> str:
 class PackageManager:
     def __init__(self, config: dict = None):
         cfg = config or {}
-        self.policy = cfg.get("version_policy", "minor")   # exact|patch|minor|compatible
+        self.policy = cfg.get("version_policy", "minor")  # exact|patch|minor|compatible
         self.auto_upgrade = cfg.get("auto_upgrade", True)
         self.check_vulnerabilities = cfg.get("check_vulnerabilities", True)
         self.check_outdated = cfg.get("check_outdated", True)
@@ -89,23 +90,25 @@ class PackageManager:
                 continue
 
             # Parse package==version (exact pin)
-            exact = re.match(r'^([A-Za-z0-9_\-\[\].]+)==([^\s#]+)', line)
+            exact = re.match(r"^([A-Za-z0-9_\-\[\].]+)==([^\s#]+)", line)
             if exact:
                 pkg, ver = exact.group(1), exact.group(2)
                 if pkg not in self.pinned_exceptions:
-                    findings.append({
-                        "type": "pinned_to_exact",
-                        "package": pkg,
-                        "version": ver,
-                        "suggested": f"~={ver}",
-                        "file": str(filepath),
-                        "line": i,
-                        "ecosystem": "python"
-                    })
+                    findings.append(
+                        {
+                            "type": "pinned_to_exact",
+                            "package": pkg,
+                            "version": ver,
+                            "suggested": f"~={ver}",
+                            "file": str(filepath),
+                            "line": i,
+                            "ecosystem": "python",
+                        }
+                    )
 
             # Check for vulnerable packages (offline: basic known list)
             if self.check_vulnerabilities and not self.offline_mode:
-                match = re.match(r'^([A-Za-z0-9_\-\[\].]+)[>=<~!]{1,3}([^\s#,;]+)', line)
+                match = re.match(r"^([A-Za-z0-9_\-\[\].]+)[>=<~!]{1,3}([^\s#,;]+)", line)
                 if match:
                     vuln = self._check_pypi_advisory(match.group(1), match.group(2))
                     if vuln:
@@ -132,23 +135,26 @@ class PackageManager:
         except Exception:
             return findings
 
-        deps = (data.get("project", {}).get("dependencies", []) +
-                list(data.get("tool", {}).get("poetry", {}).get("dependencies", {})))
+        deps = data.get("project", {}).get("dependencies", []) + list(
+            data.get("tool", {}).get("poetry", {}).get("dependencies", {}).keys()
+        )
 
         for dep in deps:
             if isinstance(dep, str):
-                exact = re.match(r'^([A-Za-z0-9_\-\[\].]+)==([^\s,]+)', dep)
+                exact = re.match(r"^([A-Za-z0-9_\-\[\].]+)==([^\s,]+)", dep)
                 if exact:
                     pkg, ver = exact.group(1), exact.group(2)
                     if pkg not in self.pinned_exceptions:
-                        findings.append({
-                            "type": "pinned_to_exact",
-                            "package": pkg,
-                            "version": ver,
-                            "suggested": f"~={ver}",
-                            "file": str(filepath),
-                            "ecosystem": "python"
-                        })
+                        findings.append(
+                            {
+                                "type": "pinned_to_exact",
+                                "package": pkg,
+                                "version": ver,
+                                "suggested": f"~={ver}",
+                                "file": str(filepath),
+                                "ecosystem": "python",
+                            }
+                        )
 
         return findings
 
@@ -172,26 +178,30 @@ class PackageManager:
                 continue
 
             # Exact version (no ^ or ~)
-            if re.match(r'^\d+\.\d+', version_spec):
-                findings.append({
-                    "type": "pinned_to_exact",
-                    "package": dep,
-                    "version": version_spec,
-                    "suggested": f"^{version_spec}",
-                    "file": str(filepath),
-                    "ecosystem": "nodejs"
-                })
+            if re.match(r"^\d+\.\d+", version_spec):
+                findings.append(
+                    {
+                        "type": "pinned_to_exact",
+                        "package": dep,
+                        "version": version_spec,
+                        "suggested": f"^{version_spec}",
+                        "file": str(filepath),
+                        "ecosystem": "nodejs",
+                    }
+                )
 
             # Check for latest wildcard (*) - flag as imprecise
             if version_spec in ("*", "latest", "x"):
-                findings.append({
-                    "type": "version_wildcard",
-                    "package": dep,
-                    "version": version_spec,
-                    "suggested": "Use a specific semver range like ^1.0.0",
-                    "file": str(filepath),
-                    "ecosystem": "nodejs"
-                })
+                findings.append(
+                    {
+                        "type": "version_wildcard",
+                        "package": dep,
+                        "version": version_spec,
+                        "suggested": "Use a specific semver range like ^1.0.0",
+                        "file": str(filepath),
+                        "ecosystem": "nodejs",
+                    }
+                )
 
         return findings
 
@@ -207,20 +217,22 @@ class PackageManager:
 
         for line in content.splitlines():
             # require module v1.2.3
-            match = re.match(r'\s+([^\s]+)\s+v([^\s]+)', line)
+            match = re.match(r"\s+([^\s]+)\s+v([^\s]+)", line)
             if match:
                 module, ver = match.group(1), match.group(2)
                 # Go always uses exact versions; flag if very old (heuristic: v0.x)
                 if ver.startswith("0."):
-                    findings.append({
-                        "type": "outdated",
-                        "package": module,
-                        "current": f"v{ver}",
-                        "latest": "Check pkg.go.dev for latest",
-                        "file": str(filepath),
-                        "ecosystem": "go",
-                        "is_major_bump": False
-                    })
+                    findings.append(
+                        {
+                            "type": "outdated",
+                            "package": module,
+                            "current": f"v{ver}",
+                            "latest": "Check pkg.go.dev for latest",
+                            "file": str(filepath),
+                            "ecosystem": "go",
+                            "is_major_bump": False,
+                        }
+                    )
 
         return findings
 
@@ -244,15 +256,17 @@ class PackageManager:
             if exact:
                 pkg, ver = exact.group(1), exact.group(2)
                 if pkg not in self.pinned_exceptions:
-                    findings.append({
-                        "type": "pinned_to_exact",
-                        "package": pkg,
-                        "version": ver,
-                        "suggested": f"~> {ver}",
-                        "file": str(filepath),
-                        "line": i,
-                        "ecosystem": "ruby"
-                    })
+                    findings.append(
+                        {
+                            "type": "pinned_to_exact",
+                            "package": pkg,
+                            "version": ver,
+                            "suggested": f"~> {ver}",
+                            "file": str(filepath),
+                            "line": i,
+                            "ecosystem": "ruby",
+                        }
+                    )
 
         return findings
 
@@ -267,15 +281,17 @@ class PackageManager:
             return findings
 
         # Look for LATEST or RELEASE version references (anti-pattern)
-        if re.search(r'<version>(LATEST|RELEASE)</version>', content):
-            findings.append({
-                "type": "version_wildcard",
-                "package": str(filepath),
-                "version": "LATEST/RELEASE",
-                "suggested": "Pin to a specific version for reproducible builds",
-                "file": str(filepath),
-                "ecosystem": "java-maven"
-            })
+        if re.search(r"<version>(LATEST|RELEASE)</version>", content):
+            findings.append(
+                {
+                    "type": "version_wildcard",
+                    "package": str(filepath),
+                    "version": "LATEST/RELEASE",
+                    "suggested": "Pin to a specific version for reproducible builds",
+                    "file": str(filepath),
+                    "ecosystem": "java-maven",
+                }
+            )
 
         return findings
 
@@ -288,14 +304,11 @@ class PackageManager:
             return None
         try:
             url = "https://api.osv.dev/v1/query"
-            payload = json.dumps({
-                "package": {"name": package, "ecosystem": "PyPI"},
-                "version": version
-            }).encode()
+            payload = json.dumps(
+                {"package": {"name": package, "ecosystem": "PyPI"}, "version": version}
+            ).encode()
             req = urllib.request.Request(
-                url, data=payload,
-                headers={"Content-Type": "application/json"},
-                method="POST"
+                url, data=payload, headers={"Content-Type": "application/json"}, method="POST"
             )
             with urllib.request.urlopen(req, timeout=3) as resp:
                 data = json.loads(resp.read())
@@ -307,7 +320,7 @@ class PackageManager:
                         "current": version,
                         "cve": vuln.get("id", "unknown"),
                         "safe_version": "See advisory for fixed version",
-                        "ecosystem": "python"
+                        "ecosystem": "python",
                     }
         except Exception:
             pass
@@ -318,8 +331,8 @@ class PackageManager:
         commands = {
             "python": f"pip install --upgrade {package}",
             "nodejs": f"npm update {package}",
-            "ruby":   f"bundle update {package}",
-            "go":     f"go get -u {package}",
-            "java-maven": "mvn versions:use-latest-releases"
+            "ruby": f"bundle update {package}",
+            "go": f"go get -u {package}",
+            "java-maven": "mvn versions:use-latest-releases",
         }
         return commands.get(ecosystem, f"Upgrade {package} manually")

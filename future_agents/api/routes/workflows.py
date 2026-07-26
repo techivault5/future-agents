@@ -336,8 +336,8 @@ _NODE_TYPE_REFERENCE = {
         },
         NodeType.SYSTEM_AGENT: {
             "description": (
-                "Invoke a live system agent "
-                "(capability, knowledge, policy, process, skills, master)."
+                "Invoke a live system agent (capability, knowledge, policy, process, "
+                "skills, master)."
             ),
             "parameters": {
                 "agent_id": "One of: capability | knowledge | policy | process | skills | master",

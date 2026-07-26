@@ -24,7 +24,7 @@ except ImportError:
 class KnowledgeSynthesisWorker(BaseWorker):
     """Periodically synthesises KnowledgeStore entries into higher-level insights.
 
-    Uses claude-opus-4-7 with adaptive thinking to:
+    Uses claude-opus-5 with adaptive thinking to:
     - Cluster related entries and identify themes.
     - Surface contradictions or tensions.
     - Produce actionable recommendations.
@@ -36,7 +36,7 @@ class KnowledgeSynthesisWorker(BaseWorker):
         knowledge_store: KnowledgeStore,
         metrics: MetricTracker,
         event_bus: EventBus,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         min_entries: int = 5,
         interval_seconds: int = 1800,
         **kwargs: Any,
