@@ -227,6 +227,9 @@ class PDFAgent(BaseAgent):
             output_name    (str): Filename without extension
         """
         try:
+            from reportlab.lib import colors  # noqa: F401
+            from reportlab.lib.colors import Color, HexColor, black, white  # noqa: F401
+            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT  # noqa: F401
             from reportlab.lib.pagesizes import A4
         except ImportError:
             return TaskResult(
