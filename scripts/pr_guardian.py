@@ -19,7 +19,6 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-
 # ── GitHub API helpers ─────────────────────────────────────────────
 
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
@@ -56,6 +55,7 @@ def gh_put(path: str, data: dict) -> dict:
 
 # ── Git helpers ──────────────────────────────────────────────────
 
+
 def run(cmd: list[str], check: bool = True, capture: bool = False) -> subprocess.CompletedProcess:  # noqa: E501
     kwargs: dict = {"check": check}
     if capture:
@@ -69,6 +69,7 @@ def git(*args, check: bool = True, capture: bool = False) -> subprocess.Complete
 
 
 # ── Conflict resolution ────────────────────────────────────────────────
+
 
 def resolve_pyproject_conflicts(path: Path) -> bool:
     """Take 'theirs' (main) for conflicting regions, dedup duplicate sections."""
@@ -87,7 +88,7 @@ def resolve_pyproject_conflicts(path: Path) -> bool:
     if second != -1:
         next_sec = resolved.find("\n[", first + 1)
         if next_sec != -1:
-            resolved = resolved[:first] + resolved[next_sec + 1:]
+            resolved = resolved[:first] + resolved[next_sec + 1 :]
     path.write_text(resolved)
     return "<<<<<<" not in path.read_text()
 
@@ -119,7 +120,11 @@ def resolve_all_conflicts(repo_root: Path) -> bool:
         if not path.exists():
             git("rm", filepath, check=False)
             continue
-        ok = resolve_pyproject_conflicts(path) if filepath == "pyproject.toml" else resolve_noqa_conflicts(path)  # noqa: E501
+        ok = (
+            resolve_pyproject_conflicts(path)
+            if filepath == "pyproject.toml"
+            else resolve_noqa_conflicts(path)
+        )  # noqa: E501
         if ok:
             git("add", filepath)
         else:
@@ -130,6 +135,7 @@ def resolve_all_conflicts(repo_root: Path) -> bool:
 
 # ── Lint fixer ──────────────────────────────────────────────────────
 
+
 def fix_pyproject_toml(repo_root: Path) -> None:
     path = repo_root / "pyproject.toml"
     content = path.read_text()
@@ -138,7 +144,7 @@ def fix_pyproject_toml(repo_root: Path) -> None:
     if second != -1:
         next_sec = content.find("\n[", first + 1)
         if next_sec != -1:
-            path.write_text(content[:first] + content[next_sec + 1:])
+            path.write_text(content[:first] + content[next_sec + 1 :])
 
 
 def fix_lint(repo_root: Path) -> bool:
@@ -180,6 +186,7 @@ def fix_lint(repo_root: Path) -> bool:
 
 # ── PR check helpers ──────────────────────────────────────────────────
 
+
 def get_check_conclusions(pr: dict) -> dict[str, str]:
     sha = pr["head"]["sha"]
     data = gh_get(f"repos/{REPO}/commits/{sha}/check-runs")
@@ -211,6 +218,7 @@ def lint_failing(pr: dict) -> bool:
 
 
 # ── Per-PR handler ───────────────────────────────────────────────────────────
+
 
 def handle_pr(pr: dict, repo_root: Path) -> None:
     number = pr["number"]
@@ -245,9 +253,12 @@ def handle_pr(pr: dict, repo_root: Path) -> None:
         git("add", "-A")
         status = git("status", "--porcelain", capture=True, check=False)
         if status.stdout.strip():
-            git("commit", "-m",
+            git(
+                "commit",
+                "-m",
                 f"chore: merge {base} into {branch}, resolve conflicts [pr-guardian]",
-                check=False)
+                check=False,
+            )
             git("push", "origin", branch, check=False)
             print(f"  pushed conflict fix to {branch}")
         return
@@ -264,8 +275,7 @@ def handle_pr(pr: dict, repo_root: Path) -> None:
             git("add", "-A")
             status = git("status", "--porcelain", capture=True, check=False)
             if status.stdout.strip():
-                git("commit", "-m",
-                    "fix: auto-fix ruff lint and format [pr-guardian]", check=False)
+                git("commit", "-m", "fix: auto-fix ruff lint and format [pr-guardian]", check=False)
                 git("push", "origin", branch, check=False)
                 print(f"  pushed lint fix to {branch}")
             return
@@ -309,6 +319,7 @@ def main() -> None:
         except Exception as exc:
             print(f"  error PR #{pr['number']}: {exc}")
             import traceback
+
             traceback.print_exc()
     print("\nPR Guardian done")
 
