@@ -199,6 +199,6 @@ class ProcessAgent(BaseAgent):
             "active_processes": len([p for p in processes if p.status == ProcessStatus.ACTIVE]),
             "avg_completion_rate": (
                 sum(p.avg_completion_rate for p in processes) / len(processes) if processes else 0
-            ),
+            ),  # noqa: E501
             "total_executions": sum(p.execution_count for p in processes),
         }

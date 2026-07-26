@@ -212,9 +212,7 @@ def get_mcp_connector(agent_id: str, base_url: str = "http://localhost:8000") ->
                 {
                     "name": f"ask_{agent_id.replace('-', '_')}",
                     "description": (
-                        f"Ask the {name} agent. "
-                        f"Specialises in: {', '.join(skills[:5])}. "
-                        f"Uses: {', '.join(tools[:3])}."
+                        f"Ask the {name} agent. Specialises in: {', '.join(skills[:5])}. Uses: {', '.join(tools[:3])}."  # noqa: E501
                     ),
                     "input_schema": {
                         "type": "object",

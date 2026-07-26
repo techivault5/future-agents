@@ -4,23 +4,21 @@ Guardrails Engine
 Central orchestrator for all guardrail checks. Blocks secrets, enforces
 package policies, validates folder structure, and handles human escalation.
 """
+
+import json
+import logging
 import os
 import sys
-import json
-import yaml
-import logging
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
-from secrets_scanner import SecretsScanner
-from package_manager import PackageManager
+import yaml
 from folder_validator import FolderValidator
 from human_input_handler import HumanInputHandler
+from package_manager import PackageManager
+from secrets_scanner import SecretsScanner
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("guardrails-engine")
 
 
@@ -33,16 +31,13 @@ class GuardrailsResult:
         self.auto_fixes: list[dict] = []
         self.timestamp = datetime.utcnow().isoformat()
 
-    def add_violation(self, rule: str, message: str, file: str = None,
-                      line: int = None, severity: str = "error"):
+    def add_violation(
+        self, rule: str, message: str, file: str = None, line: int = None, severity: str = "error"
+    ):
         self.passed = False
-        self.violations.append({
-            "rule": rule,
-            "severity": severity,
-            "message": message,
-            "file": file,
-            "line": line
-        })
+        self.violations.append(
+            {"rule": rule, "severity": severity, "message": message, "file": file, "line": line}
+        )
 
     def add_warning(self, rule: str, message: str, file: str = None):
         self.warnings.append({"rule": rule, "message": message, "file": file})
@@ -61,12 +56,12 @@ class GuardrailsResult:
                 "violations": len(self.violations),
                 "warnings": len(self.warnings),
                 "escalations": len(self.human_escalations),
-                "auto_fixes": len(self.auto_fixes)
+                "auto_fixes": len(self.auto_fixes),
             },
             "violations": self.violations,
             "warnings": self.warnings,
             "human_escalations": self.human_escalations,
-            "auto_fixes": self.auto_fixes
+            "auto_fixes": self.auto_fixes,
         }
 
     def print_report(self):
@@ -80,15 +75,20 @@ class GuardrailsResult:
         if self.violations:
             print(f"\n🚫 VIOLATIONS ({len(self.violations)}):")
             for v in self.violations:
-                loc = f" [{v['file']}:{v['line']}]" if v.get('line') else \
-                      f" [{v['file']}]" if v.get('file') else ""
+                loc = (
+                    f" [{v['file']}:{v['line']}]"
+                    if v.get("line")
+                    else f" [{v['file']}]"
+                    if v.get("file")
+                    else ""
+                )
                 print(f"  [{v['severity'].upper()}] {v['rule']}{loc}")
                 print(f"    {v['message']}")
 
         if self.warnings:
             print(f"\n⚠️  WARNINGS ({len(self.warnings)}):")
             for w in self.warnings:
-                loc = f" [{w['file']}]" if w.get('file') else ""
+                loc = f" [{w['file']}]" if w.get("file") else ""
                 print(f"  {w['rule']}{loc}: {w['message']}")
 
         if self.auto_fixes:
@@ -112,7 +112,7 @@ class GuardrailsEngine:
     def __init__(self, config_path: str = None):
         config_path = config_path or os.environ.get(
             "GUARDRAILS_CONFIG",
-            str(Path(__file__).parent.parent / "config" / "guardrails_config.yaml")
+            str(Path(__file__).parent.parent / "config" / "guardrails_config.yaml"),
         )
         self.config = self._load_config(config_path)
         self.result = GuardrailsResult()
@@ -178,22 +178,20 @@ class GuardrailsEngine:
                 self.result.add_violation(
                     rule="NO_SECRETS",
                     message=f"Secret detected: {finding['description']}. "
-                            f"Remove it and rotate the credential immediately.",
+                    f"Remove it and rotate the credential immediately.",
                     file=finding.get("file"),
                     line=finding.get("line"),
-                    severity="critical"
+                    severity="critical",
                 )
                 # Always escalate secret violations to humans
                 self.result.add_escalation(
                     reason=f"Critical secret found in {finding.get('file', 'unknown file')}. "
-                           f"Human review and credential rotation required.",
-                    context=finding
+                    f"Human review and credential rotation required.",
+                    context=finding,
                 )
             else:
                 self.result.add_warning(
-                    rule="POSSIBLE_SECRET",
-                    message=finding["description"],
-                    file=finding.get("file")
+                    rule="POSSIBLE_SECRET", message=finding["description"], file=finding.get("file")
                 )
 
     def _run_package_check(self, target: Path):
@@ -206,40 +204,40 @@ class GuardrailsEngine:
                 self.result.add_warning(
                     rule="PACKAGE_VERSION_POLICY",
                     message=f"Package '{finding['package']}' is pinned to exact version "
-                            f"'{finding['version']}'. Consider using '{finding['suggested']}'.",
-                    file=finding.get("file")
+                    f"'{finding['version']}'. Consider using '{finding['suggested']}'.",
+                    file=finding.get("file"),
                 )
             elif ftype == "outdated":
                 self.result.add_warning(
                     rule="OUTDATED_PACKAGE",
                     message=f"Package '{finding['package']}' is outdated. "
-                            f"Current: {finding['current']}, Latest: {finding['latest']}.",
-                    file=finding.get("file")
+                    f"Current: {finding['current']}, Latest: {finding['latest']}.",
+                    file=finding.get("file"),
                 )
                 # Ask human if major version bump
                 if finding.get("is_major_bump"):
                     self.result.add_escalation(
                         reason=f"Major version upgrade for '{finding['package']}' "
-                               f"({finding['current']} → {finding['latest']}) requires human approval.",
-                        context=finding
+                        f"({finding['current']} → {finding['latest']}) requires human approval.",  # noqa: E501
+                        context=finding,
                     )
             elif ftype == "vulnerable":
                 self.result.add_violation(
                     rule="VULNERABLE_PACKAGE",
                     message=f"Package '{finding['package']}' has known vulnerability "
-                            f"{finding.get('cve', 'unknown')}. Upgrade to {finding.get('safe_version')}.",
+                    f"{finding.get('cve', 'unknown')}. Upgrade to {finding.get('safe_version')}.",  # noqa: E501
                     file=finding.get("file"),
-                    severity="critical"
+                    severity="critical",
                 )
                 self.result.add_escalation(
-                    reason=f"Vulnerable package '{finding['package']}' requires immediate human attention.",
-                    context=finding
+                    reason=f"Vulnerable package '{finding['package']}' requires immediate human attention.",  # noqa: E501
+                    context=finding,
                 )
             elif ftype == "auto_fixed":
                 self.result.add_fix(
                     description=f"Auto-upgraded '{finding['package']}' "
-                                f"from {finding['old_version']} to {finding['new_version']}",
-                    details=finding
+                    f"from {finding['old_version']} to {finding['new_version']}",
+                    details=finding,
                 )
 
     def _run_folder_check(self, target: Path, mode: str):
@@ -252,29 +250,28 @@ class GuardrailsEngine:
                 self.result.add_violation(
                     rule="FOLDER_STRUCTURE",
                     message=f"Required path missing: '{finding['path']}'. "
-                            f"Industry standard requires this structure.",
+                    f"Industry standard requires this structure.",
                     file=finding.get("path"),
-                    severity="error"
+                    severity="error",
                 )
                 if mode == "fix" and finding.get("can_auto_create"):
                     Path(target / finding["path"]).mkdir(parents=True, exist_ok=True)
                     self.result.add_fix(
-                        description=f"Created missing directory: {finding['path']}",
-                        details=finding
+                        description=f"Created missing directory: {finding['path']}", details=finding
                     )
             elif ftype == "wrong_location":
                 self.result.add_violation(
                     rule="FILE_PLACEMENT",
                     message=f"File '{finding['file']}' is in wrong location. "
-                            f"Expected: {finding['expected_location']}.",
-                    severity="warning"
+                    f"Expected: {finding['expected_location']}.",
+                    severity="warning",
                 )
             elif ftype == "naming_convention":
                 self.result.add_warning(
                     rule="NAMING_CONVENTION",
                     message=f"'{finding['path']}' does not follow naming convention. "
-                            f"Expected: {finding['expected_pattern']}",
-                    file=finding.get("path")
+                    f"Expected: {finding['expected_pattern']}",
+                    file=finding.get("path"),
                 )
 
     def _run_human_escalation_check(self):
@@ -284,9 +281,7 @@ class GuardrailsEngine:
 
         if self.human_handler.is_interactive():
             logger.info("Triggering human escalation Q&A...")
-            responses = self.human_handler.prompt_for_escalations(
-                self.result.human_escalations
-            )
+            responses = self.human_handler.prompt_for_escalations(self.result.human_escalations)
             for escalation, response in zip(self.result.human_escalations, responses):
                 escalation["human_response"] = response
                 escalation["resolved"] = response.get("approved", False)
@@ -299,6 +294,7 @@ class GuardrailsEngine:
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="IT Agents Guardrails Engine")
     parser.add_argument("path", nargs="?", default=".", help="Path to check")
     parser.add_argument("--mode", choices=["check", "fix", "block"], default="check")

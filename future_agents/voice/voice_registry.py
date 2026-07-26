@@ -255,16 +255,15 @@ class VoiceRegistry:
                 actual = hashlib.sha256(profile_json.encode()).hexdigest()
                 if actual != expected:
                     raise ValueError(
-                        f"VoicePack integrity check failed! "
-                        f"Expected {expected[:16]}…, got {actual[:16]}…"
-                    )
+                        f"VoicePack integrity check failed! Expected {expected[:16]}…, got {actual[:16]}…"  # noqa: E501
+                    )  # noqa: E501
 
             profile = VoiceProfile.model_validate_json(profile_json)
 
             if profile.id in self._index and not overwrite:
                 raise ValueError(
                     f"Profile '{profile.id}' already exists. Use overwrite=True to replace."
-                )
+                )  # noqa: E501
 
             # Extract reference WAV if present
             ref_wav_path = None

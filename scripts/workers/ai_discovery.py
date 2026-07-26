@@ -61,7 +61,7 @@ def scan_agents() -> list[dict]:
             base_names = [
                 b.id
                 if isinstance(b, ast.Name)
-                else (b.attr if isinstance(b, ast.Attribute) else "")
+                else (b.attr if isinstance(b, ast.Attribute) else "")  # noqa: E501
                 for b in node.bases
             ]
             if "BaseAgent" not in base_names:
@@ -96,7 +96,7 @@ def scan_workers() -> list[str]:
         f.stem
         for f in workers_dir.glob("*_worker.py")
         if not f.name.startswith("_") and f.stem != "base_worker"
-    ]
+    ]  # noqa: E501
 
 
 KNOWN_PATTERNS = [
@@ -116,14 +116,11 @@ KNOWN_PATTERNS = [
 
 def query_claude(agents: list[dict], workers: list[str]) -> str:
     if not _ANTHROPIC_AVAILABLE:
-        return (
-            "anthropic package not installed. "
-            "Add ANTHROPIC_API_KEY secret and install with: pip install anthropic"
-        )
+        return "anthropic package not installed. Add ANTHROPIC_API_KEY secret and install with: pip install anthropic"  # noqa: E501
 
     agent_lines = "\n".join(
         f"- {a['class']} (type={a['agent_type']}, caps={a['capabilities'][:3]})" for a in agents
-    )
+    )  # noqa: E501
     worker_lines = "\n".join(f"- {w}" for w in workers)
     pattern_lines = "\n".join(f"- {p}" for p in KNOWN_PATTERNS)
 

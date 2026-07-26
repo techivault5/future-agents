@@ -149,7 +149,7 @@ class AIDiscoveryWorker(BaseWorker):
                 base_names = [
                     b.id
                     if isinstance(b, ast.Name)
-                    else (b.attr if isinstance(b, ast.Attribute) else "")
+                    else (b.attr if isinstance(b, ast.Attribute) else "")  # noqa: E501
                     for b in node.bases
                 ]
                 if "BaseAgent" in base_names:

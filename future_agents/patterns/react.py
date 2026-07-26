@@ -91,7 +91,7 @@ class ReActRunner:
                 answer = "\n".join(b.text for b in text_blocks if hasattr(b, "text"))
                 return ReActResult(
                     answer=answer, steps=steps, success=True, total_tokens=total_tokens
-                )
+                )  # noqa: E501
 
             messages.append({"role": "assistant", "content": response.content})
             tool_results = []

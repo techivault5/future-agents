@@ -90,7 +90,7 @@ class BaseWorker(ABC):
         if not self.enabled:
             return WorkerResult(
                 worker_id=self.worker_id, success=False, errors=["Worker is disabled"]
-            )
+            )  # noqa: E501
 
         self.status = WorkerStatus.RUNNING
         start = datetime.now(timezone.utc)
