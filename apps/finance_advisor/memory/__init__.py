@@ -10,30 +10,30 @@ Public surface:
     RUNTIME_MATRIX     — CPU/GPU/NPU/Metal/browser local-inference comparison
 """
 
-from projects.finance_advisor.memory.backends import (
+from finance_advisor.memory.backends import (
     GraphBackend,
     InMemoryBackend,
     MemoryBackend,
     SqliteBackend,
 )
-from projects.finance_advisor.memory.embeddings import (
+from finance_advisor.memory.embeddings import (
     Embedder,
     HashingEmbedder,
     OllamaEmbedder,
     OnnxEmbedder,
     SentenceTransformerEmbedder,
 )
-from projects.finance_advisor.memory.manager import MemoryManager
-from projects.finance_advisor.memory.runtimes import (
+from finance_advisor.memory.manager import MemoryManager
+from finance_advisor.memory.runtimes import (
     RUNTIME_MATRIX,
     Capabilities,
     ComputeTarget,
     detect_available,
     matrix_as_dicts,
 )
-from projects.finance_advisor.memory.sdk import FinanceMemorySDK, build_backend
-from projects.finance_advisor.memory.skills import SKILLS, skill_catalog
-from projects.finance_advisor.memory.types import (
+from finance_advisor.memory.sdk import FinanceMemorySDK, build_backend
+from finance_advisor.memory.skills import SKILLS, skill_catalog
+from finance_advisor.memory.types import (
     MemoryRecord,
     MemoryRelation,
     MemoryType,

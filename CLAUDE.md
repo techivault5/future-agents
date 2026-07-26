@@ -33,7 +33,7 @@ These rules apply to every response in this project. They exist to drastically c
 ## Project layout (reference — do not re-explain)
 
 ```
-src/future_agents/
+packages/future_agents/
   agents/          # BaseAgent subclasses
   core/            # EventBus, AgentRegistry, Orchestrator, BaseAgent
   definitions/     # JSON-based agent definitions + factory
@@ -49,8 +49,9 @@ tests/             # pytest, asyncio_mode=auto
 ## Top-level layout (grouped by content type)
 
 ```
-src/        # all Python source: future_agents, guardrails, scanning, projects,
-            # token_saver.py, mcp_server.py   (installed from here; pytest pythonpath)
+apps/       # deployable applications:  finance_advisor/
+packages/   # shared libraries:  future_agents/, guardrails/, scanning/,
+            #                    token_saver.py, mcp_server.py
 data/       # data assets: agents/ (10k role YAMLs), config/, skills/
 docs/       # all guides + leadership_guides/
 web/        # browser assets (static/)
@@ -60,8 +61,11 @@ templates/  # project scaffolding templates
 examples/   # runnable demos
 ```
 
-Imports are unchanged (`future_agents.*`, `guardrails.*`, `scanning.*`,
-`projects.*`) — `src/` is the package root, not an import prefix.
+`packages/` and `apps/` are both import roots, so imports carry no path prefix
+(`future_agents.*`, `guardrails.*`, `scanning.*`, `finance_advisor.*`).
+turbo.json orchestrates the JS workspaces only; Python runs via pytest/ruff.
+
+**See `AGENTS.md` for where new code goes and what must pass before committing.**
 
 ## Key facts (do not re-derive)
 - Python 3.11+, Pydantic v2, ruff for lint/format, pytest-asyncio (auto mode)
@@ -235,7 +239,7 @@ versions.tf       ← pin provider versions HERE (exact is OK)
 **Package management:**
 - Check if a lighter built-in alternative exists before adding a dependency
 - When adding packages: use semver-compatible ranges
-- After adding: run the guardrails check: `python src/guardrails/guardrails_engine.py . --mode check`
+- After adding: run the guardrails check: `python packages/guardrails/guardrails_engine.py . --mode check`
 - Suggest `pip audit` / `npm audit` when adding security-relevant packages
 
 **Code quality:**
@@ -272,13 +276,13 @@ Run these at any time during development:
 
 ```bash
 # Full check (see what would fail)
-python src/guardrails/guardrails_engine.py . --mode check
+python packages/guardrails/guardrails_engine.py . --mode check
 
 # Auto-fix folder structure issues
-python src/guardrails/guardrails_engine.py . --mode fix
+python packages/guardrails/guardrails_engine.py . --mode fix
 
 # Block mode (exits 1 on violations — use in CI)
-python src/guardrails/guardrails_engine.py . --mode block
+python packages/guardrails/guardrails_engine.py . --mode block
 
 # Secrets only
 python -c "

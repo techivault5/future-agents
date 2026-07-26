@@ -15,8 +15,8 @@ slabs change, so treat the constants as inputs, not gospel.
 
 from __future__ import annotations
 
-from projects.finance_advisor.memory.manager import MemoryManager
-from projects.finance_advisor.memory.types import MemoryType
+from finance_advisor.memory.manager import MemoryManager
+from finance_advisor.memory.types import MemoryType
 
 DISCLAIMER = "Educational content, not licensed financial advice."
 

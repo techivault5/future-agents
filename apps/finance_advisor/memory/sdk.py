@@ -1,6 +1,6 @@
 """FinanceMemorySDK — the single object an integration needs.
 
-    from projects.finance_advisor.memory import FinanceMemorySDK
+    from finance_advisor.memory import FinanceMemorySDK
 
     sdk = FinanceMemorySDK()                       # in-memory + hashing embedder
     sdk = FinanceMemorySDK(store="sqlite")         # durable local file
@@ -21,21 +21,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from projects.finance_advisor.memory.backends import (
+from finance_advisor.memory.backends import (
     GraphBackend,
     InMemoryBackend,
     MemoryBackend,
     SqliteBackend,
 )
-from projects.finance_advisor.memory.embeddings import Embedder, HashingEmbedder
-from projects.finance_advisor.memory.manager import MemoryManager
-from projects.finance_advisor.memory.runtimes import (
+from finance_advisor.memory.embeddings import Embedder, HashingEmbedder
+from finance_advisor.memory.manager import MemoryManager
+from finance_advisor.memory.runtimes import (
     Capabilities,
     detect_available,
     matrix_as_dicts,
 )
-from projects.finance_advisor.memory.skills import SKILLS, skill_catalog
-from projects.finance_advisor.memory.types import MemoryType
+from finance_advisor.memory.skills import SKILLS, skill_catalog
+from finance_advisor.memory.types import MemoryType
 
 STORES = ("memory", "sqlite", "graph")
 

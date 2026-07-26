@@ -101,7 +101,7 @@ wherever it runs, and `export()` on one side imports on the other.
 ### Python
 
 ```python
-from projects.finance_advisor.memory import FinanceMemorySDK
+from finance_advisor.memory import FinanceMemorySDK
 
 sdk = FinanceMemorySDK(store="sqlite", path="data/memory.db")
 sdk.remember("take_home=180000", tags=["profile"], sensitive=True)
@@ -124,7 +124,7 @@ A working demo page ships with it — write memories, watch the score
 components, run every skill, see which runtimes the browser offers:
 
 ```bash
-uvicorn projects.finance_advisor.app:app --port 8600
+uvicorn finance_advisor.app:app --port 8600
 # then open http://localhost:8600/sdk/js/demo.html
 ```
 
@@ -142,7 +142,7 @@ the same `.mjs` and persists to extension storage. Commands:
 * Finance Advisor: **Show local model runtimes**
 * Finance Advisor: **Export memory as JSON**
 
-Load it with `code --extensionDevelopmentPath=projects/finance_advisor/memory/sdk/vscode`.
+Load it with `code --extensionDevelopmentPath=apps/finance_advisor/memory/sdk/vscode`.
 
 ### HTTP (the existing dashboard)
 

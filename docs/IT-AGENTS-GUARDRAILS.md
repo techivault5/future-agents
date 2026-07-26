@@ -76,13 +76,13 @@ pip install pyyaml packaging
 ### 2. Run guardrails on your project
 ```bash
 # Check only (default) — reports violations without blocking
-python src/guardrails/guardrails_engine.py /path/to/project
+python packages/guardrails/guardrails_engine.py /path/to/project
 
 # Auto-fix where possible (creates missing dirs, suggests fixes)
-python src/guardrails/guardrails_engine.py /path/to/project --mode fix
+python packages/guardrails/guardrails_engine.py /path/to/project --mode fix
 
 # Block CI pipeline on violations (use this in CI/CD)
-python src/guardrails/guardrails_engine.py /path/to/project --mode block
+python packages/guardrails/guardrails_engine.py /path/to/project --mode block
 ```
 
 ### 3. Scaffold a new project with standard structure

@@ -79,7 +79,7 @@ the wrong thing. A 10-second confirmation prevents hours of cleanup.
 ### Rule 5: Run the Check Before You Push
 
 ```bash
-python src/guardrails/guardrails_engine.py . --mode check
+python packages/guardrails/guardrails_engine.py . --mode check
 ```
 
 Takes a few seconds. Shows you exactly what's wrong before your CI does.
@@ -116,7 +116,7 @@ The CI will run this too — but catching it locally is faster.
 ```
 Morning:
   git pull                                    ← sync latest
-  python src/guardrails/guardrails_engine.py .    ← check state
+  python packages/guardrails/guardrails_engine.py .    ← check state
 
 During coding:
   Let AI generate code freely
@@ -125,12 +125,12 @@ During coding:
 
 Before committing:
   git diff --staged                           ← review what's going in
-  python src/guardrails/guardrails_engine.py . --mode check
+  python packages/guardrails/guardrails_engine.py . --mode check
   git add specific-files (not git add -A)
   git commit                                  ← pre-commit hook runs
 
 Before pushing:
-  python src/guardrails/guardrails_engine.py . --mode block   ← final gate
+  python packages/guardrails/guardrails_engine.py . --mode block   ← final gate
   git push
 ```
 
@@ -188,7 +188,7 @@ cat .guardrails-human-log.jsonl
 python guardrails/folder_validator.py  # see FolderValidator.generate_structure()
 
 # Full check with verbose output
-GUARDRAILS_INTERACTIVE=true python src/guardrails/guardrails_engine.py . --mode check
+GUARDRAILS_INTERACTIVE=true python packages/guardrails/guardrails_engine.py . --mode check
 ```
 
 ---

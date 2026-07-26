@@ -19,8 +19,8 @@ jobs:
           python-version: '3.11'
           cache: pip
       - run: pip install -e ".[dev]"
-      - run: ruff check src/future_agents/ src/projects/ scripts/
-      - run: ruff format --check src/future_agents/ src/projects/ scripts/
+      - run: ruff check packages/future_agents/ apps/ scripts/
+      - run: ruff format --check packages/future_agents/ apps/ scripts/
 
   test:
     name: Tests (pytest)

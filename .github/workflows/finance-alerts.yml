@@ -29,4 +29,4 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
-        run: python -m projects.finance_advisor.alerts --check
+        run: python -m finance_advisor.alerts --check

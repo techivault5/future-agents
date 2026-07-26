@@ -17,10 +17,10 @@ import logging
 from collections import Counter
 from datetime import datetime, timezone
 
-from projects.finance_advisor.memory.aliases import expand
-from projects.finance_advisor.memory.backends import InMemoryBackend, MemoryBackend
-from projects.finance_advisor.memory.embeddings import Embedder, HashingEmbedder, cosine, tokenize
-from projects.finance_advisor.memory.types import (
+from finance_advisor.memory.aliases import expand
+from finance_advisor.memory.backends import InMemoryBackend, MemoryBackend
+from finance_advisor.memory.embeddings import Embedder, HashingEmbedder, cosine, tokenize
+from finance_advisor.memory.types import (
     MemoryRecord,
     MemoryRelation,
     MemoryType,

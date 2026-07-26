@@ -1,17 +1,17 @@
-"""Tests for the Finance Advisor project (projects/finance_advisor)."""
+"""Tests for the Finance Advisor project (apps/finance_advisor)."""
 
 import json
 from pathlib import Path
 
 from future_agents.definitions.loader import DefinitionLoader
-from projects.finance_advisor.gather import (
+from finance_advisor.gather import (
     KNOWLEDGE_DIR,
     build_advisor,
     load_knowledge,
     refresh_youtube,
 )
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent / "src" / "projects" / "finance_advisor"
+PROJECT_DIR = Path(__file__).resolve().parent.parent / "apps" / "finance_advisor"
 
 
 def test_knowledge_files_are_valid_json():
@@ -82,7 +82,7 @@ def test_youtube_refresh_skips_without_key(monkeypatch):
 
 
 def test_alert_rule_evaluation_offline():
-    from projects.finance_advisor.alerts import AlertRule, evaluate_all, evaluate_rule
+    from finance_advisor.alerts import AlertRule, evaluate_all, evaluate_rule
 
     quote = {
         "key": "gold",
@@ -113,7 +113,7 @@ def test_alert_rule_evaluation_offline():
 
 
 def test_signal_zones():
-    from projects.finance_advisor.market_data import AssetQuote, compute_signal
+    from finance_advisor.market_data import AssetQuote, compute_signal
 
     dip = AssetQuote(key="x", name="x", kind="metal", pct_from_52w_high=-18, vs_sma50_pct=-4)
     assert compute_signal(dip)[0] == "dip-watch"
@@ -131,7 +131,7 @@ def test_property_watch_data():
 
 
 def test_email_skipped_without_smtp_config(monkeypatch):
-    from projects.finance_advisor.alerts import send_email
+    from finance_advisor.alerts import send_email
 
     for var in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"):
         monkeypatch.delenv(var, raising=False)

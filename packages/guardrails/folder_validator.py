@@ -381,6 +381,9 @@ class FolderValidator:
         "Dockerfile": ["Containerfile"],
         "docker-compose.yml": ["docker-compose.yaml", "compose.yaml", "compose.yml"],
         ".dockerignore": [".containerignore"],
+        # Monorepo layouts (Turborepo/Nx style) split source across apps/ and
+        # packages/ instead of a single src/ — that satisfies the same intent.
+        "src/": ["packages/", "apps/"],
     }
 
     def _satisfied(self, root: Path, required_path: str) -> bool:

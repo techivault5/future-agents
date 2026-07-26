@@ -1,7 +1,7 @@
 /**
  * Finance Advisor memory SDK — browser, Node and VS Code, zero dependencies.
  *
- * Mirrors the Python SDK (projects/finance_advisor/memory/sdk.py) method for
+ * Mirrors the Python SDK (apps/finance_advisor/memory/sdk.py) method for
  * method, including the SHA-1 hashing embedder, so a memory written here embeds
  * to the *same vector* the Python side would produce. That is what makes the
  * two halves interchangeable: export() here imports there and vice versa.

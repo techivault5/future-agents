@@ -13,9 +13,9 @@ components cleanly separable. This is the runbook for actually extracting them,
 
 | Candidate | Contents | Standalone today? | Size |
 |---|---|---|---|
-| `it-agents-guardrails` | `src/guardrails/`, config, templates, its tests + guides | ✅ Yes — only needs `pyyaml`, `packaging` | ~250 KB |
+| `it-agents-guardrails` | `packages/guardrails/`, config, templates, its tests + guides | ✅ Yes — only needs `pyyaml`, `packaging` | ~250 KB |
 | `agent-definitions` | `data/agents/` (10,000 role YAMLs + index) | ✅ Yes — pure data, no code | ~42 MB |
-| `finance-advisor` | `src/projects/finance_advisor/` + its tests | ⚠️ No — see below | ~700 KB |
+| `finance-advisor` | `apps/finance_advisor/` + its tests | ⚠️ No — see below | ~700 KB |
 
 ### Why `finance-advisor` is not standalone yet
 
@@ -51,13 +51,13 @@ monorepo is never modified.
 git clone https://github.com/techivault5/future-agents.git /tmp/split-guardrails
 cd /tmp/split-guardrails
 git filter-repo \
-  --path src/guardrails/ \
+  --path packages/guardrails/ \
   --path data/config/guardrails_config.yaml \
   --path templates/project-structures/ \
   --path tests/test_guardrails.py \
   --path docs/IT-AGENTS-GUARDRAILS.md \
   --path docs/VIBE-CODER-GUIDE.md \
-  --path-rename src/guardrails/:guardrails/ \
+  --path-rename packages/guardrails/:guardrails/ \
   --path-rename data/config/:config/ \
   --path-rename docs/:docs/
 git remote add origin https://github.com/techivault5/it-agents-guardrails.git
@@ -89,15 +89,15 @@ Resolve the dependency question above first, then:
 git clone https://github.com/techivault5/future-agents.git /tmp/split-finance
 cd /tmp/split-finance
 git filter-repo \
-  --path src/projects/finance_advisor/ \
+  --path apps/finance_advisor/ \
   --path tests/test_finance_advisor.py \
   --path tests/test_finance_memory.py \
-  --path-rename src/projects/finance_advisor/:finance_advisor/
+  --path-rename apps/finance_advisor/:finance_advisor/
 git remote add origin https://github.com/techivault5/finance-advisor.git
 git push -u origin main
 ```
 
-Then fix imports (`projects.finance_advisor.` → `finance_advisor.`), add a
+Then fix imports (`finance_advisor.` → `finance_advisor.`), add a
 `pyproject.toml` with `pydantic>=2`, optional `[api]` and `[localnlp]` extras,
 and copy `.github/workflows/finance-alerts.yml`.
 

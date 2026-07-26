@@ -198,7 +198,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run guardrails (block mode)
         run: |
-          python3 /app/src/guardrails/guardrails_engine.py . --mode block
+          python3 /app/packages/guardrails/guardrails_engine.py . --mode block
 ```
 
 ### GitLab CI
@@ -208,7 +208,7 @@ jobs:
 guardrails:
   image: it-agents-guardrails:latest
   script:
-    - python3 /app/src/guardrails/guardrails_engine.py . --mode block
+    - python3 /app/packages/guardrails/guardrails_engine.py . --mode block
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 ```

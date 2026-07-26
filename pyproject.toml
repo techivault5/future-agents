@@ -43,12 +43,12 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["src"]
-include = ["future_agents*", "guardrails*", "scanning*", "projects*"]
+where = ["packages", "apps"]
+include = ["future_agents*", "guardrails*", "scanning*", "finance_advisor*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-pythonpath = ["src", "."]
+pythonpath = ["packages", "apps", "."]
 testpaths = ["tests"]
 
 [tool.ruff]
@@ -59,6 +59,6 @@ select = ["E", "F", "I"]
 
 [tool.ruff.lint.per-file-ignores]
 # Document agents use lazy try/except imports for optional heavy deps
-"src/future_agents/agents/pdf_agent.py" = ["F401"]
-"src/future_agents/agents/ppt_agent.py" = ["F401"]
-"src/future_agents/agents/word_agent.py" = ["F401"]
+"packages/future_agents/agents/pdf_agent.py" = ["F401"]
+"packages/future_agents/agents/ppt_agent.py" = ["F401"]
+"packages/future_agents/agents/word_agent.py" = ["F401"]

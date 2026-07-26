@@ -2,7 +2,7 @@
 """Finance Advisor dashboard — FastAPI app.
 
 Run:  pip install -e ".[api]"
-      uvicorn projects.finance_advisor.app:app --port 8600
+      uvicorn finance_advisor.app:app --port 8600
 Then open http://localhost:8600
 """
 
@@ -22,21 +22,21 @@ try:
 except ImportError as err:  # pragma: no cover
     raise ImportError("FastAPI required: pip install -e '.[api]'") from err
 
-from projects.finance_advisor.alerts import (  # noqa: E402
+from finance_advisor.alerts import (  # noqa: E402
     CONDITIONS,
     AlertRule,
     evaluate_all,
     load_alerts,
     save_alerts,
 )
-from projects.finance_advisor.gather import load_knowledge  # noqa: E402
-from projects.finance_advisor.market_data import (  # noqa: E402
+from finance_advisor.gather import load_knowledge  # noqa: E402
+from finance_advisor.market_data import (  # noqa: E402
     WATCHED_ASSETS,
     fetch_all_quotes,
     fetch_fund_navs,
     fetch_fx,
 )
-from projects.finance_advisor.memory import FinanceMemorySDK  # noqa: E402
+from finance_advisor.memory import FinanceMemorySDK  # noqa: E402
 
 app = FastAPI(title="Finance Advisor", version="1.0.0")
 

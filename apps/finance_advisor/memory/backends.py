@@ -17,7 +17,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Iterable, Protocol, runtime_checkable
 
-from projects.finance_advisor.memory.types import MemoryRecord, MemoryType
+from finance_advisor.memory.types import MemoryRecord, MemoryType
 
 
 @runtime_checkable

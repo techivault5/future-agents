@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from projects.finance_advisor.memory import (
+from finance_advisor.memory import (
     RUNTIME_MATRIX,
     ComputeTarget,
     FinanceMemorySDK,
@@ -20,9 +20,9 @@ from projects.finance_advisor.memory import (
     detect_available,
     skill_catalog,
 )
-from projects.finance_advisor.memory.aliases import expand
-from projects.finance_advisor.memory.embeddings import cosine
-from projects.finance_advisor.memory.skills import (
+from finance_advisor.memory.aliases import expand
+from finance_advisor.memory.embeddings import cosine
+from finance_advisor.memory.skills import (
     CapitalGainsSkill,
     CryptoSkill,
     LoanAdvisorSkill,
@@ -30,7 +30,7 @@ from projects.finance_advisor.memory.skills import (
     TaxGuidanceSkill,
 )
 
-JS_SDK = Path(__file__).parent.parent / "src/projects/finance_advisor/memory/sdk/js/finance-memory.mjs"
+JS_SDK = Path(__file__).parent.parent / "apps/finance_advisor/memory/sdk/js/finance-memory.mjs"
 
 
 # ── memory types and manager ─────────────────────────────────────────────────
