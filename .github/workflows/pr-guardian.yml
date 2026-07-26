@@ -1,0 +1,46 @@
+name: PR Guardian
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  check_run:
+    types: [completed]
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  guardian:
+    name: Auto-resolve conflicts & merge
+    runs-on: ubuntu-latest
+    # Don't run on main branch push events or for dependabot
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install requests packaging
+
+      - name: Configure git
+        run: |
+          git config user.email "noreply@github.com"
+          git config user.name "PR Guardian"
+
+      - name: Run PR Guardian
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/pr_guardian.py
