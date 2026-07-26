@@ -74,7 +74,10 @@ def _eval_expr(expr: str, ctx_vars: dict) -> Any:
         # Validate AST before eval to block dangerous constructs
         tree = ast.parse(expr, mode="eval")
         for node in ast.walk(tree):
-            if isinstance(node, (ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if isinstance(
+                node,
+                (ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef),
+            ):
                 return expr
         return eval(expr, {"__builtins__": _SAFE_BUILTINS}, ctx_vars)  # noqa: S307
     except Exception:
@@ -251,7 +254,9 @@ class WorkflowEngine:
                 in_count[conn.target_node] += 1
 
         # Nodes with no incoming edges, OR explicitly typed as triggers
-        start_nodes = [n for n in nodes_by_id.values() if n.type in self._TRIGGER_TYPES or in_count[n.id] == 0]
+        start_nodes = [
+            n for n in nodes_by_id.values() if n.type in self._TRIGGER_TYPES or in_count[n.id] == 0
+        ]
         if not start_nodes:
             start_nodes = list(nodes_by_id.values())[:1]
 
@@ -259,7 +264,9 @@ class WorkflowEngine:
         merge_acc: dict[str, dict[str, Any]] = defaultdict(dict)
         # How many active predecessors does each MERGE node expect?
         merge_expect: dict[str, int] = {
-            n.id: in_count[n.id] for n in nodes_by_id.values() if n.type == NodeType.MERGE and in_count[n.id] > 0
+            n.id: in_count[n.id]
+            for n in nodes_by_id.values()
+            if n.type == NodeType.MERGE and in_count[n.id] > 0
         }
 
         # BFS queue: (node, input_data)
@@ -422,7 +429,9 @@ class WorkflowEngine:
                 else f"Agent '{agent_id or agent_role}' processed: {prompt}"
             ),
             "context": context,
-            "guardrails_profile": agent_def.get("guardrails_profile", "standard") if agent_def else "standard",
+            "guardrails_profile": agent_def.get("guardrails_profile", "standard")
+            if agent_def
+            else "standard",
         }
         return result, "main"
 
@@ -482,7 +491,6 @@ class WorkflowEngine:
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
                 raw = resp.read()
-                resp.headers.get("Content-Type", "")
                 status_code = resp.status
                 try:
                     response_body = json.loads(raw)
@@ -616,7 +624,9 @@ class WorkflowEngine:
             for node in ast.walk(tree):
                 if isinstance(node, (ast.Import, ast.ImportFrom)):
                     raise ValueError("import statements are not allowed in code nodes")
-            exec(compile(tree, "<workflow_code>", "exec"), {"__builtins__": _SAFE_BUILTINS}, local_ns)  # noqa: S102
+            exec(
+                compile(tree, "<workflow_code>", "exec"), {"__builtins__": _SAFE_BUILTINS}, local_ns
+            )  # noqa: S102
         except Exception as exc:
             raise RuntimeError(f"code node error: {exc}") from exc
 

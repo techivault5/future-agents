@@ -91,7 +91,9 @@ class LifelongMemory:
 
     def _save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._path.write_text(json.dumps({k: v.__dict__ for k, v in self._entries.items()}, indent=2))
+        self._path.write_text(
+            json.dumps({k: v.__dict__ for k, v in self._entries.items()}, indent=2)
+        )  # noqa: E501
 
     # ── Core API ──────────────────────────────────────────────────────────────
 
@@ -143,7 +145,11 @@ class LifelongMemory:
                 overlap = set(tags) & set(entry.tags)
                 if overlap:
                     entry.touch()
-                    results.append(MemorySearchResult(entry=entry, match_type="tag", score=len(overlap) / len(tags)))
+                    results.append(
+                        MemorySearchResult(
+                            entry=entry, match_type="tag", score=len(overlap) / len(tags)
+                        )
+                    )  # noqa: E501
                     continue
 
             # Keyword match (Jaccard similarity)
@@ -182,7 +188,11 @@ class LifelongMemory:
     # ── Internal ──────────────────────────────────────────────────────────────
 
     def _tokenize(self, text: str) -> list[str]:
-        return [w.strip(".,;:!?\"'()[]") for w in text.lower().split() if w not in _STOP_WORDS and len(w) > 2]
+        return [
+            w.strip(".,;:!?\"'()[]")
+            for w in text.lower().split()
+            if w not in _STOP_WORDS and len(w) > 2
+        ]  # noqa: E501
 
     def _consolidate(self) -> None:
         """Evict lowest-scored entries when over capacity."""

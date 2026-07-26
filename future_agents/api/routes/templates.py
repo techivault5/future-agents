@@ -91,12 +91,22 @@ def get_template_for_agent(agent_id: str) -> dict:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 _DESCRIPTIONS = {
-    "python-service": "Python microservice with FastAPI/Flask — src/, tests/, pyproject.toml, Dockerfile",
+    "python-service": (
+        "Python microservice with FastAPI/Flask — src/, tests/, pyproject.toml, Dockerfile"
+    ),
     "node-service": "Node/TypeScript service — src/routes, controllers, services, models, tests/",
-    "ml-project": "Machine learning project — src/features, models, evaluation, serving, notebooks/",
-    "data-pipeline": "Data pipeline / dbt project — dags/, models/staging|marts|intermediate, docs/",
-    "fullstack-app": "Full-stack application — frontend + backend with shared types and Docker Compose",
-    "sqlserver-service": "SQL Server–backed service with migration scripts, stored procedures, and ORM layer",
+    "ml-project": (
+        "Machine learning project — src/features, models, evaluation, serving, notebooks/"
+    ),
+    "data-pipeline": (
+        "Data pipeline / dbt project — dags/, models/staging|marts|intermediate, docs/"
+    ),
+    "fullstack-app": (
+        "Full-stack application — frontend + backend with shared types and Docker Compose"
+    ),
+    "sqlserver-service": (
+        "SQL Server–backed service with migration scripts, stored procedures, and ORM layer"
+    ),
 }
 
 _USE_CASES = {
@@ -105,7 +115,12 @@ _USE_CASES = {
     "ml-project": ["Model training", "RAG pipelines", "Feature engineering", "Model serving"],
     "data-pipeline": ["ETL pipelines", "Data warehousing", "Analytics", "dbt projects"],
     "fullstack-app": ["SaaS apps", "Internal tools", "Developer portals", "Admin UIs"],
-    "sqlserver-service": ["Enterprise apps", "ERP integrations", "Reporting services", "OLTP systems"],
+    "sqlserver-service": [
+        "Enterprise apps",
+        "ERP integrations",
+        "Reporting services",
+        "OLTP systems",
+    ],
 }
 
 

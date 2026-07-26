@@ -261,7 +261,8 @@ def post_github_issue(ideas_data: dict) -> None:
             "### Source Repos",
             ", ".join(f"`{r}`" for r in idea.get("source_repos", [])),
             "",
-            f"**Estimated Impact:** {idea.get('estimated_impact', 'medium').upper()} — {idea.get('impact_reason', '')}",
+            f"**Estimated Impact:** {idea.get('estimated_impact', 'medium').upper()} — "
+            f"{idea.get('impact_reason', '')}",
             "",
         ]
 
@@ -306,8 +307,12 @@ def main() -> None:
     args = p.parse_args()
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    eval_file = Path(args.eval_file) if args.eval_file else CRAWLER_DIR / f"eval_results_{today}.json"
-    changes_file = Path(args.changes_file) if args.changes_file else CRAWLER_DIR / f"changes_{today}.json"
+    eval_file = (
+        Path(args.eval_file) if args.eval_file else CRAWLER_DIR / f"eval_results_{today}.json"
+    )  # noqa: E501
+    changes_file = (
+        Path(args.changes_file) if args.changes_file else CRAWLER_DIR / f"changes_{today}.json"
+    )  # noqa: E501
 
     for f in [eval_file, changes_file]:
         if not f.exists():

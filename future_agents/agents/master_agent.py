@@ -170,7 +170,9 @@ class MasterAgent(BaseAgent):
                 TaskResult(
                     task_id=context.task_id,
                     agent_id=target.agent_id,
-                    outcome=(ExecutionOutcome.SUCCESS if response.success else ExecutionOutcome.FAILURE),
+                    outcome=(
+                        ExecutionOutcome.SUCCESS if response.success else ExecutionOutcome.FAILURE
+                    ),
                     data=response.data,
                     errors=response.errors,
                 )
@@ -302,7 +304,10 @@ class MasterAgent(BaseAgent):
                 agent_id=self.agent_id,
                 outcome=ExecutionOutcome.FAILURE,
                 errors=[f"No agent of type '{agent_type}' found"],
-                suggestions=[f"Available types: {list(set(a.agent_type for a in self.registry.agents.values()))}"],
+                suggestions=[
+                    "Available types: "
+                    f"{list(set(a.agent_type for a in self.registry.agents.values()))}"
+                ],
             )
 
         target = agents[0]
@@ -412,7 +417,8 @@ class MasterAgent(BaseAgent):
                 lines.append("   Skills:")
                 for skill in desc["skills"]:
                     inputs_str = ", ".join(
-                        f"{p['name']}:{p['type']}" + ("*" if p["required"] else "") for p in skill["inputs"]
+                        f"{p['name']}:{p['type']}" + ("*" if p["required"] else "")
+                        for p in skill["inputs"]
                     )
                     lines.append(f"     - {skill['intent']}: {skill['description']}")
                     if inputs_str:
@@ -449,7 +455,9 @@ class MasterAgent(BaseAgent):
 
         return None
 
-    async def _delegate_to_defined(self, agent: DefinedAgent, intent: str, parameters: dict) -> DelegationResponse:
+    async def _delegate_to_defined(
+        self, agent: DefinedAgent, intent: str, parameters: dict
+    ) -> DelegationResponse:
         """Delegate to a DefinedAgent using the protocol."""
         delegation = DelegationRequest(
             from_agent=self.agent_id,
@@ -459,7 +467,9 @@ class MasterAgent(BaseAgent):
         )
         return await agent.handle_delegation(delegation)
 
-    async def _delegate_to_base(self, agent: BaseAgent, intent: str, parameters: dict) -> DelegationResponse:
+    async def _delegate_to_base(
+        self, agent: BaseAgent, intent: str, parameters: dict
+    ) -> DelegationResponse:
         """Delegate to a plain BaseAgent using TaskContext."""
         context = TaskContext(intent=intent, parameters=parameters)
         result = await agent.execute(context)

@@ -112,7 +112,11 @@ class DefinedAgent(BaseAgent):
         return message.reply(
             content=result.data,
             text=f"Outcome: {result.outcome.value}",
-            msg_type=(MessageType.RESPONSE if result.outcome == ExecutionOutcome.SUCCESS else MessageType.ERROR),
+            msg_type=(
+                MessageType.RESPONSE
+                if result.outcome == ExecutionOutcome.SUCCESS
+                else MessageType.ERROR
+            ),  # noqa: E501
         )
 
     async def handle_delegation(self, delegation: DelegationRequest) -> DelegationResponse:
@@ -164,7 +168,8 @@ class DefinedAgent(BaseAgent):
                         for p in s.inputs
                     ],
                     "outputs": [
-                        {"name": p.name, "type": p.type.value, "description": p.description} for p in s.outputs
+                        {"name": p.name, "type": p.type.value, "description": p.description}
+                        for p in s.outputs  # noqa: E501
                     ],
                 }
                 for s in self.definition.skills
@@ -174,7 +179,9 @@ class DefinedAgent(BaseAgent):
                 "tone": self.definition.personality.tone,
                 "traits": self.definition.personality.traits,
             },
-            "constraints": [{"name": c.name, "description": c.description} for c in self.definition.constraints],
+            "constraints": [
+                {"name": c.name, "description": c.description} for c in self.definition.constraints
+            ],  # noqa: E501
             "metrics": {
                 "success_rate": self.success_rate,
                 "execution_count": self._execution_count,
@@ -210,7 +217,9 @@ class DefinedAgent(BaseAgent):
         for input_def in skill.inputs:
             if input_def.required and input_def.name not in params:
                 if input_def.default is None:
-                    errors.append(f"Missing required parameter: '{input_def.name}' ({input_def.description})")
+                    errors.append(
+                        f"Missing required parameter: '{input_def.name}' ({input_def.description})"
+                    )  # noqa: E501
         return errors
 
     def _check_constraints(self, context: TaskContext) -> list[str]:

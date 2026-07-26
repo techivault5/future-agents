@@ -166,7 +166,9 @@ class ProcessAgent(BaseAgent):
                         "process_id": process.id,
                         "name": process.name,
                         "avg_completion_rate": process.avg_completion_rate,
-                        "suggestion": "Review failing steps; consider splitting or adding prerequisites",
+                        "suggestion": (
+                            "Review failing steps; consider splitting or adding prerequisites"
+                        ),
                     }
                 )
             # Flag processes with unused optional steps
@@ -176,7 +178,9 @@ class ProcessAgent(BaseAgent):
                     {
                         "process_id": process.id,
                         "name": process.name,
-                        "suggestion": "Too many optional steps — consider splitting into separate processes",
+                        "suggestion": (
+                            "Too many optional steps — consider splitting into separate processes"
+                        ),
                     }
                 )
 
@@ -193,6 +197,8 @@ class ProcessAgent(BaseAgent):
         return {
             "total_processes": len(processes),
             "active_processes": len([p for p in processes if p.status == ProcessStatus.ACTIVE]),
-            "avg_completion_rate": (sum(p.avg_completion_rate for p in processes) / len(processes) if processes else 0),
+            "avg_completion_rate": (
+                sum(p.avg_completion_rate for p in processes) / len(processes) if processes else 0
+            ),  # noqa: E501
             "total_executions": sum(p.execution_count for p in processes),
         }

@@ -251,7 +251,8 @@ class VoiceCloner:
 
         profile = VoiceProfile(
             name=name,
-            description=description or f"Voice profile created from sample: {Path(sample_path).name}",
+            description=description
+            or f"Voice profile created from sample: {Path(sample_path).name}",
             personality=personality,
             accent=AccentType.CUSTOM,
             tags=tags or [],
@@ -308,7 +309,9 @@ class VoiceCloner:
 
         best_result: Optional[SynthesisResult] = None
         params = copy.deepcopy(
-            PERSONALITY_PRESETS.get(profile.personality, PERSONALITY_PRESETS[PersonalityType.CUSTOM])
+            PERSONALITY_PRESETS.get(
+                profile.personality, PERSONALITY_PRESETS[PersonalityType.CUSTOM]
+            )
         )
 
         for iteration in range(1, self.max_iterations + 1):
@@ -376,7 +379,10 @@ class VoiceCloner:
             raise RuntimeError("All synthesis engines failed")
 
         logger.info(
-            "Best result: %.2f/10 via %s (iteration %d)", best_result.score, best_result.engine, best_result.iteration
+            "Best result: %.2f/10 via %s (iteration %d)",
+            best_result.score,
+            best_result.engine,
+            best_result.iteration,
         )
         return best_result
 
@@ -450,14 +456,16 @@ class VoiceCloner:
             ),
         )
 
-    async def _synth_openvoice(self, profile: VoiceProfile, text: str, params: dict, out: Path) -> None:
+    async def _synth_openvoice(
+        self, profile: VoiceProfile, text: str, params: dict, out: Path
+    ) -> None:
         """OpenVoice v2 — MIT licensed, excellent style/tone transfer."""
         from openvoice import se_extractor  # type: ignore
         from openvoice.api import ToneColorConverter  # type: ignore
 
-        ref_wav = (profile.engine_config.get("openvoice") or profile.engine_config.get("xtts") or {}).get(
-            "reference_wav"
-        )
+        ref_wav = (
+            profile.engine_config.get("openvoice") or profile.engine_config.get("xtts") or {}
+        ).get("reference_wav")
 
         ckpt_dir = os.environ.get("OPENVOICE_CKPT_DIR", "models/openvoice/checkpoints_v2")
         converter = ToneColorConverter(f"{ckpt_dir}/config.json")
@@ -477,7 +485,9 @@ class VoiceCloner:
             ),
         )
 
-    async def _synth_elevenlabs(self, profile: VoiceProfile, text: str, params: dict, out: Path) -> None:
+    async def _synth_elevenlabs(
+        self, profile: VoiceProfile, text: str, params: dict, out: Path
+    ) -> None:
         """ElevenLabs API — commercial, highest quality, easy setup."""
         import numpy as np
         import soundfile as sf
@@ -527,7 +537,9 @@ class VoiceCloner:
         audio = np.frombuffer(audio_bytes, dtype=np.int16).astype(float) / 32768.0
         sf.write(str(out), audio, 22050)
 
-    async def _synth_kokoro(self, profile: VoiceProfile, text: str, params: dict, out: Path) -> None:
+    async def _synth_kokoro(
+        self, profile: VoiceProfile, text: str, params: dict, out: Path
+    ) -> None:
         """Kokoro — lightweight, fast, MIT licensed."""
         import kokoro  # type: ignore
         import soundfile as sf

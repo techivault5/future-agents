@@ -78,7 +78,9 @@ Respond as valid JSON only:
 
 
 def score_change_against_eval(change: dict, eval_case: dict, client) -> dict:
-    commits_text = "\n".join(f"  - [{c['date'][:10]}] {c['message']}" for c in change["new_commits"][:8])
+    commits_text = "\n".join(
+        f"  - [{c['date'][:10]}] {c['message']}" for c in change["new_commits"][:8]
+    )  # noqa: E501
     releases_text = (
         "\n".join(
             f"  - {r['tag']}: {r['name']} ({r['published_at'][:10]})"
@@ -89,7 +91,8 @@ def score_change_against_eval(change: dict, eval_case: dict, client) -> dict:
     )
 
     criteria_text = "\n".join(
-        f"  - {c['criterion']} (weight={c['weight']}): {c['description']}" for c in eval_case["scoring_criteria"]
+        f"  - {c['criterion']} (weight={c['weight']}): {c['description']}"
+        for c in eval_case["scoring_criteria"]  # noqa: E501
     )
 
     prompt = _SCORE_PROMPT.format(

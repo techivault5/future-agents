@@ -108,7 +108,9 @@ class SampleProcessor:
                 f"For best results, record {TARGET_DURATION_S}+ seconds."
             )
         if duration > MAX_DURATION_S:
-            logger.info("Sample is %.1fs — trimming to %.1fs for embedding", duration, MAX_DURATION_S)
+            logger.info(
+                "Sample is %.1fs — trimming to %.1fs for embedding", duration, MAX_DURATION_S
+            )
 
         # Step 2: Convert + clean
         ref_clip = out_dir / "reference.wav"

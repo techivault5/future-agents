@@ -19,7 +19,11 @@ logger = logging.getLogger(__name__)
 PALETTE = {
     "sky": {"bg": (0xE3, 0xF2, 0xFD), "accent": (0x19, 0x76, 0xD2), "text": (0x0D, 0x47, 0xA1)},
     "mint": {"bg": (0xE8, 0xF5, 0xE9), "accent": (0x2E, 0x7D, 0x32), "text": (0x1B, 0x5E, 0x20)},
-    "lavender": {"bg": (0xF3, 0xE5, 0xF5), "accent": (0x7B, 0x1F, 0xA2), "text": (0x4A, 0x14, 0x8C)},
+    "lavender": {
+        "bg": (0xF3, 0xE5, 0xF5),
+        "accent": (0x7B, 0x1F, 0xA2),
+        "text": (0x4A, 0x14, 0x8C),
+    },
     "sunrise": {"bg": (0xFF, 0xF8, 0xE1), "accent": (0xF5, 0x7F, 0x17), "text": (0xE6, 0x5C, 0x00)},
     "coral": {"bg": (0xFF, 0xEB, 0xEE), "accent": (0xC6, 0x28, 0x28), "text": (0xB7, 0x1C, 0x1C)},
     "teal": {"bg": (0xE0, 0xF2, 0xF1), "accent": (0x00, 0x69, 0x6C), "text": (0x00, 0x4D, 0x40)},
@@ -111,7 +115,7 @@ class PPTAgent(BaseAgent):
             from pptx import Presentation
             from pptx.dml.color import RGBColor
             from pptx.enum.text import PP_ALIGN
-            from pptx.util import Cm, Inches, Pt
+            from pptx.util import Inches
         except ImportError:
             return TaskResult(
                 task_id=context.task_id,
@@ -167,8 +171,18 @@ class PPTAgent(BaseAgent):
             return bar
 
         def text_box(
-            slide, left, top, width, height, text, size, bold=False, color=None, align=PP_ALIGN.LEFT, italic=False
-        ):  # noqa: E501
+            slide,
+            left,
+            top,
+            width,
+            height,
+            text,
+            size,
+            bold=False,
+            color=None,
+            align=PP_ALIGN.LEFT,
+            italic=False,
+        ):
             from pptx.util import Pt
 
             txb = slide.shapes.add_textbox(left, top, width, height)
@@ -195,7 +209,9 @@ class PPTAgent(BaseAgent):
         top_bar.line.fill.background()
 
         # Bottom bar
-        bot_bar = slide.shapes.add_shape(1, 0, prs.slide_height - _emu(0.6), prs.slide_width, _emu(0.6))
+        bot_bar = slide.shapes.add_shape(
+            1, 0, prs.slide_height - _emu(0.6), prs.slide_width, _emu(0.6)
+        )
         bot_bar.fill.solid()
         bot_bar.fill.fore_color.rgb = accent
         bot_bar.line.fill.background()
@@ -308,7 +324,16 @@ class PPTAgent(BaseAgent):
         )
 
         intro_text = p.get("introduction", f"This presentation covers key aspects of: {title}.")
-        text_box(slide, Inches(0.8), Inches(1.2), Inches(11.6), Inches(5.5), intro_text, 18, color=text_color)
+        text_box(
+            slide,
+            Inches(0.8),
+            Inches(1.2),
+            Inches(11.6),
+            Inches(5.5),
+            intro_text,
+            18,
+            color=text_color,
+        )
 
         # ── SLIDES 4..N: Topics ─────────────────────────────────────
         for i, topic in enumerate(topics):
@@ -367,7 +392,14 @@ class PPTAgent(BaseAgent):
                 dot.fill.fore_color.rgb = t_accent
                 dot.line.fill.background()
                 text_box(
-                    slide, Inches(1.6), by, Inches(11.0), Inches(0.7), bullet, 15, color=RGBColor(0x33, 0x33, 0x33)
+                    slide,
+                    Inches(1.6),
+                    by,
+                    Inches(11.0),
+                    Inches(0.7),
+                    bullet,
+                    15,
+                    color=RGBColor(0x33, 0x33, 0x33),
                 )
 
             # Speaker notes

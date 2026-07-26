@@ -116,7 +116,10 @@ class DigitalWorkerAgent(BaseAgent):
         }
 
     def _search_patterns(self, keyword: str) -> list[dict]:
-        return [{"name": p.name, "category": p.category.value} for p in self.pattern_library.search(keyword)]
+        return [
+            {"name": p.name, "category": p.category.value}
+            for p in self.pattern_library.search(keyword)
+        ]  # noqa: E501
 
     async def _execute(self, context: TaskContext) -> TaskResult:
         if not _PATTERNS_AVAILABLE:
@@ -158,7 +161,9 @@ class DigitalWorkerAgent(BaseAgent):
                 return TaskResult(
                     task_id=context.task_id,
                     agent_id=self.agent_id,
-                    outcome=(ExecutionOutcome.SUCCESS if result.success else ExecutionOutcome.PARTIAL),
+                    outcome=(
+                        ExecutionOutcome.SUCCESS if result.success else ExecutionOutcome.PARTIAL
+                    ),  # noqa: E501
                     data={
                         "answer": result.answer,
                         "pattern": "ReAct",

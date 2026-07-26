@@ -107,7 +107,9 @@ class TokenSaverAgent:
 
         self._client: Any = None  # lazy-initialized on first API call
         if not _SDK_AVAILABLE:
-            logger.warning("anthropic SDK not installed — only cached answers will work. Run: pip install anthropic")
+            logger.warning(
+                "anthropic SDK not installed — only cached answers will work. Run: pip install anthropic"  # noqa: E501
+            )  # noqa: E501
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -184,7 +186,9 @@ class TokenSaverAgent:
             "tokens_saved": self._total_tokens_saved,
             "savings_pct": (
                 round(
-                    self._total_tokens_saved / max(1, self._total_tokens_used + self._total_tokens_saved) * 100,
+                    self._total_tokens_saved
+                    / max(1, self._total_tokens_used + self._total_tokens_saved)
+                    * 100,  # noqa: E501
                     1,
                 )
             ),
@@ -227,7 +231,9 @@ class TokenSaverAgent:
             messages=[{"role": "user", "content": question}],
         )
 
-        answer = "".join(b.text for b in response.content if hasattr(b, "text") and b.type == "text")
+        answer = "".join(
+            b.text for b in response.content if hasattr(b, "text") and b.type == "text"
+        )  # noqa: E501
         tokens = response.usage.input_tokens + response.usage.output_tokens
         self._total_tokens_used += tokens
 

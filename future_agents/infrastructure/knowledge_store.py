@@ -116,6 +116,8 @@ class KnowledgeStore:
             "total_entries": len(entries),
             "domains": list(self._domain_index.keys()),
             "avg_confidence": (sum(e.confidence for e in entries) / len(entries) if entries else 0),
-            "avg_usefulness": (sum(e.usefulness_score for e in entries) / len(entries) if entries else 0),
+            "avg_usefulness": (
+                sum(e.usefulness_score for e in entries) / len(entries) if entries else 0
+            ),  # noqa: E501
             "stale_count": len(self.stale_entries()),
         }

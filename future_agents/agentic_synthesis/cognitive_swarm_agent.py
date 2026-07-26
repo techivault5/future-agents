@@ -87,7 +87,9 @@ class CognitiveSwarmAgent(BaseAgent):
 
         # Recall relevant memories to enrich context
         memories = self._memory.recall(task, top_k=3)
-        mem_ctx: dict[str, Any] = {f"memory_{i}": m.entry.content[:200] for i, m in enumerate(memories)}
+        mem_ctx: dict[str, Any] = {
+            f"memory_{i}": m.entry.content[:200] for i, m in enumerate(memories)
+        }  # noqa: E501
 
         decision = self._router.route(task, task_id=context.task_id, hints=params.get("hints", {}))
         result_data: dict[str, Any] = {
@@ -164,7 +166,9 @@ class CognitiveSwarmAgent(BaseAgent):
                 importance=0.6,
             )
 
-        self._router.record_outcome(task_id=context.task_id, decision=decision, outcome=outcome.value)
+        self._router.record_outcome(
+            task_id=context.task_id, decision=decision, outcome=outcome.value
+        )  # noqa: E501
 
         return TaskResult(
             task_id=context.task_id,

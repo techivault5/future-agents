@@ -40,7 +40,11 @@ class WorkflowStore:
             workflows = [w for w in workflows if any(t in w.tags for t in tags)]
         if q:
             q_lower = q.lower()
-            workflows = [w for w in workflows if q_lower in w.name.lower() or q_lower in w.description.lower()]
+            workflows = [
+                w
+                for w in workflows
+                if q_lower in w.name.lower() or q_lower in w.description.lower()
+            ]
         return sorted(workflows, key=lambda w: w.updated_at, reverse=True)
 
     def update(self, workflow_id: str, **fields) -> Optional[WorkflowDefinition]:

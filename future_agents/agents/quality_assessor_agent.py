@@ -141,7 +141,12 @@ class QualityAssessorAgent(BaseAgent):
                 for s in slides[:3]
             )
             has_summary = any(
-                any("summary" in str(shape.text).lower() for shape in s.shapes if shape.has_text_frame) for s in slides
+                any(
+                    "summary" in str(shape.text).lower()
+                    for shape in s.shapes
+                    if shape.has_text_frame
+                )
+                for s in slides
             )
             has_qa = any(
                 any(
@@ -152,7 +157,11 @@ class QualityAssessorAgent(BaseAgent):
                 for s in slides
             )
             has_architecture = any(
-                any("architect" in str(shape.text).lower() for shape in s.shapes if shape.has_text_frame)
+                any(
+                    "architect" in str(shape.text).lower()
+                    for shape in s.shapes
+                    if shape.has_text_frame
+                )
                 for s in slides
             )
             shape_count = sum(len(s.shapes) for s in slides)
@@ -198,7 +207,9 @@ class QualityAssessorAgent(BaseAgent):
             h2 = [h for h in headings if h.style.name == "Heading 2"]
             tables = doc.tables
 
-            has_toc = any("contents" in p.text.lower() or "toc" in p.text.lower() for p in doc.paragraphs[:10])
+            has_toc = any(
+                "contents" in p.text.lower() or "toc" in p.text.lower() for p in doc.paragraphs[:10]
+            )
             has_summary = any("summary" in p.text.lower() for p in doc.paragraphs)
             has_header = bool(doc.sections and doc.sections[0].header.paragraphs)
             has_footer = bool(doc.sections and doc.sections[0].footer.paragraphs)
@@ -225,7 +236,6 @@ class QualityAssessorAgent(BaseAgent):
         try:
             # Basic PDF inspection without heavy deps
             raw = path.read_bytes()
-            raw[:8192].decode("latin-1", errors="ignore")
 
             is_valid_pdf = raw[:4] == b"%PDF"
             # Count /Type /Page occurrences — standard page marker in all PDF generators
@@ -372,9 +382,13 @@ class QualityAssessorAgent(BaseAgent):
                 criteria = RUBRIC[dim]["criteria"]
                 feedback.append(f"[{dim.upper()}] Score {score:.1f}/10 — Focus on: {criteria[0]}")
             elif score >= 9.0:
-                feedback.append(f"[{dim.upper()}] Score {score:.1f}/10 — Excellent. Keep this standard.")
+                feedback.append(
+                    f"[{dim.upper()}] Score {score:.1f}/10 — Excellent. Keep this standard."
+                )
             else:
-                feedback.append(f"[{dim.upper()}] Score {score:.1f}/10 — Good. Minor refinements possible.")
+                feedback.append(
+                    f"[{dim.upper()}] Score {score:.1f}/10 — Good. Minor refinements possible."
+                )
 
         if file_type == "pptx":
             if not meta.get("has_toc"):
@@ -386,13 +400,17 @@ class QualityAssessorAgent(BaseAgent):
 
         elif file_type == "docx":
             if not meta.get("has_toc"):
-                feedback.append("ACTION: Insert a Table of Contents (Ctrl+A, F9 to update in Word).")
+                feedback.append(
+                    "ACTION: Insert a Table of Contents (Ctrl+A, F9 to update in Word)."
+                )
             if not meta.get("has_header") or not meta.get("has_footer"):
                 feedback.append("ACTION: Add consistent headers and footers with page numbers.")
 
         elif file_type == "pdf":
             if not meta.get("has_images"):
-                feedback.append("ACTION: Add background imagery — set UNSPLASH_ACCESS_KEY or PEXELS_API_KEY.")
+                feedback.append(
+                    "ACTION: Add background imagery — set UNSPLASH_ACCESS_KEY or PEXELS_API_KEY."
+                )
             if not meta.get("has_bookmarks"):
                 feedback.append("ACTION: Add PDF bookmarks/outlines for navigation.")
 

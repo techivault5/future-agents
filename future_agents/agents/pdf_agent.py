@@ -136,7 +136,10 @@ class PDFAgent(BaseAgent):
         try:
             import urllib.parse
 
-            url = f"https://api.pexels.com/v1/search?query={urllib.parse.quote(query)}&per_page=1&orientation=landscape"
+            url = (
+                f"https://api.pexels.com/v1/search"
+                f"?query={urllib.parse.quote(query)}&per_page=1&orientation=landscape"
+            )
             req = urllib.request.Request(url, headers={"Authorization": key})
             with urllib.request.urlopen(req, timeout=8) as resp:
                 import json
@@ -195,7 +198,9 @@ class PDFAgent(BaseAgent):
         canvas.rect(0, 0, width, height, fill=1, stroke=0)
 
     @staticmethod
-    def _draw_chapter_header_stripe(canvas, y: float, width: float, color_rgb: tuple, height: float = 4):
+    def _draw_chapter_header_stripe(
+        canvas, y: float, width: float, color_rgb: tuple, height: float = 4
+    ):
         canvas.setFillColorRGB(*color_rgb)
         canvas.rect(0, y, width, height, fill=1, stroke=0)
 
@@ -209,7 +214,8 @@ class PDFAgent(BaseAgent):
             subtitle       (str): Optional subtitle
             author         (str): Author name
             organization   (str): Organization
-            people_type    (str): professionals|healthcare|community|technology|education|leadership|general
+            people_type    (str): professionals|healthcare|community|technology|education|
+                                  leadership|general
             color_theme    (str): professional|health|corporate|tech
             chapters       (list[dict]): Each has:
                              - title (str)
@@ -221,23 +227,7 @@ class PDFAgent(BaseAgent):
             output_name    (str): Filename without extension
         """
         try:
-            from reportlab.lib import colors
-            from reportlab.lib.colors import Color, HexColor, black, white
-            from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
             from reportlab.lib.pagesizes import A4
-            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-            from reportlab.lib.units import cm, mm
-            from reportlab.pdfgen import canvas as rl_canvas
-            from reportlab.platypus import (
-                KeepTogether,
-                PageBreak,
-                Paragraph,
-                SimpleDocTemplate,
-                Spacer,
-                Table,
-                TableStyle,
-            )
-            from reportlab.platypus.flowables import HRFlowable
         except ImportError:
             return TaskResult(
                 task_id=context.task_id,
@@ -245,11 +235,6 @@ class PDFAgent(BaseAgent):
                 outcome=ExecutionOutcome.FAILURE,
                 errors=["reportlab not installed. Run: pip install reportlab"],
             )
-
-        try:
-            from PIL import Image
-        except ImportError:
-            pass
 
         p = context.parameters
         title = p.get("title", "Professional Report")
@@ -281,7 +266,6 @@ class PDFAgent(BaseAgent):
         from reportlab.lib.units import cm
         from reportlab.pdfgen import canvas as rl_canvas
 
-        io.BytesIO()
         c = rl_canvas.Canvas(str(out_path), pagesize=A4)
         c.setTitle(title)
         c.setAuthor(author)
@@ -310,7 +294,9 @@ class PDFAgent(BaseAgent):
                 from reportlab.lib.utils import ImageReader
 
                 img_reader = ImageReader(tmp)
-                canvas_obj.drawImage(img_reader, 0, 0, width, height, preserveAspectRatio=False, mask=None)
+                canvas_obj.drawImage(
+                    img_reader, 0, 0, width, height, preserveAspectRatio=False, mask=None
+                )
             except Exception as exc:
                 logger.debug("Image draw failed: %s", exc)
                 r, g, b = light
@@ -455,7 +441,15 @@ class PDFAgent(BaseAgent):
                 from reportlab.lib.utils import ImageReader
 
                 ir = ImageReader(tmp)
-                c.drawImage(ir, 0, page_h - 1.2 * cm - banner_h, page_w, banner_h, preserveAspectRatio=False, mask=None)
+                c.drawImage(
+                    ir,
+                    0,
+                    page_h - 1.2 * cm - banner_h,
+                    page_w,
+                    banner_h,
+                    preserveAspectRatio=False,
+                    mask=None,
+                )
                 c.setFillColorRGB(0, 0, 0, alpha=0.5)
                 c.rect(0, page_h - 1.2 * cm - banner_h, page_w, banner_h, fill=1, stroke=0)
             except Exception:
@@ -465,8 +459,12 @@ class PDFAgent(BaseAgent):
         c.setFont("Helvetica-Bold", 28)
         c.drawCentredString(page_w / 2, page_h - 1.2 * cm - banner_h + 2.5 * cm, "Introduction")
 
-        intro_text = p.get("introduction", f"This report provides a comprehensive overview of {title}.")
-        self._draw_body_text(c, intro_text, 2 * cm, page_h - 1.2 * cm - banner_h - 1.5 * cm, page_w - 4 * cm, theme)
+        intro_text = p.get(
+            "introduction", f"This report provides a comprehensive overview of {title}."
+        )
+        self._draw_body_text(
+            c, intro_text, 2 * cm, page_h - 1.2 * cm - banner_h - 1.5 * cm, page_w - 4 * cm, theme
+        )
         c.showPage()
 
         # ── CHAPTER PAGES ─────────────────────────────────────────────
@@ -528,7 +526,9 @@ class PDFAgent(BaseAgent):
             content_y = page_h - 2.5 * cm
 
             if chap_content:
-                content_y = self._draw_body_text(c, chap_content, 2 * cm, content_y, page_w - 4 * cm, theme)
+                content_y = self._draw_body_text(
+                    c, chap_content, 2 * cm, content_y, page_w - 4 * cm, theme
+                )
 
             # Subsections
             for sec in chap_sections:
@@ -554,7 +554,9 @@ class PDFAgent(BaseAgent):
                 content_y -= 0.5 * cm
 
                 if sec_content:
-                    content_y = self._draw_body_text(c, sec_content, 2 * cm, content_y, page_w - 4 * cm, theme)
+                    content_y = self._draw_body_text(
+                        c, sec_content, 2 * cm, content_y, page_w - 4 * cm, theme
+                    )
 
             # Bullets
             for bullet in chap_bullets:
@@ -612,11 +614,9 @@ class PDFAgent(BaseAgent):
                 "theme": theme_name,
                 "people_type": people_type,
                 "chapters": [c.get("title", "") for c in chapters],
-                "image_source": (
-                    "unsplash/pexels"
-                    if os.environ.get("UNSPLASH_ACCESS_KEY") or os.environ.get("PEXELS_API_KEY")
-                    else "generated_gradient"
-                ),
+                "image_source": "unsplash/pexels"
+                if os.environ.get("UNSPLASH_ACCESS_KEY") or os.environ.get("PEXELS_API_KEY")
+                else "generated_gradient",
             },
         )
 

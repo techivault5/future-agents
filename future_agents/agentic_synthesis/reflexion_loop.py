@@ -41,7 +41,7 @@ class ReflexionResult:
     def summary(self) -> str:
         lines = [
             f"Task     : {self.task[:80]}",
-            f"Attempts : {self.attempts}  Best score: {self.best_score:.2f}  Success: {self.success}",
+            f"Attempts : {self.attempts}  Best score: {self.best_score:.2f}  Success: {self.success}",  # noqa: E501
         ]
         for t in self.traces:
             lines.append(f"  [{t.attempt}] score={t.score:.2f} — {t.reflection[:100]}")
@@ -135,7 +135,9 @@ class ReflexionLoop:
                 f"  Attempt {i + 1}: {r}" for i, r in enumerate(prior_reflections)
             )
 
-        ctx_block = "\n".join(f"  {k}: {str(v)[:200]}" for k, v in context.items()) if context else ""
+        ctx_block = (
+            "\n".join(f"  {k}: {str(v)[:200]}" for k, v in context.items()) if context else ""
+        )  # noqa: E501
 
         prompt = f"Task: {task}\n{ctx_block}{reflection_block}\n\nProvide your best response."
         try:
@@ -184,7 +186,9 @@ class ReflexionLoop:
         except Exception as exc:
             return f"Eval error: {exc}", 0.5, 0
 
-    async def _reflect(self, task: str, action: str, evaluation: str, score: float) -> tuple[str, int]:
+    async def _reflect(
+        self, task: str, action: str, evaluation: str, score: float
+    ) -> tuple[str, int]:  # noqa: E501
         if self._client is None:
             return f"[stub reflection, score={score:.2f}]", 0
 

@@ -55,11 +55,17 @@ _TOOLS: list[dict] = [
                 },
                 "domain": {
                     "type": "string",
-                    "description": "Optional domain hint: frontend | backend | devops | security | data | mobile | ml | cloud",  # noqa: E501
+                    "description": (
+                        "Optional domain hint: frontend | backend | devops | security "
+                        "| data | mobile | ml | cloud"
+                    ),
                 },
                 "seniority": {
                     "type": "string",
-                    "description": "Optional seniority preference: intern | junior | mid-level | senior | principal | architect",  # noqa: E501
+                    "description": (
+                        "Optional seniority preference: intern | junior | mid-level "
+                        "| senior | principal | architect"
+                    ),
                 },
                 "top_k": {
                     "type": "integer",
@@ -122,7 +128,10 @@ _TOOLS: list[dict] = [
                 },
                 "profile": {
                     "type": "string",
-                    "description": "Guardrails profile: standard | strict | relaxed | architect (default standard)",
+                    "description": (
+                        "Guardrails profile: standard | strict | relaxed | architect "
+                        "(default standard)"
+                    ),
                     "default": "standard",
                 },
             },
@@ -373,7 +382,9 @@ class MCPServer:
         if resp.matched_agents and len(resp.matched_agents) > 1:
             parts.append("\n---\n## Other Candidate Agents")
             for a in resp.matched_agents[1:]:
-                parts.append(f"- **{a.agent_name}** (`{a.role}`, {a.seniority}) — {a.match_score:.0%}")
+                parts.append(
+                    f"- **{a.agent_name}** (`{a.role}`, {a.seniority}) — {a.match_score:.0%}"
+                )
 
         return "\n".join(parts)
 
@@ -460,7 +471,9 @@ class MCPServer:
                 raise ValueError(f"Template '{template_id}' not found. Available: {available}")
 
             engine = WorkflowEngine()
-            execution = asyncio.run(engine.execute(template.workflow, trigger_data=args.get("input_data")))
+            execution = asyncio.run(
+                engine.execute(template.workflow, trigger_data=args.get("input_data"))
+            )
         except ImportError as exc:
             return f"Workflow engine not available: {exc}"
 
@@ -477,7 +490,8 @@ class MCPServer:
             for ne in execution.node_executions:
                 icon = "✅" if str(ne.status).endswith("SUCCESS") else "❌"
                 lines.append(
-                    f"{icon} **{ne.node_name}** (`{ne.node_type}`) → port: `{ne.output_port}` ({ne.duration_ms:.0f}ms)"
+                    f"{icon} **{ne.node_name}** (`{ne.node_type}`) "
+                    f"→ port: `{ne.output_port}` ({ne.duration_ms:.0f}ms)"
                 )
                 if ne.error:
                     lines.append(f"   Error: {ne.error}")

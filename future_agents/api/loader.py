@@ -319,7 +319,9 @@ def load_templates() -> list[dict[str, Any]]:
     for tdir in sorted(TEMPLATES_DIR.iterdir()):
         if not tdir.is_dir():
             continue
-        files = [str(p.relative_to(tdir)) for p in sorted(tdir.rglob("*")) if not p.name.startswith(".")]
+        files = [
+            str(p.relative_to(tdir)) for p in sorted(tdir.rglob("*")) if not p.name.startswith(".")
+        ]
         templates.append(
             {
                 "name": tdir.name,

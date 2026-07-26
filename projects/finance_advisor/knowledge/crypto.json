@@ -1,0 +1,35 @@
+{
+  "domain": "finance.crypto",
+  "entries": [
+    {
+      "title": "Crypto as an asset class — honest framing",
+      "content": "Bitcoin/major crypto are high-volatility speculative assets: multiple 70-80% drawdowns historically alongside massive rallies. Credible educators who allow crypto cap it at 5% (max 10% for high risk tolerance) of the portfolio, funded only after emergency fund, insurance, and core equity investing are in place, with money you can afford to lose entirely. Position it as asymmetric speculation, not a retirement plan. Bitcoin ≠ 'crypto': the long tail of altcoins and meme tokens has near-total historical failure rates.",
+      "tags": ["crypto", "bitcoin", "risk", "allocation", "speculation"],
+      "confidence": 0.9
+    },
+    {
+      "title": "India crypto tax — 30% flat, 1% TDS, no loss offset",
+      "content": "India taxes Virtual Digital Asset (VDA) gains at a flat 30% (plus surcharge/cess) with NO deduction except cost of acquisition, and NO offsetting of losses against other income or even between crypto trades. 1% TDS applies on transfers above thresholds. Budget 2026-27 kept both unchanged and tightened enforcement: from April 1, 2026 exchanges report user transactions directly to the Income Tax Department; non-reporting penalties ~₹200/day and wrong disclosure fines up to ₹50,000. Government has clarified no Bitcoin/crypto ETFs are under consideration for India. Practical effect: frequent trading is brutally tax-inefficient in India; if you hold crypto at all, buy-and-hold and report everything in ITR (Schedule VDA).",
+      "tags": ["crypto", "india", "tax", "tds", "vda", "compliance", "2026"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Crypto custody and security",
+      "content": "Exchange risk is real (Mt. Gox, FTX): 'not your keys, not your coins.' For meaningful holdings use a hardware wallet; write the seed phrase on paper/steel, never photograph or cloud-store it; anyone with the phrase owns the funds. Use dedicated email + strongest 2FA (hardware key, not SMS) for exchanges. In India, prefer FIU-registered exchanges for on/off ramps. Never share screens or install 'support' software; no legitimate party ever asks for your seed phrase.",
+      "tags": ["crypto", "security", "custody", "hardware-wallet", "exchange-risk"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Crypto scam patterns",
+      "content": "Dominant patterns: pig-butchering (long romance/friendship con ending in fake trading platforms), guaranteed-yield schemes (fixed daily/monthly returns = Ponzi marker), fake celebrity/guru endorsements and deepfake videos, airdrop/seed-phrase phishing, pump-and-dump Telegram groups, and rug-pull tokens. Tests: guaranteed returns = scam; pressure/urgency = scam; can't withdraw without paying 'tax/fee' first = scam. Recovery services that promise to get scammed funds back are themselves scams.",
+      "tags": ["crypto", "scams", "pig-butchering", "ponzi", "fraud"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Global crypto access routes (context)",
+      "content": "In the US, spot Bitcoin and Ether ETFs (approved 2024) let investors take exposure inside brokerage/retirement accounts without custody risk — this is the mainstream route there. India has no crypto ETFs and none under consideration; routes are FIU-registered exchanges (direct holding, 30%/1% TDS regime applies). Some Indian investors get indirect exposure via US-listed crypto-adjacent equities in international funds — understand that this is equity risk plus crypto correlation, and international investing has its own LRS/TCS implications.",
+      "tags": ["crypto", "etf", "bitcoin", "india", "global"],
+      "confidence": 0.8
+    }
+  ]
+}

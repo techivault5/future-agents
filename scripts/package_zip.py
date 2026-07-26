@@ -43,7 +43,10 @@ def generate_agents(root: Path):
     """Run the agent generator script."""
     print("Generating 10,000 IT agents...")
     result = subprocess.run(
-        [sys.executable, str(root / "scripts" / "generate_agents.py")], cwd=str(root), capture_output=True, text=True
+        [sys.executable, str(root / "scripts" / "generate_agents.py")],
+        cwd=str(root),
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         print(f"Agent generation failed: {result.stderr}")

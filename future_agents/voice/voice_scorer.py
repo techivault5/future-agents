@@ -149,7 +149,9 @@ class VoiceScorer:
         mos_score, mos_details = await self._score_mos(synth_path)
 
         # Composite
-        composite = round(speaker_score * W_SPEAKER + prosody_score * W_PROSODY + mos_score * W_MOS, 3)
+        composite = round(
+            speaker_score * W_SPEAKER + prosody_score * W_PROSODY + mos_score * W_MOS, 3
+        )
 
         score = VoiceScore(
             speaker_similarity=speaker_score,

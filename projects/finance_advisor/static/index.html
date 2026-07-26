@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance Advisor</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232322;
+    --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --series-2: #008300; --series-4: #c98500;
+    --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+    --up: #0ca30c; --down: #e66767;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f0efec;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6; --series-2: #008300; --series-4: #eda100;
+    --up: #006300; --down: #d03b3b;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 20px; max-width: 1180px; margin: 0 auto;
+  }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  h1 { font-size: 22px; font-weight: 650; }
+  h2 { font-size: 15px; font-weight: 650; margin: 26px 0 10px; }
+  .sub { color: var(--muted); font-size: 12px; }
+  .fx { margin-left: auto; color: var(--ink-2); font-size: 12px; }
+  .disclaimer {
+    font-size: 12px; color: var(--muted); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; margin: 10px 0 4px; background: var(--surface);
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .card .name { color: var(--ink-2); font-size: 12.5px; }
+  .card .price { font-size: 26px; font-weight: 650; margin: 2px 0; }
+  .delta { font-size: 12.5px; font-weight: 600; }
+  .delta.up { color: var(--up); } .delta.down { color: var(--down); }
+  .meta { color: var(--muted); font-size: 11.5px; margin-top: 2px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 650;
+    border-radius: 999px; padding: 2px 10px; border: 1px solid var(--border); margin-top: 8px;
+  }
+  .badge.dip-watch { color: var(--good); }
+  .badge.extended  { color: var(--warning); }
+  .badge.neutral, .badge.unknown { color: var(--muted); }
+  .outlook { font-size: 12px; color: var(--ink-2); margin-top: 8px; border-top: 1px solid var(--grid); padding-top: 8px; }
+  .spark { display: block; margin-top: 8px; width: 100%; height: 46px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 14px; font-size: 13px; border-bottom: 1px solid var(--grid); }
+  th { color: var(--muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
+  td.num { font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 12px; }
+  .bar-row { display: grid; grid-template-columns: 190px 1fr 52px; align-items: center; gap: 8px; font-size: 12.5px; padding: 3px 0; }
+  .bar-track { height: 14px; position: relative; }
+  .bar-fill { height: 14px; background: var(--series-1); border-radius: 0 4px 4px 0; }
+  .bar-val { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .panel-head { font-weight: 650; margin-bottom: 6px; }
+  .panel-sub { font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tab {
+    background: var(--surface); color: var(--ink-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 14px; font-size: 12.5px; cursor: pointer;
+  }
+  .tab.active { color: var(--ink); border-color: var(--series-1); font-weight: 650; }
+  .tip { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .tip b { display: block; margin-bottom: 4px; font-size: 13px; }
+  .tip p { font-size: 12.5px; color: var(--ink-2); }
+  form.alert-form {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px;
+  }
+  select, input, button {
+    background: var(--surface-2); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 13px;
+  }
+  button.primary { background: var(--series-1); color: #fff; border: none; cursor: pointer; font-weight: 650; }
+  button.ghost { cursor: pointer; }
+  .alert-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 14px; margin-bottom: 6px; font-size: 13px; }
+  .alert-item .del { margin-left: auto; color: var(--critical); background: none; border: none; cursor: pointer; font-size: 13px; }
+  .preview { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; white-space: pre-line; }
+  #tooltip {
+    position: fixed; pointer-events: none; display: none; z-index: 10;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 4px 9px; font-size: 11.5px; color: var(--ink);
+  }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  #status { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="tooltip"></div>
+<header>
+  <h1>💰 Finance Advisor</h1>
+  <span class="sub" id="updated"></span>
+  <span class="fx" id="fx"></span>
+</header>
+<div class="disclaimer">⚠️ Educational dashboard. Signals are rule-based heuristics plus analyst opinions — <b>not licensed financial advice</b>. Verify against your own allocation plan before buying or selling anything.</div>
+<div class="toolbar">
+  <button class="ghost" onclick="loadAll()">↻ Refresh</button>
+  <button class="ghost" onclick="toggleTheme()">◐ Theme</button>
+  <span id="status"></span>
+</div>
+
+<h2>📈 Markets &amp; buy-window signals</h2>
+<div class="grid" id="quotes"></div>
+
+<h2>🇮🇳 Indian mutual funds — SIP watchlist (AMFI NAV)</h2>
+<div id="funds"></div>
+
+<h2>🏠 Property watch — India &amp; Ireland</h2>
+<div class="two-col" id="property"></div>
+
+<h2>💡 Guidance</h2>
+<div class="tabs" id="tabs"></div>
+<div class="grid" id="tips"></div>
+
+<h2>🔔 Alerts → email</h2>
+<form class="alert-form" id="alertForm" onsubmit="return createAlert(event)">
+  <select id="aAsset" required></select>
+  <select id="aCond" required></select>
+  <input id="aThresh" type="number" step="any" placeholder="Threshold (price or %)">
+  <input id="aEmail" type="email" placeholder="Email (blank = server default)">
+  <input id="aNote" placeholder="Note to self (optional)">
+  <button class="primary">＋ Create alert</button>
+</form>
+<div id="alerts"></div>
+<div class="toolbar">
+  <button class="ghost" onclick="previewAlerts()">▶ Test alerts now (no email)</button>
+</div>
+<div class="preview" id="preview"></div>
+<p class="sub" style="margin-top:18px">Email delivery runs on the scheduled worker (GitHub Actions <code>finance-alerts.yml</code>) using SMTP settings from repository secrets. Property indices are periodic official data (NHB RESIDEX, CSO), refreshed with the repo — not live feeds.</p>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = (n, cur) => n == null ? "—" :
+  (cur === "USD" ? "$" : cur === "INR" ? "₹" : "") + n.toLocaleString("en-IN", {maximumFractionDigits: 2});
+const badgeIcon = {"dip-watch": "▼", "extended": "▲", "neutral": "◆", "unknown": "?"};
+const badgeText = {"dip-watch": "DIP-WATCH · potential buy window", "extended": "EXTENDED · chasing risk", "neutral": "NEUTRAL", "unknown": "NO DATA"};
+
+function toggleTheme() {
+  const r = document.documentElement;
+  r.dataset.theme = r.dataset.theme === "light" ? "" : "light";
+}
+
+function sparkline(values, key) {
+  if (!values || values.length < 2) return "";
+  const w = 300, h = 46, pad = 2;
+  const min = Math.min(...values), max = Math.max(...values), span = (max - min) || 1;
+  const pts = values.map((v, i) => [
+    pad + i * (w - 2 * pad) / (values.length - 1),
+    h - pad - (v - min) / span * (h - 2 * pad)
+  ]);
+  const line = pts.map(p => p.map(x => x.toFixed(1)).join(",")).join(" ");
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" data-key="${key}" data-vals="${values.join("|")}"
+    onmousemove="sparkHover(event,this)" onmouseleave="hideTip()">
+    <polyline points="${line}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${pts[pts.length-1][0].toFixed(1)}" cy="${pts[pts.length-1][1].toFixed(1)}" r="3" fill="var(--series-1)"/>
+  </svg>`;
+}
+function sparkHover(ev, svg) {
+  const vals = svg.dataset.vals.split("|").map(Number);
+  const rect = svg.getBoundingClientRect();
+  const i = Math.min(vals.length - 1, Math.max(0, Math.round((ev.clientX - rect.left) / rect.width * (vals.length - 1))));
+  const daysAgo = vals.length - 1 - i;
+  const tip = $("tooltip");
+  tip.textContent = `${vals[i].toLocaleString("en-IN")} · ${daysAgo === 0 ? "latest" : daysAgo + " sessions ago"}`;
+  tip.style.display = "block";
+  tip.style.left = (ev.clientX + 12) + "px";
+  tip.style.top = (ev.clientY - 28) + "px";
+}
+function hideTip() { $("tooltip").style.display = "none"; }
+
+async function loadOverview() {
+  const d = await (await fetch("/api/overview")).json();
+  $("updated").textContent = "updated " + new Date().toLocaleTimeString();
+  if (d.fx.usd_inr) $("fx").textContent = `USD/INR ${d.fx.usd_inr}  ·  USD/EUR ${d.fx.usd_eur}`;
+  $("quotes").innerHTML = d.quotes.map(q => {
+    const chg = q.change_1d_pct;
+    const cls = chg == null ? "" : chg >= 0 ? "up" : "down";
+    const arrow = chg == null ? "" : chg >= 0 ? "↑" : "↓";
+    const inr = q.price_inr ? ` · ₹${q.price_inr.toLocaleString("en-IN")}` : "";
+    return `<div class="card">
+      <div class="name">${q.name}</div>
+      <div class="price">${fmt(q.price, q.currency)}<span class="sub">${inr}</span></div>
+      <span class="delta ${cls}">${arrow} ${chg == null ? "—" : Math.abs(chg).toFixed(2) + "% today"}</span>
+      <div class="meta">${q.pct_from_52w_high != null ? q.pct_from_52w_high.toFixed(1) + "% vs 52w-high" : ""}
+        ${q.change_30d_pct != null ? " · " + (q.change_30d_pct >= 0 ? "+" : "") + q.change_30d_pct.toFixed(1) + "% / 30d" : ""}</div>
+      ${sparkline(q.sparkline, q.key)}
+      <span class="badge ${q.signal}">${badgeIcon[q.signal] || ""} ${badgeText[q.signal] || q.signal} </span>
+      <div class="meta">${q.signal_reason || ""}</div>
+      ${q.outlook ? `<div class="outlook">🗞 ${q.outlook}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+
+async function loadFunds() {
+  const d = await (await fetch("/api/funds")).json();
+  if (!d.funds.length) { $("funds").innerHTML = '<p class="sub">AMFI NAV feed unavailable right now.</p>'; return; }
+  $("funds").innerHTML = `<table><tr><th>Fund</th><th>NAV (₹)</th><th>Date</th></tr>` +
+    d.funds.map(f => `<tr><td>${f.name}</td><td class="num">${f.nav.toLocaleString("en-IN")}</td><td>${f.date}</td></tr>`).join("") + "</table>";
+}
+
+function barPanel(title, headline, rows, labelKey) {
+  const max = Math.max(...rows.map(r => r.yoy_pct));
+  return `<div class="card"><div class="panel-head">${title}</div><div class="panel-sub">${headline}</div>` +
+    rows.map(r => `<div class="bar-row"><span>${r[labelKey]}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(r.yoy_pct / max * 100).toFixed(0)}%"></span></span>
+      <span class="bar-val">+${r.yoy_pct}%</span></div>`).join("") + `</div>`;
+}
+
+async function loadProperty() {
+  const d = await (await fetch("/api/property")).json();
+  $("property").innerHTML =
+    barPanel("🇮🇳 India — NHB RESIDEX, YoY", d.india.headline, d.india.cities, "city") +
+    barPanel("🇮🇪 Ireland — CSO RPPI, YoY", d.ireland.headline, d.ireland.regions, "region") +
+    `<div class="card"><div class="panel-head">Guidance</div>
+      <p class="sub" style="margin-bottom:8px">${d.india.guidance}</p>
+      <p class="sub">${d.ireland.guidance}</p>
+      <p class="sub" style="margin-top:8px">Data as of ${d.as_of}. ${d.note}</p></div>`;
+}
+
+const TOPICS = ["saving", "budgeting", "debt", "india", "trends"];
+let activeTopic = "saving";
+async function loadTips(topic) {
+  activeTopic = topic;
+  $("tabs").innerHTML = TOPICS.map(t =>
+    `<button class="tab ${t === topic ? "active" : ""}" onclick="loadTips('${t}')">${t}</button>`).join("");
+  const d = await (await fetch("/api/tips?topic=" + topic)).json();
+  $("tips").innerHTML = d.tips.map(t => `<div class="tip"><b>${t.title}</b><p>${t.content}</p></div>`).join("");
+}
+
+async function loadAlerts() {
+  const d = await (await fetch("/api/alerts")).json();
+  $("aAsset").innerHTML = Object.entries(d.assets).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  $("aCond").innerHTML = Object.entries(d.conditions).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  $("alerts").innerHTML = d.alerts.length ? d.alerts.map(a =>
+    `<div class="alert-item"><span>🔔</span><span><b>${d.assets[a.asset] || a.asset}</b> — ${d.conditions[a.condition] || a.condition}
+      ${a.threshold ? "· threshold " + a.threshold : ""} ${a.note ? "· “" + a.note + "”" : ""}
+      <span class="sub">→ ${a.email || "default email"}${a.last_triggered ? " · last fired " + a.last_triggered.slice(0, 10) : ""}</span></span>
+      <button class="del" onclick="delAlert('${a.id}')">✕ delete</button></div>`).join("")
+    : '<p class="sub">No alerts yet — create one above. Example: Gold ETF, "falls ≥10% below 52-week high", blank threshold ⇒ 10.</p>';
+}
+async function createAlert(ev) {
+  ev.preventDefault();
+  await fetch("/api/alerts", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({asset: $("aAsset").value, condition: $("aCond").value,
+      threshold: parseFloat($("aThresh").value || "0"), email: $("aEmail").value, note: $("aNote").value})});
+  $("aThresh").value = ""; $("aNote").value = "";
+  loadAlerts();
+  return false;
+}
+async function delAlert(id) { await fetch("/api/alerts/" + id, {method: "DELETE"}); loadAlerts(); }
+async function previewAlerts() {
+  $("preview").textContent = "Checking against live data…";
+  const d = await (await fetch("/api/alerts/preview", {method: "POST"})).json();
+  $("preview").textContent = d.triggered.length
+    ? d.triggered.map(t => "🔥 " + t.message).join("\n")
+    : `Checked ${d.checked} active rule(s) — nothing triggered right now.`;
+}
+
+async function loadAll() {
+  $("status").textContent = "loading…";
+  await Promise.allSettled([loadOverview(), loadFunds(), loadProperty(), loadTips(activeTopic), loadAlerts()]);
+  $("status").textContent = "";
+}
+loadAll();
+setInterval(loadOverview, 5 * 60 * 1000);
+</script>
+</body>
+</html>

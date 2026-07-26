@@ -240,7 +240,16 @@ TECH_ROLE_CATEGORIES = {
     },
     "platform-engineering": {
         "description": "Build internal developer platforms and golden paths",
-        "tech_stacks": ["backstage", "port", "cortex", "configure8", "kubernetes", "crossplane", "pulumi", "terraform"],
+        "tech_stacks": [
+            "backstage",
+            "port",
+            "cortex",
+            "configure8",
+            "kubernetes",
+            "crossplane",
+            "pulumi",
+            "terraform",
+        ],
         "skills": [
             "idp-design",
             "developer-experience",
@@ -313,7 +322,18 @@ TECH_ROLE_CATEGORIES = {
     },
     "security-engineering": {
         "description": "Design and implement security controls and processes",
-        "tech_stacks": ["siem", "soar", "edr", "xdr", "sase", "zero-trust", "identity", "pam", "dlp", "casb"],
+        "tech_stacks": [
+            "siem",
+            "soar",
+            "edr",
+            "xdr",
+            "sase",
+            "zero-trust",
+            "identity",
+            "pam",
+            "dlp",
+            "casb",
+        ],
         "skills": [
             "threat-modeling",
             "security-architecture",
@@ -331,7 +351,16 @@ TECH_ROLE_CATEGORIES = {
     },
     "appsec-engineering": {
         "description": "Embed security into software development lifecycle",
-        "tech_stacks": ["sast", "dast", "iast", "sca", "container-scanning", "secret-scanning", "api-security", "waf"],
+        "tech_stacks": [
+            "sast",
+            "dast",
+            "iast",
+            "sca",
+            "container-scanning",
+            "secret-scanning",
+            "api-security",
+            "waf",
+        ],
         "skills": [
             "secure-code-review",
             "threat-modeling",
@@ -348,7 +377,15 @@ TECH_ROLE_CATEGORIES = {
     },
     "cloud-security": {
         "description": "Secure cloud infrastructure and workloads",
-        "tech_stacks": ["aws-security", "azure-security", "gcp-security", "cspm", "cwpp", "cnapp", "ciem"],
+        "tech_stacks": [
+            "aws-security",
+            "azure-security",
+            "gcp-security",
+            "cspm",
+            "cwpp",
+            "cnapp",
+            "ciem",
+        ],
         "skills": [
             "cloud-iam",
             "cloud-networking-security",
@@ -798,7 +835,17 @@ TECH_ROLE_CATEGORIES = {
     },
     "performance-engineering": {
         "description": "Ensure systems meet performance, scalability and reliability targets",
-        "tech_stacks": ["jmeter", "k6", "locust", "gatling", "artillery", "wrk", "ab", "hey", "vegeta"],
+        "tech_stacks": [
+            "jmeter",
+            "k6",
+            "locust",
+            "gatling",
+            "artillery",
+            "wrk",
+            "ab",
+            "hey",
+            "vegeta",
+        ],
         "skills": [
             "load-testing",
             "stress-testing",
@@ -1068,7 +1115,17 @@ NON_TECH_ROLE_CATEGORIES = {
     },
     "compliance-management": {
         "description": "Ensure adherence to regulatory requirements and standards",
-        "frameworks": ["gdpr", "ccpa", "hipaa", "pci-dss", "sox", "iso27001", "nist-csf", "fedramp", "soc2"],
+        "frameworks": [
+            "gdpr",
+            "ccpa",
+            "hipaa",
+            "pci-dss",
+            "sox",
+            "iso27001",
+            "nist-csf",
+            "fedramp",
+            "soc2",
+        ],
         "skills": [
             "regulatory-mapping",
             "gap-assessment",
@@ -1325,7 +1382,12 @@ def sanitize(name: str) -> str:
 
 
 def generate_agent(
-    role_id: str, category: str, category_data: dict, variant: dict, agent_index: int, is_technical: bool
+    role_id: str,
+    category: str,
+    category_data: dict,
+    variant: dict,
+    agent_index: int,
+    is_technical: bool,
 ) -> dict:
     seniority = variant.get("seniority", "mid")
     industry = variant.get("industry", "")
@@ -1374,7 +1436,9 @@ def generate_agent(
         "guardrails_profile": "standard",
         "human_input_required": seniority in ["architect", "principal", "distinguished", "fellow"],
         "package_policy": "semver-minor-auto-upgrade",
-        "folder_structure_template": f"templates/project-structures/{primary_stack.split('-')[0]}-service"
+        "folder_structure_template": (
+            f"templates/project-structures/{primary_stack.split('-')[0]}-service"
+        )
         if is_technical
         else "templates/project-structures/generic-project",
         "created_by": "it-agents-generator-v1",
@@ -1401,7 +1465,14 @@ def generate_all_agents() -> list:
         for industry in [""] + INDUSTRIES[:5]:
             for cloud in [""] + CLOUD_PROVIDERS[:3]:
                 for extra in [""] + EXPERIENCE_VARIANTS[:4]:
-                    variants_pool.append({"seniority": seniority, "industry": industry, "cloud": cloud, "extra": extra})
+                    variants_pool.append(
+                        {
+                            "seniority": seniority,
+                            "industry": industry,
+                            "cloud": cloud,
+                            "extra": extra,
+                        }
+                    )
 
     variant_iter = itertools.cycle(variants_pool)
 
@@ -1442,7 +1513,13 @@ def save_agents(agents: list, output_dir: str):
 
     # Save master index
     index = [
-        {"id": a["id"], "name": a["name"], "role": a["role"], "type": a["type"], "seniority": a["seniority"]}
+        {
+            "id": a["id"],
+            "name": a["name"],
+            "role": a["role"],
+            "type": a["type"],
+            "seniority": a["seniority"],
+        }
         for a in agents
     ]
     with open(Path(output_dir) / "agents_index.json", "w") as f:

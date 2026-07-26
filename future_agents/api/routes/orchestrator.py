@@ -129,7 +129,9 @@ def ask(body: AskRequest) -> dict:
     return _response_dict(resp)
 
 
-@router.post("/api/orchestrator/find-agents", summary="Search the 10K catalog and return scored matches")
+@router.post(
+    "/api/orchestrator/find-agents", summary="Search the 10K catalog and return scored matches"
+)
 def find_agents(body: FindAgentsRequest) -> dict:
     if not body.task.strip():
         raise HTTPException(400, "task must not be empty")

@@ -1,0 +1,35 @@
+{
+  "domain": "finance.investing",
+  "entries": [
+    {
+      "title": "Index fund investing (the default answer)",
+      "content": "Low-cost, broad-market index funds (total market / S&P 500) are the consensus recommendation across nearly every credible educator (Bogleheads, Money Guy, Two Cents, Plain Bagel). Why: ~90% of active funds underperform their index over 15 years after fees; a 1% fee difference compounds to ~25% less wealth over 30 years. Look for expense ratios under 0.10%. Strategy: automate monthly buys (dollar-cost averaging), hold decades, ignore news. S&P 500 long-run average ~10% nominal / ~7% real, with big drawdowns along the way — volatility is the price of the return.",
+      "tags": ["investing", "index-funds", "expense-ratio", "dollar-cost-averaging", "bogleheads"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Retirement account order",
+      "content": "Common priority (mirrors Money Guy FOO): 1) 401(k)/403(b) up to full employer match — 50-100% instant return, never skip. 2) Max HSA if eligible (triple tax advantage: deductible in, grows tax-free, tax-free medical out). 3) Roth IRA (2026-era limits ~$7k; tax-free growth, contributions withdrawable anytime). 4) Back to 401(k) toward the annual max. 5) Taxable brokerage. Roth vs traditional: Roth favored when current tax rate is low (early career); traditional when high. Employer match beats debt payoff for anything but the worst-APR debt.",
+      "tags": ["investing", "retirement", "401k", "roth-ira", "hsa", "employer-match"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Compound growth — start early",
+      "content": "Money roughly doubles every ~10 years at 7% real returns (Rule of 72: 72/rate = doubling years). $500/mo from age 25 at 8% ≈ $1.55M at 65; the same from 35 ≈ $680K. The Money Guy: a single dollar invested at 20 can be worth ~$88 at retirement. Translation: time in the market beats timing the market, and starting small NOW beats starting big later.",
+      "tags": ["investing", "compound-interest", "rule-of-72", "time-horizon"],
+      "confidence": 0.95
+    },
+    {
+      "title": "What to avoid",
+      "content": "Consistent red flags across educators: day trading and options for beginners (retail day traders overwhelmingly lose), single-stock concentration, leverage/margin, whole life insurance sold as an investment (high fees; buy term and invest the difference), anything promising guaranteed high returns (fraud marker), FOMO assets bought at peak hype, and paying >1% AUM for advice a target-date fund replicates. Crypto: educators who allow it cap it at 5% of portfolio, treated as speculation not investment. If you can't explain it, don't buy it.",
+      "tags": ["investing", "risk", "day-trading", "whole-life", "scams", "crypto"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Invest vs pay off debt",
+      "content": "Compare guaranteed 'return' of payoff (the APR) vs expected market return (~7-10% pre-tax): debt >8-10% APR (all credit cards) → pay off first, always. Debt <4-5% (many mortgages, some auto/student) → investing likely wins mathematically; employer match wins over everything except payday-level debt. 5-8% zone → judgment call; splitting is fine. Money Guy caveat: low-rate mortgage prepayment is step 9 of 9 — last priority. Ramsey disagrees and clears all non-mortgage debt before investing; his case is behavioral, not mathematical.",
+      "tags": ["investing", "debt", "opportunity-cost", "employer-match"],
+      "confidence": 0.9
+    }
+  ]
+}

@@ -52,10 +52,18 @@ class SwarmResult:
 
 # Role-specific instructions (inspired by MetaGPT company roles)
 _ROLE_INSTRUCTIONS: dict[AgentRole, str] = {
-    AgentRole.RESEARCHER: ("Focus on gathering evidence, facts, and relevant context. Cite specifics."),
-    AgentRole.PLANNER: ("Focus on decomposing the task into clear, ordered steps. Prioritise structure."),
-    AgentRole.EXECUTOR: ("Focus on concrete, working implementation. Prefer actionable over abstract."),
-    AgentRole.CRITIC: ("Focus on flaws, edge cases, risks, and what could go wrong. Be constructive."),
+    AgentRole.RESEARCHER: (
+        "Focus on gathering evidence, facts, and relevant context. Cite specifics."
+    ),  # noqa: E501
+    AgentRole.PLANNER: (
+        "Focus on decomposing the task into clear, ordered steps. Prioritise structure."
+    ),  # noqa: E501
+    AgentRole.EXECUTOR: (
+        "Focus on concrete, working implementation. Prefer actionable over abstract."
+    ),  # noqa: E501
+    AgentRole.CRITIC: (
+        "Focus on flaws, edge cases, risks, and what could go wrong. Be constructive."
+    ),  # noqa: E501
     AgentRole.SYNTHESIZER: "Integrate all perspectives into one coherent, balanced final response.",
 }
 
@@ -97,7 +105,9 @@ class SwarmCoordinator:
             # Feed this round's answers into context for the next round
             spec.context = {
                 **spec.context,
-                "round_{}_answers".format(round_num): {v.role.value: v.answer[:200] for v in round_votes},
+                "round_{}_answers".format(round_num): {
+                    v.role.value: v.answer[:200] for v in round_votes
+                },  # noqa: E501
             }
 
         consensus, confidence = self._aggregate(all_votes)
@@ -111,9 +121,15 @@ class SwarmCoordinator:
             dissenting_views=dissenters,
         )
 
-    async def _run_role(self, role: AgentRole, task: str, context: dict, round_num: int) -> AgentVote:
+    async def _run_role(
+        self, role: AgentRole, task: str, context: dict, round_num: int
+    ) -> AgentVote:  # noqa: E501
         instruction = _ROLE_INSTRUCTIONS[role]
-        ctx_str = "\n".join(f"  {k}: {str(v)[:150]}" for k, v in context.items()) if context else "  (none)"
+        ctx_str = (
+            "\n".join(f"  {k}: {str(v)[:150]}" for k, v in context.items())
+            if context
+            else "  (none)"
+        )  # noqa: E501
 
         if self._client is None:
             return AgentVote(

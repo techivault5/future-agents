@@ -135,10 +135,16 @@ class VoiceProfile(BaseModel):
     accent: AccentType = AccentType.CUSTOM
 
     # ── Acoustic Parameters ────────────────────────────────────────
-    speaking_rate: float = Field(1.0, ge=0.5, le=2.5, description="Speech rate multiplier (1.0 = normal)")
-    pitch_offset: float = Field(0.0, ge=-12.0, le=12.0, description="Semitone pitch offset from neutral")
+    speaking_rate: float = Field(
+        1.0, ge=0.5, le=2.5, description="Speech rate multiplier (1.0 = normal)"
+    )
+    pitch_offset: float = Field(
+        0.0, ge=-12.0, le=12.0, description="Semitone pitch offset from neutral"
+    )
     energy: float = Field(0.8, ge=0.0, le=1.0, description="Energy/loudness normalised level")
-    pause_factor: float = Field(1.0, ge=0.5, le=2.0, description="Inter-phrase pause duration multiplier")
+    pause_factor: float = Field(
+        1.0, ge=0.5, le=2.0, description="Inter-phrase pause duration multiplier"
+    )
 
     # ── Emotion Blend ──────────────────────────────────────────────
     emotion_weights: EmotionWeight = Field(default_factory=EmotionWeight)
@@ -148,7 +154,8 @@ class VoiceProfile(BaseModel):
 
     # ── Engine Preferences ────────────────────────────────────────
     engine_preference: list[str] = Field(
-        default_factory=lambda: ["xtts", "openvoice", "elevenlabs"], description="Ordered list of TTS engines to try"
+        default_factory=lambda: ["xtts", "openvoice", "elevenlabs"],
+        description="Ordered list of TTS engines to try",
     )
     engine_config: dict[str, dict[str, Any]] = Field(
         default_factory=dict, description="Per-engine configuration overrides"

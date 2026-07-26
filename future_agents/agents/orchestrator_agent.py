@@ -38,7 +38,18 @@ _INDEX_FILE = _AGENTS_DIR / "agents_index.json"
 # ── Intent + domain keyword maps ─────────────────────────────────────────────
 
 _INTENT_KEYWORDS: dict[str, list[str]] = {
-    "code_review": ["review", "check", "audit", "analyse", "analyze", "lint", "quality", "clean", "smell", "refactor"],
+    "code_review": [
+        "review",
+        "check",
+        "audit",
+        "analyse",
+        "analyze",
+        "lint",
+        "quality",
+        "clean",
+        "smell",
+        "refactor",
+    ],
     "architecture": [
         "design",
         "architect",
@@ -102,7 +113,17 @@ _INTENT_KEYWORDS: dict[str, list[str]] = {
         "gcp",
         "azure",
     ],
-    "development": ["build", "create", "implement", "develop", "write", "code", "generate", "scaffold", "boilerplate"],
+    "development": [
+        "build",
+        "create",
+        "implement",
+        "develop",
+        "write",
+        "code",
+        "generate",
+        "scaffold",
+        "boilerplate",
+    ],
     "optimization": [
         "optim",
         "performance",
@@ -129,7 +150,17 @@ _INTENT_KEYWORDS: dict[str, list[str]] = {
         "jest",
         "spec",
     ],
-    "documentation": ["document", "readme", "docs", "comment", "explain", "api doc", "swagger", "openapi", "runbook"],
+    "documentation": [
+        "document",
+        "readme",
+        "docs",
+        "comment",
+        "explain",
+        "api doc",
+        "swagger",
+        "openapi",
+        "runbook",
+    ],
     "data": [
         "data",
         "pipeline",
@@ -393,14 +424,35 @@ _DOMAIN_KEYWORDS: dict[str, list[str]] = {
 _DOMAIN_ROLE_MAP: dict[str, list[str]] = {
     "frontend": ["frontend"],
     "backend": ["backend", "full-stack", "fullstack"],
-    "devops": ["devops", "platform-engineering", "site-reliability", "infrastructure", "cloud-engineering", "sre"],
+    "devops": [
+        "devops",
+        "platform-engineering",
+        "site-reliability",
+        "infrastructure",
+        "cloud-engineering",
+        "sre",
+    ],
     "security": ["security", "cybersecurity", "infosec", "appsec", "devsecops", "penetration"],
     # data-engineering listed first so pipeline questions rank above database-administration
-    "data": ["data-engineering", "analytics", "data-architect", "data-science", "database", "data-analyst"],
+    "data": [
+        "data-engineering",
+        "analytics",
+        "data-architect",
+        "data-science",
+        "database",
+        "data-analyst",
+    ],
     "mobile": ["mobile", "ios-development", "android-development"],
     "ml": ["machine-learning", "ml-engineering", "data-science", "ai-engineering", "mlops"],
     "cloud": ["cloud-engineering", "devops", "platform-engineering"],
-    "management": ["project-management", "product-management", "it-management", "program-management", "scrum", "agile"],
+    "management": [
+        "project-management",
+        "product-management",
+        "it-management",
+        "program-management",
+        "scrum",
+        "agile",
+    ],
 }
 
 # Intent → role keyword hints (secondary signal when domain is weak)
@@ -491,7 +543,10 @@ _ESCALATION_PATTERNS: list[re.Pattern] = [
 
 # Patterns that detect embedded secrets in code snippets
 _SECRET_PATTERNS: list[re.Pattern] = [
-    re.compile(r"(?:password|passwd|pwd)\s*[=:]\s*['\"](?!REPLACE_ME|your-|example|changeme)[^'\"]{6,}['\"]", re.I),
+    re.compile(
+        r"(?:password|passwd|pwd)\s*[=:]\s*['\"](?!REPLACE_ME|your-|example|changeme)[^'\"]{6,}['\"]",
+        re.I,
+    ),
     re.compile(r"(?:api[_-]?key|apikey)\s*[=:]\s*['\"][A-Za-z0-9_\-]{16,}['\"]", re.I),
     re.compile(r"(?:secret|token)\s*[=:]\s*['\"][A-Za-z0-9_\-]{16,}['\"]", re.I),
     re.compile(r"sk-[A-Za-z0-9]{32,}", re.I),  # OpenAI style
@@ -561,8 +616,16 @@ class OrchestratorAgent:
 
     GUARDRAILS_PROFILES = {
         "strict": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},
-        "standard": {"escalate_all_secrets": False, "block_prod_ops": False, "require_review": False},
-        "relaxed": {"escalate_all_secrets": False, "block_prod_ops": False, "require_review": False},
+        "standard": {
+            "escalate_all_secrets": False,
+            "block_prod_ops": False,
+            "require_review": False,
+        },
+        "relaxed": {
+            "escalate_all_secrets": False,
+            "block_prod_ops": False,
+            "require_review": False,
+        },
         "architect": {"escalate_all_secrets": True, "block_prod_ops": True, "require_review": True},
     }
 
@@ -956,7 +1019,12 @@ class OrchestratorAgent:
             if agent_seniority == target_seniority:
                 score += 20
                 reasons.append(f"seniority match: {agent_seniority}")
-            elif target_seniority == "intern" and agent_seniority in ("senior", "staff", "principal", "distinguished"):
+            elif target_seniority == "intern" and agent_seniority in (
+                "senior",
+                "staff",
+                "principal",
+                "distinguished",
+            ):
                 score -= 15  # over-qualified for a beginner question
             elif target_seniority == "senior" and agent_seniority == "intern":
                 score -= 10
@@ -1012,11 +1080,15 @@ class OrchestratorAgent:
         if agent_def:
             tools = agent_def.get("tools") or []
             if tools:
-                persona_lines.append(f"You are proficient with: {', '.join(str(t) for t in tools[:6])}.")
+                persona_lines.append(
+                    f"You are proficient with: {', '.join(str(t) for t in tools[:6])}."
+                )
 
             languages = agent_def.get("languages") or []
             if languages and languages != stack:
-                persona_lines.append(f"Languages you work in: {', '.join(str(lang) for lang in languages[:4])}.")
+                persona_lines.append(
+                    f"Languages you work in: {', '.join(str(lang) for lang in languages[:4])}."
+                )
 
         # Guardrails instructions
         persona_lines.append("")
@@ -1036,22 +1108,38 @@ class OrchestratorAgent:
             persona_lines.append("⚠️  ESCALATION REQUIRED: This request touches sensitive areas:")
             for reason in guardrails.escalation_reasons:
                 persona_lines.append(f"   - {reason}")
-            persona_lines.append("Acknowledge this and advise the user to involve appropriate stakeholders.")
+            persona_lines.append(
+                "Acknowledge this and advise the user to involve appropriate stakeholders."
+            )
 
         if guardrails.secrets_found:
             persona_lines.append("")
             persona_lines.append("🔴 SECRETS DETECTED in the user's question.")
-            persona_lines.append("Immediately point this out and advise removing credentials before sharing.")
+            persona_lines.append(
+                "Immediately point this out and advise removing credentials before sharing."
+            )
 
         # Intent-specific guidance
         intent_guidance = {
             "security": "Prioritise security best practices. Reference OWASP where relevant.",
-            "architecture": "Think in systems: consider scalability, fault tolerance, and maintainability.",
-            "code_review": "Be specific: cite line patterns, suggest concrete fixes, explain the 'why'.",
+            "architecture": (
+                "Think in systems: consider scalability, fault tolerance, and maintainability."
+            ),
+            "code_review": (
+                "Be specific: cite line patterns, suggest concrete fixes, explain the 'why'."
+            ),
             "debugging": "Follow systematic diagnosis: reproduce, isolate, hypothesise, verify.",
-            "deployment": "Consider rollback strategies, health checks, and zero-downtime approaches.",
-            "optimization": "Profile before optimising. Quote measurements. Prefer readability unless proven bottleneck.",  # noqa: E501
-            "testing": "Recommend arrange-act-assert. Aim for ≥80% coverage. Prefer unit over integration where possible.",  # noqa: E501
+            "deployment": (
+                "Consider rollback strategies, health checks, and zero-downtime approaches."
+            ),
+            "optimization": (
+                "Profile before optimising. Quote measurements. "
+                "Prefer readability unless proven bottleneck."
+            ),
+            "testing": (
+                "Recommend arrange-act-assert. Aim for ≥80% coverage. "
+                "Prefer unit over integration where possible."
+            ),
         }
         if intent in intent_guidance:
             persona_lines.append("")
@@ -1135,7 +1223,9 @@ class OrchestratorAgent:
         triggers = []
         if re.search(r"\b(payment|billing|credit.?card|pci|stripe|paypal)\b", text, re.I):
             triggers.append("Payment / financial data — PCI-DSS compliance required")
-        if re.search(r"\b(pii|phi|hipaa|personal.?data|patient|medical|health.?record)\b", text, re.I):
+        if re.search(
+            r"\b(pii|phi|hipaa|personal.?data|patient|medical|health.?record)\b", text, re.I
+        ):
             triggers.append("PII/PHI data — privacy review required")
         if re.search(r"\b(prod(uction)?)\s+(database|db|secret|credential|key)\b", text, re.I):
             triggers.append("Production credentials mentioned — ops approval required")
@@ -1150,7 +1240,9 @@ class OrchestratorAgent:
         if re.search(r"verify\s*=\s*false", text, re.I):
             warnings.append("SSL verification disabled (verify=False) — never use in production")
         if re.search(r"shell\s*=\s*true", text, re.I):
-            warnings.append("subprocess shell=True with potential user input — command injection risk")
+            warnings.append(
+                "subprocess shell=True with potential user input — command injection risk"
+            )
         if re.search(r"\beval\s*\(", text, re.I):
             warnings.append("eval() detected — ensure input is fully trusted and sanitised")
         if re.search(r"pickle\.loads?\(", text, re.I):
@@ -1158,12 +1250,16 @@ class OrchestratorAgent:
         sql_concat = (
             re.search(r"cursor\.execute\s*\([^\)]*\+", text, re.I)
             or re.search(r"(execute|query|select|insert|update|delete).*\+\s*\w", text, re.I)
-            or re.search(r"\+\s*(?:request|user|input|params|uid|id|name|email|var|data)\b", text, re.I)
+            or re.search(
+                r"\+\s*(?:request|user|input|params|uid|id|name|email|var|data)\b", text, re.I
+            )
         )
         if sql_concat:
             warnings.append("Possible SQL injection — use parameterised queries")
         if profile == "strict" and intent == "deployment":
-            warnings.append("Strict profile: deployment changes require peer review before applying")
+            warnings.append(
+                "Strict profile: deployment changes require peer review before applying"
+            )
         return warnings
 
     def _build_recommendations(self, intent: str, stack: list[str], profile: str) -> list[str]:
@@ -1211,7 +1307,9 @@ class OrchestratorAgent:
 
     # ── Confidence scoring ─────────────────────────────────────────────────────
 
-    def _compute_confidence(self, agents: list[AgentMatch], intent: str, domains: list[str]) -> float:
+    def _compute_confidence(
+        self, agents: list[AgentMatch], intent: str, domains: list[str]
+    ) -> float:
         if not agents:
             return 0.1
         top_score = agents[0].match_score

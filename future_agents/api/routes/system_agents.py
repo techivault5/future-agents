@@ -96,7 +96,7 @@ async def invoke_system_agent(agent_id: str, body: InvokeRequest) -> dict[str, A
         raise HTTPException(
             status_code=503,
             detail=(
-                f"System agent invoke failed: {exc}. Ensure the AgentSystem dependencies are installed and configured."
+                f"System agent invoke failed: {exc}. Ensure the AgentSystem dependencies are installed and configured."  # noqa: E501
             ),
         ) from exc
 

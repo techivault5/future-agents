@@ -93,7 +93,8 @@ def _tpl_guardrails_check() -> WorkflowTemplate:
         id="tpl-guardrails-pipeline",
         name="Guardrails Check Pipeline",
         description=(
-            "Run a guardrails check on code context. If violations are found, escalate; otherwise mark as clean."
+            "Run a guardrails check on code context. "
+            "If violations are found, escalate; otherwise mark as clean."
         ),
         category="guardrails",
         tags=["security", "guardrails", "if-condition"],
@@ -122,7 +123,10 @@ def _tpl_guardrails_check() -> WorkflowTemplate:
                     "Violations?",
                     600,
                     200,
-                    condition="{{ input.data.get('allowed', True) == False if isinstance(input, dict) else False }}",
+                    condition=(
+                        "{{ input.data.get('allowed', True) == False "
+                        "if isinstance(input, dict) else False }}"
+                    ),
                 ),
                 _node(
                     "n4",
@@ -164,7 +168,8 @@ def _tpl_capability_onboarding() -> WorkflowTemplate:
         id="tpl-capability-onboarding",
         name="New Employee Capability Onboarding",
         description=(
-            "Register a new employee's capabilities, analyse gaps against a target role, and log the growth plan."
+            "Register a new employee's capabilities, analyse gaps against "
+            "a target role, and log the growth plan."
         ),
         category="hr",
         tags=["capability", "knowledge", "onboarding"],
@@ -284,9 +289,33 @@ def _tpl_http_enrich() -> WorkflowTemplate:
                     200,
                     expression="{{ input.guardrails_profile }}",
                 ),
-                _node("n6", NodeType.SET, "Strict Path", 1350, 100, values={"path": "strict"}, mode="merge"),
-                _node("n7", NodeType.SET, "Standard Path", 1350, 200, values={"path": "standard"}, mode="merge"),
-                _node("n8", NodeType.SET, "Relaxed Path", 1350, 300, values={"path": "relaxed"}, mode="merge"),
+                _node(
+                    "n6",
+                    NodeType.SET,
+                    "Strict Path",
+                    1350,
+                    100,
+                    values={"path": "strict"},
+                    mode="merge",
+                ),
+                _node(
+                    "n7",
+                    NodeType.SET,
+                    "Standard Path",
+                    1350,
+                    200,
+                    values={"path": "standard"},
+                    mode="merge",
+                ),
+                _node(
+                    "n8",
+                    NodeType.SET,
+                    "Relaxed Path",
+                    1350,
+                    300,
+                    values={"path": "relaxed"},
+                    mode="merge",
+                ),
                 _node("n9", NodeType.MERGE, "Collect Results", 1600, 200),
             ],
             connections=[

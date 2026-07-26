@@ -115,7 +115,10 @@ def list_templates(
     ]
 
 
-@router.get("/api/workflows/templates/{template_id}", summary="Get a built-in template with full workflow JSON")
+@router.get(
+    "/api/workflows/templates/{template_id}",
+    summary="Get a built-in template with full workflow JSON",
+)
 def get_template(template_id: str) -> dict:
     tpl = TEMPLATES_BY_ID.get(template_id)
     if not tpl:
@@ -123,7 +126,9 @@ def get_template(template_id: str) -> dict:
     return tpl.model_dump()
 
 
-@router.get("/api/workflows/node-types", summary="Reference for all node types and their parameters")
+@router.get(
+    "/api/workflows/node-types", summary="Reference for all node types and their parameters"
+)
 def node_types() -> dict:
     return {
         "node_types": _NODE_TYPE_REFERENCE,
@@ -218,7 +223,9 @@ def workflow_executions(
     return execution_store.list_for_workflow(workflow_id, limit=limit)
 
 
-@router.get("/api/executions/{execution_id}", summary="Get full execution detail with per-node results")
+@router.get(
+    "/api/executions/{execution_id}", summary="Get full execution detail with per-node results"
+)
 def get_execution(execution_id: str) -> WorkflowExecution:
     ex = execution_store.get(execution_id)
     if not ex:
@@ -229,7 +236,10 @@ def get_execution(execution_id: str) -> WorkflowExecution:
 # ── Webhook trigger ─────────────────────────────────────────────────────────────
 
 
-@router.post("/api/webhooks/{workflow_id}", summary="Webhook trigger — execute workflow with POST body as input")
+@router.post(
+    "/api/webhooks/{workflow_id}",
+    summary="Webhook trigger — execute workflow with POST body as input",
+)
 async def webhook_trigger(workflow_id: str, body: Any = Body(default=None)) -> dict:
     wf = workflow_store.get(workflow_id)
     if not wf:
@@ -256,7 +266,10 @@ async def webhook_trigger(workflow_id: str, body: Any = Body(default=None)) -> d
 # ── From template ───────────────────────────────────────────────────────────────
 
 
-@router.post("/api/workflows/from-template/{template_id}", summary="Create a new workflow from a built-in template")
+@router.post(
+    "/api/workflows/from-template/{template_id}",
+    summary="Create a new workflow from a built-in template",
+)
 def create_from_template(template_id: str, name: Optional[str] = Query(None)) -> WorkflowDefinition:
     tpl = TEMPLATES_BY_ID.get(template_id)
     if not tpl:
@@ -281,15 +294,23 @@ def create_from_template(template_id: str, name: Optional[str] = Query(None)) ->
 _NODE_TYPE_REFERENCE = {
     "triggers": {
         NodeType.MANUAL: {
-            "description": "Entry point for manual / API-triggered executions. Passes input_data through.",
+            "description": (
+                "Entry point for manual / API-triggered executions. Passes input_data through."
+            ),
             "parameters": {},
         },
         NodeType.WEBHOOK: {
-            "description": "Entry point for HTTP POST webhook calls (/api/webhooks/{workflow_id}). Body becomes input_data.",  # noqa: E501
+            "description": (
+                "Entry point for HTTP POST webhook calls (/api/webhooks/{workflow_id}). "
+                "Body becomes input_data."
+            ),
             "parameters": {},
         },
         NodeType.SCHEDULE: {
-            "description": "Cron-based trigger (schedule management coming soon). For manual runs treated as MANUAL.",
+            "description": (
+                "Cron-based trigger (schedule management coming soon). "
+                "For manual runs treated as MANUAL."
+            ),
             "parameters": {
                 "cron": "Cron expression e.g. '0 9 * * 1-5'",
                 "timezone": "IANA timezone e.g. 'UTC'",
@@ -314,7 +335,10 @@ _NODE_TYPE_REFERENCE = {
             "outputs": {"main": "agent_id, agent_name, prompt, response, guardrails_profile"},
         },
         NodeType.SYSTEM_AGENT: {
-            "description": "Invoke a live system agent (capability, knowledge, policy, process, skills, master).",
+            "description": (
+                "Invoke a live system agent (capability, knowledge, policy, process, "
+                "skills, master)."
+            ),
             "parameters": {
                 "agent_id": "One of: capability | knowledge | policy | process | skills | master",
                 "intent": "Intent string e.g. 'capability.register'",
