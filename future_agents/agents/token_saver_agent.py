@@ -89,7 +89,7 @@ class TokenSaverAgent:
 
     def __init__(
         self,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         system: str = _DEFAULT_SYSTEM,
         memory_file: Path | str | None = None,
         fuzzy_threshold: float = 0.80,

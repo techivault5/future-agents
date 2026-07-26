@@ -41,7 +41,7 @@ class AIDiscoveryWorker(BaseWorker):
         event_bus: EventBus,
         source_root: Path,
         pattern_library: PatternLibrary | None = None,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         interval_seconds: int = 3600,
         **kwargs: Any,
     ) -> None:

@@ -16,7 +16,7 @@ Client (HTTP Request)
   AWS Lambda (Python)
         │
         ▼
-  Claude API (claude-opus-4-6)
+  Claude API (claude-opus-5)
         │
         ▼
   API Gateway Response
@@ -272,7 +272,7 @@ def handle_chat(event: dict) -> dict:
 
     # Use streaming internally with get_final_message() to avoid Lambda timeouts
     with client.messages.stream(
-        model="claude-opus-4-6",
+        model="claude-opus-5",
         max_tokens=max_tokens,
         system=system_prompt,
         thinking={"type": "adaptive"},
@@ -320,7 +320,7 @@ def handle_chat_stream(event: dict) -> dict:
     client = anthropic.Anthropic(api_key=get_api_key())
 
     with client.messages.stream(
-        model="claude-opus-4-6",
+        model="claude-opus-5",
         max_tokens=max_tokens,
         system=system_prompt,
         thinking={"type": "adaptive"},
@@ -374,7 +374,7 @@ def handle_summarize(event: dict) -> dict:
     client = anthropic.Anthropic(api_key=get_api_key())
 
     with client.messages.stream(
-        model="claude-opus-4-6",
+        model="claude-opus-5",
         max_tokens=1024,
         system=f"You are a summarization assistant. {style_instructions}",
         messages=[{"role": "user", "content": f"Summarize the following:\n\n{text}"}],
@@ -437,7 +437,7 @@ def handle_extract(event: dict) -> dict:
     import json as _json
 
     response = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-opus-5",
         max_tokens=1024,
         system=system_prompt,
         output_config={
