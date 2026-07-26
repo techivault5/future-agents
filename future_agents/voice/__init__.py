@@ -23,12 +23,12 @@ Quick start:
     # → my_voice.voicepack   (portable ZIP — no raw audio, just embedding)
 """
 
-from future_agents.voice.voice_profile import VoiceProfile, PersonalityType, AccentType
-from future_agents.voice.voice_registry import VoiceRegistry
-from future_agents.voice.voice_cloner import VoiceCloner, SynthesisResult
-from future_agents.voice.voice_scorer import VoiceScorer, VoiceScore
-from future_agents.voice.voice_agent import VoiceAgent
 from future_agents.voice.sample_processor import SampleProcessor
+from future_agents.voice.voice_agent import VoiceAgent
+from future_agents.voice.voice_cloner import SynthesisResult, VoiceCloner
+from future_agents.voice.voice_profile import AccentType, PersonalityType, VoiceProfile
+from future_agents.voice.voice_registry import VoiceRegistry
+from future_agents.voice.voice_scorer import VoiceScore, VoiceScorer
 
 __all__ = [
     "VoiceProfile",

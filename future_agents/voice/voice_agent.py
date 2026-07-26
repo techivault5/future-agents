@@ -28,14 +28,12 @@ Usage:
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Any, Optional
 
 from future_agents.core.base_agent import BaseAgent, TaskContext, TaskResult
-from future_agents.core.events import EventBus
 from future_agents.models.feedback import ExecutionOutcome
-from future_agents.voice.voice_profile import VoiceProfile
 from future_agents.voice.voice_cloner import VoiceCloner
+from future_agents.voice.voice_profile import VoiceProfile
 from future_agents.voice.voice_registry import VoiceRegistry
 
 logger = logging.getLogger(__name__)
@@ -82,7 +80,9 @@ class VoiceAgent(BaseAgent):
         await super().initialize()
         logger.info(
             "VoiceAgent '%s' ready — voice: '%s' (best score: %.1f/10)",
-            self.agent_id, self.voice_profile.name, self.voice_profile.best_score,
+            self.agent_id,
+            self.voice_profile.name,
+            self.voice_profile.best_score,
         )
 
     async def shutdown(self) -> None:
@@ -113,13 +113,16 @@ class VoiceAgent(BaseAgent):
             result.data["voice_engine"] = synth_result.engine
             result.data["voice_iterations"] = synth_result.iteration
 
-            await self.emit("agent.voice.synthesised", {
-                "task_id": context.task_id,
-                "profile_id": self.voice_profile.id,
-                "score": synth_result.score,
-                "engine": synth_result.engine,
-                "audio_path": str(synth_result.audio_path),
-            })
+            await self.emit(
+                "agent.voice.synthesised",
+                {
+                    "task_id": context.task_id,
+                    "profile_id": self.voice_profile.id,
+                    "score": synth_result.score,
+                    "engine": synth_result.engine,
+                    "audio_path": str(synth_result.audio_path),
+                },
+            )
 
         except Exception as e:
             logger.warning("Voice synthesis failed (non-fatal): %s", e)

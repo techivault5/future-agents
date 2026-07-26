@@ -20,8 +20,8 @@ import json
 import logging
 import re
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from collections import defaultdict, deque
 from datetime import datetime, timezone
 from typing import Any
@@ -39,15 +39,32 @@ logger = logging.getLogger(__name__)
 # ── Expression evaluation ─────────────────────────────────────────────────────
 
 _SAFE_BUILTINS: dict[str, Any] = {
-    "len": len, "str": str, "int": int, "float": float,
-    "bool": bool, "list": list, "dict": dict, "set": set,
-    "tuple": tuple, "range": range, "enumerate": enumerate,
-    "zip": zip, "map": map, "filter": filter,
-    "min": min, "max": max, "sum": sum,
-    "any": any, "all": all,
-    "sorted": sorted, "reversed": reversed,
-    "abs": abs, "round": round,
-    "True": True, "False": False, "None": None,
+    "len": len,
+    "str": str,
+    "int": int,
+    "float": float,
+    "bool": bool,
+    "list": list,
+    "dict": dict,
+    "set": set,
+    "tuple": tuple,
+    "range": range,
+    "enumerate": enumerate,
+    "zip": zip,
+    "map": map,
+    "filter": filter,
+    "min": min,
+    "max": max,
+    "sum": sum,
+    "any": any,
+    "all": all,
+    "sorted": sorted,
+    "reversed": reversed,
+    "abs": abs,
+    "round": round,
+    "True": True,
+    "False": False,
+    "None": None,
 }
 
 
@@ -57,8 +74,10 @@ def _eval_expr(expr: str, ctx_vars: dict) -> Any:
         # Validate AST before eval to block dangerous constructs
         tree = ast.parse(expr, mode="eval")
         for node in ast.walk(tree):
-            if isinstance(node, (ast.Import, ast.ImportFrom, ast.FunctionDef,
-                                  ast.AsyncFunctionDef, ast.ClassDef)):
+            if isinstance(
+                node,
+                (ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef),
+            ):
                 return expr
         return eval(expr, {"__builtins__": _SAFE_BUILTINS}, ctx_vars)  # noqa: S307
     except Exception:
@@ -72,10 +91,12 @@ def _resolve(value: Any, ctx_vars: dict) -> Any:
         m = re.fullmatch(r"\{\{\s*(.*?)\s*\}\}", value.strip())
         if m:
             return _eval_expr(m.group(1), ctx_vars)
+
         # Inline templates: replace each {{ … }} with its string representation
         def _sub(match: re.Match) -> str:
             result = _eval_expr(match.group(1).strip(), ctx_vars)
             return "" if result is None else str(result)
+
         return re.sub(r"\{\{(.*?)\}\}", _sub, value)
     if isinstance(value, dict):
         return {k: _resolve(v, ctx_vars) for k, v in value.items()}
@@ -85,6 +106,7 @@ def _resolve(value: Any, ctx_vars: dict) -> Any:
 
 
 # ── Execution context ─────────────────────────────────────────────────────────
+
 
 class _ExecCtx:
     """Mutable context threaded through a single workflow execution."""
@@ -98,8 +120,8 @@ class _ExecCtx:
         self.execution_id = execution_id
         self.workflow = workflow
         self.input_data = input_data
-        self._outputs: dict[str, Any] = {}   # node_id -> output data
-        self._ports: dict[str, str] = {}     # node_id -> output port used
+        self._outputs: dict[str, Any] = {}  # node_id -> output data
+        self._ports: dict[str, str] = {}  # node_id -> output port used
         self._by_id: dict[str, Any] = {n.id: n for n in workflow.nodes}
         self._by_name: dict[str, Any] = {n.name: n for n in workflow.nodes}
 
@@ -130,6 +152,7 @@ class _ExecCtx:
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+
 def _deep_merge(base: Any, patch: Any) -> Any:
     """Shallow merge: patch overrides keys in base dict."""
     if isinstance(base, dict) and isinstance(patch, dict):
@@ -140,6 +163,7 @@ def _deep_merge(base: Any, patch: Any) -> Any:
 
 
 # ── Engine ─────────────────────────────────────────────────────────────────────
+
 
 class WorkflowEngine:
     """Execute workflow definitions as directed acyclic graphs.
@@ -153,12 +177,14 @@ class WorkflowEngine:
         Path to the directory containing agent YAML files (for ``agent`` nodes).
     """
 
-    _TRIGGER_TYPES = frozenset({
-        NodeType.WEBHOOK,
-        NodeType.SCHEDULE,
-        NodeType.EVENT_TRIGGER,
-        NodeType.MANUAL,
-    })
+    _TRIGGER_TYPES = frozenset(
+        {
+            NodeType.WEBHOOK,
+            NodeType.SCHEDULE,
+            NodeType.EVENT_TRIGGER,
+            NodeType.MANUAL,
+        }
+    )
 
     def __init__(
         self,
@@ -229,8 +255,7 @@ class WorkflowEngine:
 
         # Nodes with no incoming edges, OR explicitly typed as triggers
         start_nodes = [
-            n for n in nodes_by_id.values()
-            if n.type in self._TRIGGER_TYPES or in_count[n.id] == 0
+            n for n in nodes_by_id.values() if n.type in self._TRIGGER_TYPES or in_count[n.id] == 0
         ]
         if not start_nodes:
             start_nodes = list(nodes_by_id.values())[:1]
@@ -245,9 +270,7 @@ class WorkflowEngine:
         }
 
         # BFS queue: (node, input_data)
-        queue: deque[tuple[Any, Any]] = deque(
-            (n, trigger_data) for n in start_nodes
-        )
+        queue: deque[tuple[Any, Any]] = deque((n, trigger_data) for n in start_nodes)
         visited: set[str] = set()
 
         while queue:
@@ -377,8 +400,9 @@ class WorkflowEngine:
 
         agent_def = None
         if self._agents_root and (agent_id or agent_role):
-            import yaml
             from pathlib import Path
+
+            import yaml
 
             root = Path(self._agents_root)
             if agent_id:
@@ -405,7 +429,9 @@ class WorkflowEngine:
                 else f"Agent '{agent_id or agent_role}' processed: {prompt}"
             ),
             "context": context,
-            "guardrails_profile": agent_def.get("guardrails_profile", "standard") if agent_def else "standard",
+            "guardrails_profile": agent_def.get("guardrails_profile", "standard")
+            if agent_def
+            else "standard",
         }
         return result, "main"
 
@@ -465,7 +491,6 @@ class WorkflowEngine:
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
                 raw = resp.read()
-                content_type = resp.headers.get("Content-Type", "")
                 status_code = resp.status
                 try:
                     response_body = json.loads(raw)
@@ -478,7 +503,6 @@ class WorkflowEngine:
             except json.JSONDecodeError:
                 response_body = raw.decode(errors="replace")
             status_code = exc.code
-            content_type = ""
 
         result = {
             "status_code": status_code,
@@ -600,7 +624,9 @@ class WorkflowEngine:
             for node in ast.walk(tree):
                 if isinstance(node, (ast.Import, ast.ImportFrom)):
                     raise ValueError("import statements are not allowed in code nodes")
-            exec(compile(tree, "<workflow_code>", "exec"), {"__builtins__": _SAFE_BUILTINS}, local_ns)  # noqa: S102
+            exec(
+                compile(tree, "<workflow_code>", "exec"), {"__builtins__": _SAFE_BUILTINS}, local_ns
+            )  # noqa: S102
         except Exception as exc:
             raise RuntimeError(f"code node error: {exc}") from exc
 

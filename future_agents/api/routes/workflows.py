@@ -30,7 +30,6 @@ from pydantic import BaseModel
 
 from future_agents.workflows.engine import WorkflowEngine
 from future_agents.workflows.models import (
-    ExecutionStatus,
     NodeType,
     WorkflowDefinition,
     WorkflowExecution,
@@ -47,6 +46,7 @@ _engine = WorkflowEngine(agents_root=_AGENTS_ROOT)
 
 
 # ── Request / response helpers ─────────────────────────────────────────────────
+
 
 class WorkflowCreateRequest(BaseModel):
     name: str
@@ -73,6 +73,7 @@ class ExecuteRequest(BaseModel):
 
 # ── CRUD ────────────────────────────────────────────────────────────────────────
 
+
 @router.post("/api/workflows", summary="Create a workflow")
 def create_workflow(body: WorkflowCreateRequest) -> WorkflowDefinition:
     wf = WorkflowDefinition(**body.model_dump())
@@ -90,7 +91,7 @@ def list_workflows(
     tag_list = [t.strip() for t in tags.split(",")] if tags else None
     results = workflow_store.list(tags=tag_list, active_only=active_only, q=q)
     total = len(results)
-    page = results[offset: offset + limit]
+    page = results[offset : offset + limit]
     return {"total": total, "offset": offset, "limit": limit, "workflows": page}
 
 
@@ -114,7 +115,10 @@ def list_templates(
     ]
 
 
-@router.get("/api/workflows/templates/{template_id}", summary="Get a built-in template with full workflow JSON")
+@router.get(
+    "/api/workflows/templates/{template_id}",
+    summary="Get a built-in template with full workflow JSON",
+)
 def get_template(template_id: str) -> dict:
     tpl = TEMPLATES_BY_ID.get(template_id)
     if not tpl:
@@ -122,7 +126,9 @@ def get_template(template_id: str) -> dict:
     return tpl.model_dump()
 
 
-@router.get("/api/workflows/node-types", summary="Reference for all node types and their parameters")
+@router.get(
+    "/api/workflows/node-types", summary="Reference for all node types and their parameters"
+)
 def node_types() -> dict:
     return {
         "node_types": _NODE_TYPE_REFERENCE,
@@ -188,6 +194,7 @@ def deactivate_workflow(workflow_id: str) -> WorkflowDefinition:
 
 # ── Execution ───────────────────────────────────────────────────────────────────
 
+
 @router.post("/api/workflows/{workflow_id}/execute", summary="Execute a workflow manually")
 async def execute_workflow(
     workflow_id: str,
@@ -216,7 +223,9 @@ def workflow_executions(
     return execution_store.list_for_workflow(workflow_id, limit=limit)
 
 
-@router.get("/api/executions/{execution_id}", summary="Get full execution detail with per-node results")
+@router.get(
+    "/api/executions/{execution_id}", summary="Get full execution detail with per-node results"
+)
 def get_execution(execution_id: str) -> WorkflowExecution:
     ex = execution_store.get(execution_id)
     if not ex:
@@ -226,7 +235,11 @@ def get_execution(execution_id: str) -> WorkflowExecution:
 
 # ── Webhook trigger ─────────────────────────────────────────────────────────────
 
-@router.post("/api/webhooks/{workflow_id}", summary="Webhook trigger — execute workflow with POST body as input")
+
+@router.post(
+    "/api/webhooks/{workflow_id}",
+    summary="Webhook trigger — execute workflow with POST body as input",
+)
 async def webhook_trigger(workflow_id: str, body: Any = Body(default=None)) -> dict:
     wf = workflow_store.get(workflow_id)
     if not wf:
@@ -252,17 +265,23 @@ async def webhook_trigger(workflow_id: str, body: Any = Body(default=None)) -> d
 
 # ── From template ───────────────────────────────────────────────────────────────
 
-@router.post("/api/workflows/from-template/{template_id}", summary="Create a new workflow from a built-in template")
+
+@router.post(
+    "/api/workflows/from-template/{template_id}",
+    summary="Create a new workflow from a built-in template",
+)
 def create_from_template(template_id: str, name: Optional[str] = Query(None)) -> WorkflowDefinition:
     tpl = TEMPLATES_BY_ID.get(template_id)
     if not tpl:
         raise HTTPException(404, f"Template '{template_id}' not found")
 
     import uuid
+
     wf_data = tpl.workflow.model_dump()
     wf_data["id"] = f"wf-{uuid.uuid4().hex[:8]}"
     wf_data["name"] = name or tpl.workflow.name
     from datetime import datetime, timezone
+
     wf_data["created_at"] = datetime.now(timezone.utc)
     wf_data["updated_at"] = datetime.now(timezone.utc)
 
@@ -275,15 +294,23 @@ def create_from_template(template_id: str, name: Optional[str] = Query(None)) ->
 _NODE_TYPE_REFERENCE = {
     "triggers": {
         NodeType.MANUAL: {
-            "description": "Entry point for manual / API-triggered executions. Passes input_data through.",
+            "description": (
+                "Entry point for manual / API-triggered executions. Passes input_data through."
+            ),
             "parameters": {},
         },
         NodeType.WEBHOOK: {
-            "description": "Entry point for HTTP POST webhook calls (/api/webhooks/{workflow_id}). Body becomes input_data.",
+            "description": (
+                "Entry point for HTTP POST webhook calls (/api/webhooks/{workflow_id}). "
+                "Body becomes input_data."
+            ),
             "parameters": {},
         },
         NodeType.SCHEDULE: {
-            "description": "Cron-based trigger (schedule management coming soon). For manual runs treated as MANUAL.",
+            "description": (
+                "Cron-based trigger (schedule management coming soon). "
+                "For manual runs treated as MANUAL."
+            ),
             "parameters": {
                 "cron": "Cron expression e.g. '0 9 * * 1-5'",
                 "timezone": "IANA timezone e.g. 'UTC'",
@@ -308,7 +335,10 @@ _NODE_TYPE_REFERENCE = {
             "outputs": {"main": "agent_id, agent_name, prompt, response, guardrails_profile"},
         },
         NodeType.SYSTEM_AGENT: {
-            "description": "Invoke a live system agent (capability, knowledge, policy, process, skills, master).",
+            "description": (
+                "Invoke a live system agent (capability, knowledge, policy, process, "
+                "skills, master)."
+            ),
             "parameters": {
                 "agent_id": "One of: capability | knowledge | policy | process | skills | master",
                 "intent": "Intent string e.g. 'capability.register'",
@@ -334,7 +364,7 @@ _NODE_TYPE_REFERENCE = {
         NodeType.IF_CONDITION: {
             "description": "Branch execution based on a boolean condition.",
             "parameters": {
-                "condition": "Boolean expression e.g. \"{{ input.score > 80 }}\"",
+                "condition": 'Boolean expression e.g. "{{ input.score > 80 }}"',
             },
             "outputs": {
                 "true": "Input data — taken when condition is truthy",
@@ -351,9 +381,9 @@ _NODE_TYPE_REFERENCE = {
         NodeType.LOOP: {
             "description": "Iterate over an array and apply an inline transform to each item.",
             "parameters": {
-                "items": "Array expression e.g. \"{{ input.tasks }}\"",
+                "items": 'Array expression e.g. "{{ input.tasks }}"',
                 "item_var": "Variable name for current item (default 'item')",
-                "transform": "Expression returning transformed item e.g. \"{{ item.name }}\"",
+                "transform": 'Expression returning transformed item e.g. "{{ item.name }}"',
             },
             "outputs": {"main": "Array of transformed items"},
         },
@@ -384,7 +414,7 @@ _NODE_TYPE_REFERENCE = {
         NodeType.TRANSFORM: {
             "description": "Map input to a new structure using a field mapping.",
             "parameters": {
-                "mapping": "Dict of output_key: expression e.g. {\"name\": \"{{ input.full_name }}\"}",
+                "mapping": 'Dict of output_key: expression e.g. {"name": "{{ input.full_name }}"}',
             },
             "outputs": {"main": "Transformed object"},
         },

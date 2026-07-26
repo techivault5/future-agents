@@ -1,0 +1,31 @@
+{
+  "as_of": "2026-07-15",
+  "note": "Curated from official indices; property indices publish quarterly/monthly, not live. Refresh periodically from the sources below.",
+  "india": {
+    "source": "NHB RESIDEX (residex.nhbonline.org.in) + Trading Economics",
+    "headline": "50-city index up ~5.7% YoY; 45 of 50 cities appreciating (Q1 FY26). Index 104.51 in Q1 2026 vs 102.32 prior quarter. Upward trajectory since Sep 2021; ~100bps home-loan rate cuts (Feb 2025) supporting demand.",
+    "cities": [
+      {"city": "Bengaluru", "yoy_pct": 12.7},
+      {"city": "Chennai", "yoy_pct": 8.2},
+      {"city": "Ahmedabad", "yoy_pct": 6.8},
+      {"city": "Kolkata", "yoy_pct": 6.7},
+      {"city": "Mumbai", "yoy_pct": 3.7},
+      {"city": "Pune", "yoy_pct": 3.5},
+      {"city": "Hyderabad", "yoy_pct": 3.2}
+    ],
+    "guidance": "Rental yields in Indian metros run ~2-3.5%, so price appreciation carries the return case. Buy to live (rent-vs-EMI math, ≤28-30% of income on EMI) rather than as a default investment; for investment exposure, SEBI-regulated REITs give commercial property yields of 6-8% without leverage or illiquidity."
+  },
+  "ireland": {
+    "source": "CSO Residential Property Price Index (cso.ie)",
+    "headline": "National RPPI +6.2% YoY (Apr 2026) — slowest since Feb 2024 but still rising. Mar 2026: +6.5% national; Dublin houses +5.1%, Dublin apartments +7.8%; outside Dublin houses +6.8%, apartments +12.0%. Hottest: Midlands +13.4%, Border +10.5%.",
+    "regions": [
+      {"region": "Dublin houses", "yoy_pct": 5.1},
+      {"region": "Dublin apartments", "yoy_pct": 7.8},
+      {"region": "Outside Dublin houses", "yoy_pct": 6.8},
+      {"region": "Outside Dublin apartments", "yoy_pct": 12.0},
+      {"region": "Midlands", "yoy_pct": 13.4},
+      {"region": "Border counties", "yoy_pct": 10.5}
+    ],
+    "guidance": "Supply shortage + population growth keep upward pressure; growth is decelerating, not reversing. First-time buyers: check Help-to-Buy and First Home Scheme eligibility; stress-test at +2% rates. Non-resident Indian buyers: factor 1-2% stamp duty, legal fees, and EUR/INR exposure."
+  }
+}

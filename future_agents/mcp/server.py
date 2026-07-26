@@ -22,7 +22,6 @@ import json
 import logging
 import sys
 import traceback
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -56,11 +55,17 @@ _TOOLS: list[dict] = [
                 },
                 "domain": {
                     "type": "string",
-                    "description": "Optional domain hint: frontend | backend | devops | security | data | mobile | ml | cloud",
+                    "description": (
+                        "Optional domain hint: frontend | backend | devops | security "
+                        "| data | mobile | ml | cloud"
+                    ),
                 },
                 "seniority": {
                     "type": "string",
-                    "description": "Optional seniority preference: intern | junior | mid-level | senior | principal | architect",
+                    "description": (
+                        "Optional seniority preference: intern | junior | mid-level "
+                        "| senior | principal | architect"
+                    ),
                 },
                 "top_k": {
                     "type": "integer",
@@ -123,7 +128,10 @@ _TOOLS: list[dict] = [
                 },
                 "profile": {
                     "type": "string",
-                    "description": "Guardrails profile: standard | strict | relaxed | architect (default standard)",
+                    "description": (
+                        "Guardrails profile: standard | strict | relaxed | architect "
+                        "(default standard)"
+                    ),
                     "default": "standard",
                 },
             },
@@ -174,6 +182,7 @@ _TOOLS: list[dict] = [
 
 
 # ── Server implementation ─────────────────────────────────────────────────────
+
 
 class MCPServer:
     """Minimal MCP 2024-11-05 server over stdio."""
@@ -256,11 +265,14 @@ class MCPServer:
     # ── MCP handlers ───────────────────────────────────────────────────────────
 
     def _handle_initialize(self, msg_id: Any, params: dict) -> None:
-        self._respond(msg_id, {
-            "protocolVersion": self.PROTOCOL_VERSION,
-            "capabilities": {"tools": {}},
-            "serverInfo": self.SERVER_INFO,
-        })
+        self._respond(
+            msg_id,
+            {
+                "protocolVersion": self.PROTOCOL_VERSION,
+                "capabilities": {"tools": {}},
+                "serverInfo": self.SERVER_INFO,
+            },
+        )
 
     def _handle_tools_list(self, msg_id: Any) -> None:
         self._respond(msg_id, {"tools": _TOOLS})
@@ -271,15 +283,21 @@ class MCPServer:
 
         try:
             result_text = self._call_tool(tool_name, arguments)
-            self._respond(msg_id, {
-                "content": [{"type": "text", "text": result_text}],
-                "isError": False,
-            })
+            self._respond(
+                msg_id,
+                {
+                    "content": [{"type": "text", "text": result_text}],
+                    "isError": False,
+                },
+            )
         except ValueError as exc:
-            self._respond(msg_id, {
-                "content": [{"type": "text", "text": f"Error: {exc}"}],
-                "isError": True,
-            })
+            self._respond(
+                msg_id,
+                {
+                    "content": [{"type": "text", "text": f"Error: {exc}"}],
+                    "isError": True,
+                },
+            )
 
     # ── Tool implementations ───────────────────────────────────────────────────
 
@@ -364,7 +382,9 @@ class MCPServer:
         if resp.matched_agents and len(resp.matched_agents) > 1:
             parts.append("\n---\n## Other Candidate Agents")
             for a in resp.matched_agents[1:]:
-                parts.append(f"- **{a.agent_name}** (`{a.role}`, {a.seniority}) — {a.match_score:.0%}")
+                parts.append(
+                    f"- **{a.agent_name}** (`{a.role}`, {a.seniority}) — {a.match_score:.0%}"
+                )
 
         return "\n".join(parts)
 
@@ -385,7 +405,7 @@ class MCPServer:
         if not matches:
             return "No agents found matching your criteria."
 
-        lines = [f"# {len(matches)} Agent(s) Found for: \"{task}\"\n"]
+        lines = [f'# {len(matches)} Agent(s) Found for: "{task}"\n']
         for i, m in enumerate(matches, 1):
             lines.append(
                 f"## {i}. {m.agent_name} (`{m.agent_id}`)\n"
@@ -495,11 +515,16 @@ class MCPServer:
 
         lines = [f"# {data.get('name', agent_id)}\n"]
         fields = [
-            ("Role", "role"), ("Seniority", "seniority"), ("Type", "type"),
+            ("Role", "role"),
+            ("Seniority", "seniority"),
+            ("Type", "type"),
             ("Guardrails Profile", "guardrails_profile"),
-            ("Primary Stack", "primary_stack"), ("Languages", "languages"),
-            ("Tools", "tools"), ("Key Skills", "key_skills"),
-            ("Industries", "industries"), ("Cloud Platforms", "cloud_platforms"),
+            ("Primary Stack", "primary_stack"),
+            ("Languages", "languages"),
+            ("Tools", "tools"),
+            ("Key Skills", "key_skills"),
+            ("Industries", "industries"),
+            ("Cloud Platforms", "cloud_platforms"),
         ]
         for label, key in fields:
             val = data.get(key)
@@ -516,9 +541,10 @@ class MCPServer:
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     logging.basicConfig(
-        level=logging.WARNING,   # keep stdout clean for MCP protocol
+        level=logging.WARNING,  # keep stdout clean for MCP protocol
         stream=sys.stderr,
         format="%(asctime)s %(name)s %(levelname)s %(message)s",
     )

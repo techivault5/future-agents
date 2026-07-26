@@ -126,7 +126,5 @@ def get_agent_guardrails(agent_id: str) -> dict:
         "effective_rules": resolved_overrides,
         "profile_description": profile.get("description", ""),
         "inherits": profile.get("inherits", []),
-        "skills_applied": [
-            s.get("id") for s in data.get("skills", []) if s.get("enabled", True)
-        ],
+        "skills_applied": [s.get("id") for s in data.get("skills", []) if s.get("enabled", True)],
     }

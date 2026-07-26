@@ -78,7 +78,11 @@ def get_openapi_connector(agent_id: str, base_url: str = "http://localhost:8000"
                     "responses": {
                         "200": {
                             "description": "Agent definition",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/AgentDetail"}}},
+                            "content": {
+                                "application/json": {
+                                    "schema": {"$ref": "#/components/schemas/AgentDetail"}
+                                }
+                            },
                         }
                     },
                 }
@@ -93,14 +97,20 @@ def get_openapi_connector(agent_id: str, base_url: str = "http://localhost:8000"
                         "content": {
                             "application/json": {
                                 "schema": {"$ref": "#/components/schemas/TestRequest"},
-                                "example": {"prompt": f"How would you approach a {role} challenge?"},
+                                "example": {
+                                    "prompt": f"How would you approach a {role} challenge?"
+                                },
                             }
                         },
                     },
                     "responses": {
                         "200": {
                             "description": "Agent response",
-                            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/TestResponse"}}},
+                            "content": {
+                                "application/json": {
+                                    "schema": {"$ref": "#/components/schemas/TestResponse"}
+                                }
+                            },
                         }
                     },
                 }
@@ -112,7 +122,10 @@ def get_openapi_connector(agent_id: str, base_url: str = "http://localhost:8000"
                     "type": "object",
                     "required": ["prompt"],
                     "properties": {
-                        "prompt": {"type": "string", "description": "Your question or task for the agent"},
+                        "prompt": {
+                            "type": "string",
+                            "description": "Your question or task for the agent",
+                        },
                         "context": {"type": "object", "description": "Optional key-value context"},
                     },
                 },
@@ -174,8 +187,10 @@ def get_mcp_connector(agent_id: str, base_url: str = "http://localhost:8000") ->
                 "command": "uvx",
                 "args": [
                     "mcp-server-fetch",
-                    "--base-url", base_url,
-                    "--agent-id", agent_id,
+                    "--base-url",
+                    base_url,
+                    "--agent-id",
+                    agent_id,
                 ],
                 "env": {},
             }

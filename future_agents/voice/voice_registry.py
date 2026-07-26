@@ -138,7 +138,8 @@ class VoiceRegistry:
         if query:
             q = query.lower()
             results = [
-                r for r in results
+                r
+                for r in results
                 if q in r.get("name", "").lower()
                 or q in r.get("description", "").lower()
                 or any(q in t.lower() for t in r.get("tags", []))
@@ -154,10 +155,7 @@ class VoiceRegistry:
             results = [r for r in results if r.get("best_score", 0.0) >= min_score]
 
         if tags:
-            results = [
-                r for r in results
-                if all(t in r.get("tags", []) for t in tags)
-            ]
+            results = [r for r in results if all(t in r.get("tags", []) for t in tags)]
 
         return sorted(results, key=lambda r: r.get("best_score", 0.0), reverse=True)
 
@@ -220,8 +218,7 @@ class VoiceRegistry:
                 # Update manifest with reference info
                 zf.writestr("manifest.json", json.dumps(manifest, indent=2))
 
-        logger.info("VoicePack exported: %s (%.1f KB)", pack_path,
-                    pack_path.stat().st_size / 1024)
+        logger.info("VoicePack exported: %s (%.1f KB)", pack_path, pack_path.stat().st_size / 1024)
         return pack_path
 
     def import_voicepack(

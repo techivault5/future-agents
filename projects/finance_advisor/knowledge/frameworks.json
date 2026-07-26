@@ -1,0 +1,41 @@
+{
+  "domain": "finance.frameworks",
+  "entries": [
+    {
+      "title": "Dave Ramsey's 7 Baby Steps",
+      "content": "1) $1,000 starter emergency fund. 2) Pay off ALL non-mortgage debt using the snowball (smallest balance first). 3) Full emergency fund of 3-6 months expenses. 4) Invest 15% of household income for retirement. 5) Save for kids' college. 6) Pay off the mortgage early. 7) Build wealth and give. Philosophy: debt is the enemy, behavior beats math, intensity ('gazelle intense') until debt-free. Criticisms: $1,000 starter fund is thin in 2026; skipping employer 401(k) match during step 2 leaves free money; snowball costs more interest than avalanche. Best fit: people deep in consumer debt who need a strict, simple system.",
+      "tags": ["framework", "dave-ramsey", "baby-steps", "debt-snowball", "youtube"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Money Guy Financial Order of Operations (FOO)",
+      "content": "9 steps from CFPs Brian Preston & Bo Hanson (The Money Guy Show): 1) Cover insurance deductibles (starter cushion). 2) Employer match — never leave it. 3) Pay off high-interest debt (cards, anything ~10%+; thresholds vary by age). 4) Full emergency reserves (3-6 months). 5) Max Roth IRA and HSA. 6) Max other retirement (401k). 7) Hyper-accumulation toward 25% gross savings rate. 8) Prepaid future expenses (college, etc.). 9) Low-interest debt prepayment (mortgage last). Differences vs Ramsey: match before debt payoff, avalanche-style math, 25% vs 15% savings target, mortgage payoff last. Best fit: stable income, math-motivated, wealth-optimization mindset.",
+      "tags": ["framework", "money-guy", "foo", "employer-match", "youtube"],
+      "confidence": 0.95
+    },
+    {
+      "title": "Ramit Sethi — Conscious Spending Plan",
+      "content": "From 'I Will Teach You To Be Rich' (book, Netflix show, YouTube): skip line-item budgets; set four buckets — fixed costs 50-60% of take-home, investments 10%+, savings goals 5-10%, guilt-free spending 20-35%. Automate everything on payday; negotiate big wins (salary, rent, fees) instead of skipping lattes; define your 'rich life' and spend extravagantly on what you love, cut mercilessly on what you don't. Strong on couples' money psychology. Best fit: solid income, hates tracking, wants a values-based system.",
+      "tags": ["framework", "ramit-sethi", "conscious-spending", "automation", "youtube"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Caleb Hammer — Financial Audit method",
+      "content": "YouTube's 'Financial Audit': confront the real numbers line by line. Method distilled: 1) Pull actual statements — no estimates. 2) Categorize every transaction; name the leaks out loud (delivery apps, gambling, impulse). 3) Build a bare-bones budget; every spare dollar to high-interest debt. 4) No investing (beyond match) or vacations while 20%+ APR debt exists. 5) Income too low? Fix income — second shifts, job hops. Tone is tough-love accountability; the underlying playbook is standard: track → cut → snowball/avalanche → build fund. Best fit: paycheck-to-paycheck with card debt and avoidance habits.",
+      "tags": ["framework", "caleb-hammer", "financial-audit", "accountability", "youtube"],
+      "confidence": 0.85
+    },
+    {
+      "title": "FIRE (Financial Independence, Retire Early)",
+      "content": "Save aggressively (often 40-70% of income), invest in index funds, retire when portfolio ≈ 25x annual expenses (the 4% rule, from the Trinity study). Variants: LeanFIRE (minimal expenses), FatFIRE (high spend), CoastFIRE (front-load investing, then only cover expenses), BaristaFIRE (part-time work + portfolio). Popularized by Mr. Money Mustache, ChooseFI, Our Rich Journey (YouTube). Caveats: 4% rule assumes 30-yr horizons — longer retirements argue for 3.25-3.5%; healthcare before 65 is the hard problem; extreme frugality can outlast its welcome. Even non-retirees benefit from the core: high savings rate + low-cost indexing.",
+      "tags": ["framework", "fire", "4-percent-rule", "financial-independence", "youtube"],
+      "confidence": 0.9
+    },
+    {
+      "title": "Which framework for whom",
+      "content": "Deep consumer debt, needs structure and hope → Ramsey Baby Steps (swap snowball for avalanche if disciplined). Stable job, wants optimal math → Money Guy FOO. Good income, hates budgets, values-driven → Ramit's Conscious Spending Plan. Paycheck-to-paycheck denial → Caleb Hammer-style audit first. High savings capacity, wants out of the rat race → FIRE. All five agree on the spine: spend less than you earn, kill high-interest debt, keep an emergency fund, automate, invest low-cost and long-term.",
+      "tags": ["framework", "comparison", "decision-guide"],
+      "confidence": 0.9
+    }
+  ]
+}

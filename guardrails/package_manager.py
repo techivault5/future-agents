@@ -133,7 +133,7 @@ class PackageManager:
             return findings
 
         deps = (data.get("project", {}).get("dependencies", []) +
-                data.get("tool", {}).get("poetry", {}).get("dependencies", {}).keys())
+                list(data.get("tool", {}).get("poetry", {}).get("dependencies", {}).keys()))
 
         for dep in deps:
             if isinstance(dep, str):
