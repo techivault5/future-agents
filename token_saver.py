@@ -104,7 +104,7 @@ class TokenSaverAgent:
 
     Parameters
     ----------
-    model           : Claude model string (default: claude-opus-4-7)
+    model           : Claude model string (default: claude-opus-5)
     system          : System prompt (default: built-in terse prompt)
     memory_file     : Path to persistent JSON cache (default: ~/.cache/token-saver/memory.json)
     fuzzy_threshold : Keyword-overlap ratio required for a fuzzy cache hit (default: 0.80)
@@ -113,7 +113,7 @@ class TokenSaverAgent:
 
     def __init__(
         self,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
         system: str = _SYSTEM,
         memory_file: Path | str | None = None,
         fuzzy_threshold: float = 0.80,
@@ -346,7 +346,7 @@ def _cli() -> None:  # pragma: no cover
     p.add_argument("--list", "-l", action="store_true", help="List cached questions")
     p.add_argument("--clear", action="store_true", help="Delete all cached entries")
     p.add_argument("--forget", metavar="Q", help="Remove one question from cache")
-    p.add_argument("--model", default="claude-opus-4-7", help="Claude model to use")
+    p.add_argument("--model", default="claude-opus-5", help="Claude model to use")
     p.add_argument("--version", action="version", version=f"token_saver {__version__}")
     args = p.parse_args()
 

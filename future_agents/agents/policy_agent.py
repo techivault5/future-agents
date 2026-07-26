@@ -191,7 +191,7 @@ class PolicyAgent(BaseAgent):
             "active_policies": len(active),
             "overall_compliance": (
                 sum(p.compliance_rate for p in active) / len(active) if active else 1.0
-            ),
+            ),  # noqa: E501
             "total_checks": sum(p.checks_count for p in active),
             "total_violations": sum(p.violations_count for p in active),
         }

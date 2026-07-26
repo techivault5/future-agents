@@ -128,7 +128,7 @@ class KnowledgeAgent(BaseAgent):
                 "stats": stats,
                 "stale_entries": [
                     {"id": e.id, "title": e.title, "usefulness": e.usefulness_score} for e in stale
-                ],
+                ],  # noqa: E501
             },
             suggestions=[f"Review stale entry: {e.title}" for e in stale[:5]],
         )

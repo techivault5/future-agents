@@ -47,7 +47,7 @@ class AgentFactory:
 
     def register_implementation(
         self, agent_type: str, factory_fn: ImplFactory, **kwargs: Any
-    ) -> None:
+    ) -> None:  # noqa: E501
         """Register a factory function for a given agent type.
 
         Args:

@@ -61,7 +61,7 @@ def discover_agent_implementations() -> list[dict]:
             base_names = [
                 b.id
                 if isinstance(b, ast.Name)
-                else (b.attr if isinstance(b, ast.Attribute) else "")
+                else (b.attr if isinstance(b, ast.Attribute) else "")  # noqa: E501
                 for b in node.bases
             ]
             if "BaseAgent" not in base_names:
@@ -167,7 +167,7 @@ def build_report(
             caps += f" *+{len(impl['capabilities']) - 3} more*"
         lines.append(
             f"| `{impl['class']}` | `{impl['file']}` | `{impl['agent_type']}` | {caps or '—'} |"
-        )
+        )  # noqa: E501
 
     lines += [
         "",
@@ -179,9 +179,8 @@ def build_report(
     for d in defs:
         skills = ", ".join(f"`{s}`" for s in d["skills"][:3])
         lines.append(
-            f"| {d['name']} | `{d['file']}` | {skills or '—'} "
-            f"| {'✅' if d['auto_generated'] else '—'} |"
-        )
+            f"| {d['name']} | `{d['file']}` | {skills or '—'} | {'✅' if d['auto_generated'] else '—'} |"  # noqa: E501
+        )  # noqa: E501
 
     # Coverage gaps
     impl_types = {i["agent_type"] for i in impls}

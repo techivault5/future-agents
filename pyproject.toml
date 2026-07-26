@@ -50,6 +50,7 @@ line-length = 100
 select = ["E", "F", "I"]
 
 [tool.ruff.lint.per-file-ignores]
+# Document agents use lazy try/except imports for optional heavy deps
 "future_agents/agents/pdf_agent.py" = ["F401"]
 "future_agents/agents/ppt_agent.py" = ["F401"]
 "future_agents/agents/word_agent.py" = ["F401"]

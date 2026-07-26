@@ -116,7 +116,7 @@ class DefinedAgent(BaseAgent):
                 MessageType.RESPONSE
                 if result.outcome == ExecutionOutcome.SUCCESS
                 else MessageType.ERROR
-            ),
+            ),  # noqa: E501
         )
 
     async def handle_delegation(self, delegation: DelegationRequest) -> DelegationResponse:
@@ -169,7 +169,7 @@ class DefinedAgent(BaseAgent):
                     ],
                     "outputs": [
                         {"name": p.name, "type": p.type.value, "description": p.description}
-                        for p in s.outputs
+                        for p in s.outputs  # noqa: E501
                     ],
                 }
                 for s in self.definition.skills
@@ -181,7 +181,7 @@ class DefinedAgent(BaseAgent):
             },
             "constraints": [
                 {"name": c.name, "description": c.description} for c in self.definition.constraints
-            ],
+            ],  # noqa: E501
             "metrics": {
                 "success_rate": self.success_rate,
                 "execution_count": self._execution_count,
@@ -219,7 +219,7 @@ class DefinedAgent(BaseAgent):
                 if input_def.default is None:
                     errors.append(
                         f"Missing required parameter: '{input_def.name}' ({input_def.description})"
-                    )
+                    )  # noqa: E501
         return errors
 
     def _check_constraints(self, context: TaskContext) -> list[str]:

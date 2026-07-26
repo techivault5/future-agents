@@ -188,7 +188,7 @@ def generate_ideas(eval_file: Path, changes_file: Path) -> dict:
     client = _anthropic.Anthropic()
     print("Generating ideas with Claude (adaptive thinking)...")
     response = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-opus-5",
         max_tokens=4096,
         thinking={"type": "adaptive"},
         system=[
@@ -309,10 +309,10 @@ def main() -> None:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     eval_file = (
         Path(args.eval_file) if args.eval_file else CRAWLER_DIR / f"eval_results_{today}.json"
-    )
+    )  # noqa: E501
     changes_file = (
         Path(args.changes_file) if args.changes_file else CRAWLER_DIR / f"changes_{today}.json"
-    )
+    )  # noqa: E501
 
     for f in [eval_file, changes_file]:
         if not f.exists():

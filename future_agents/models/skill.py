@@ -66,7 +66,7 @@ class GrowthPath(BaseModel):
             # Check skill requirements
             skills_met = all(
                 skills.get(skill_id, 0.0) >= min_prof
-                for skill_id, min_prof in level.required_skills.items()
+                for skill_id, min_prof in level.required_skills.items()  # noqa: E501
             )
             # Check capability requirements
             caps_met = all(cap in capabilities for cap in level.required_capabilities)

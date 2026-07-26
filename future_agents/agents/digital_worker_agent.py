@@ -36,7 +36,7 @@ class DigitalWorkerAgent(BaseAgent):
         event_bus: EventBus | None = None,
         tool_registry: ToolRegistry | None = None,
         use_reflection: bool = False,
-        model: str = "claude-opus-4-7",
+        model: str = "claude-opus-5",
     ) -> None:
         super().__init__(agent_id=agent_id, event_bus=event_bus)
         self.tool_registry = tool_registry or ToolRegistry()
@@ -119,7 +119,7 @@ class DigitalWorkerAgent(BaseAgent):
         return [
             {"name": p.name, "category": p.category.value}
             for p in self.pattern_library.search(keyword)
-        ]
+        ]  # noqa: E501
 
     async def _execute(self, context: TaskContext) -> TaskResult:
         if not _PATTERNS_AVAILABLE:
@@ -163,7 +163,7 @@ class DigitalWorkerAgent(BaseAgent):
                     agent_id=self.agent_id,
                     outcome=(
                         ExecutionOutcome.SUCCESS if result.success else ExecutionOutcome.PARTIAL
-                    ),
+                    ),  # noqa: E501
                     data={
                         "answer": result.answer,
                         "pattern": "ReAct",
