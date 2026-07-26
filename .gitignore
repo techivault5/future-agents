@@ -29,3 +29,6 @@ terraform.tfvars
 *.tar
 it-agents-guardrails-*.zip
 IT-AGENTS-GUARDRAILS-MANIFEST.md
+
+# Finance advisor local memory store (personal financial context)
+projects/finance_advisor/data/memory.db

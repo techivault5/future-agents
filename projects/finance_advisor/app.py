@@ -18,6 +18,7 @@ sys.path.insert(0, str(PROJECT_DIR.parent.parent))
 try:
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
 except ImportError as err:  # pragma: no cover
     raise ImportError("FastAPI required: pip install -e '.[api]'") from err
 
@@ -35,13 +36,31 @@ from projects.finance_advisor.market_data import (  # noqa: E402
     fetch_fund_navs,
     fetch_fx,
 )
+from projects.finance_advisor.memory import FinanceMemorySDK  # noqa: E402
 
 app = FastAPI(title="Finance Advisor", version="1.0.0")
+
+# ES modules refuse to load over file://, so the browser SDK demo is served
+# here over http instead.
+app.mount(
+    "/sdk",
+    StaticFiles(directory=PROJECT_DIR / "memory" / "sdk", html=True),
+    name="sdk",
+)
 
 PROPERTY_FILE = PROJECT_DIR / "data" / "property_watch.json"
 STATIC_DIR = PROJECT_DIR / "static"
 
 _store = None
+_memory_sdk: FinanceMemorySDK | None = None
+
+
+def memory_sdk() -> FinanceMemorySDK:
+    """Process-wide SDK bound to a durable local sqlite store."""
+    global _memory_sdk
+    if _memory_sdk is None:
+        _memory_sdk = FinanceMemorySDK(store="sqlite", path=PROJECT_DIR / "data" / "memory.db")
+    return _memory_sdk
 
 
 def knowledge_store():
@@ -149,4 +168,81 @@ def preview_alerts():
     return {
         "checked": len([r for r in rules if r.active]),
         "triggered": [{"id": r.id, "message": m} for r, m in triggered],
+    }
+
+
+# ── memory framework + skill SDK ─────────────────────────────────────────────
+
+
+@app.get("/api/memory/stats")
+def memory_stats():
+    """Store composition, embedder and backend in use."""
+    return memory_sdk().stats()
+
+
+@app.get("/api/memory/recall")
+def memory_recall(q: str, limit: int = 5, type: str | None = None):
+    """Ranked, redacted recall with score components."""
+    return {"query": q, "hits": memory_sdk().recall(q, limit=limit, type=type)}
+
+
+@app.post("/api/memory/remember")
+def memory_remember(item: dict):
+    """Write one memory: {content, type?, tags?, importance?, sensitive?}."""
+    content = str(item.get("content", "")).strip()
+    if not content:
+        raise HTTPException(400, "content is required")
+    try:
+        return memory_sdk().remember(
+            content,
+            type=item.get("type", "semantic"),
+            tags=item.get("tags") or (["profile"] if "=" in content else []),
+            importance=float(item.get("importance", 0.5)),
+            sensitive=bool(item.get("sensitive", False)),
+        )
+    except ValueError as err:
+        raise HTTPException(400, str(err)) from err
+
+
+@app.get("/api/memory/profile")
+def memory_profile():
+    """Durable profile facts learned so far."""
+    return memory_sdk().profile()
+
+
+@app.post("/api/memory/consolidate")
+def memory_consolidate():
+    """Promote recurring episodes into semantic facts."""
+    return {"created": memory_sdk().consolidate()}
+
+
+@app.get("/api/memory/export")
+def memory_export():
+    """Redacted portable dump, importable by the JavaScript SDK."""
+    return {"records": memory_sdk().export()}
+
+
+@app.get("/api/skills")
+def list_skills():
+    """Catalog of finance skills and what each covers."""
+    return {"skills": FinanceMemorySDK.skills()}
+
+
+@app.post("/api/skills/{name}")
+def run_skill(name: str, args: dict | None = None):
+    """Run a finance skill: loans | mutual_funds | crypto | capital_gains | taxes."""
+    try:
+        return memory_sdk().advise(name, **(args or {}))
+    except KeyError as err:
+        raise HTTPException(404, str(err)) from err
+    except (ValueError, TypeError) as err:
+        raise HTTPException(400, str(err)) from err
+
+
+@app.get("/api/runtimes")
+def local_runtimes():
+    """Local-inference comparison matrix plus this machine's capabilities."""
+    return {
+        "capabilities": FinanceMemorySDK.capabilities().to_dict(),
+        "matrix": FinanceMemorySDK.runtimes(),
     }

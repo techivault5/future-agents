@@ -24,6 +24,27 @@ projects/finance_advisor/
   SOURCES.md               # Research sources
 ```
 
+## Memory framework + pluggable SDKs
+
+`memory/` adds agent memory (working / episodic / semantic / procedural / graph),
+swappable backends (in-memory, sqlite+FTS5, graph with Cypher export), swappable
+embedders (zero-dep hashing → sentence-transformers / Ollama / ONNX-NPU), a
+local-inference comparison matrix (CPU / GPU / NPU / Metal / browser), and five
+finance skills (loans, Indian mutual funds, crypto, capital gains, taxes).
+
+Same API in Python, the browser and VS Code — embeddings are byte-identical
+across runtimes, so memories are portable. See `memory/README.md`.
+
+```python
+from projects.finance_advisor.memory import FinanceMemorySDK
+sdk = FinanceMemorySDK(store="sqlite", path="data/memory.db")
+sdk.remember("take_home=180000", tags=["profile"], sensitive=True)
+sdk.advise("loans", principal=3_500_000, annual_rate_pct=8.6, months=240)
+```
+
+Browser demo: `http://localhost:8600/sdk/js/demo.html` ·
+VS Code: `code --extensionDevelopmentPath=projects/finance_advisor/memory/sdk/vscode`
+
 ## Dashboard + alerts
 
 ```bash

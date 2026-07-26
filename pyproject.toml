@@ -21,6 +21,12 @@ dependencies = [
 ai = [
     "anthropic>=0.40.0",
 ]
+# Optional local NLP for semantic memory recall (CPU/GPU/Metal/NPU).
+# The default HashingEmbedder needs none of this.
+localnlp = [
+    "sentence-transformers~=3.0",
+    "onnxruntime~=1.18",
+]
 api = [
     "fastapi~=0.111",
     "uvicorn[standard]~=0.30",
