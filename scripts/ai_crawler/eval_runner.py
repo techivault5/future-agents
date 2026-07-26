@@ -111,7 +111,7 @@ def score_change_against_eval(change: dict, eval_case: dict, client) -> dict:
 
     try:
         response = client.messages.create(
-            model="claude-opus-4-7",
+            model="claude-opus-5",
             max_tokens=1024,
             thinking={"type": "adaptive"},
             system=[

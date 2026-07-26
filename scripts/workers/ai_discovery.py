@@ -144,7 +144,7 @@ def query_claude(agents: list[dict], workers: list[str]) -> str:
 
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-opus-5",
         max_tokens=3000,
         thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": prompt}],

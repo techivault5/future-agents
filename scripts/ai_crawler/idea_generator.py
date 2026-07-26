@@ -188,7 +188,7 @@ def generate_ideas(eval_file: Path, changes_file: Path) -> dict:
     client = _anthropic.Anthropic()
     print("Generating ideas with Claude (adaptive thinking)...")
     response = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-opus-5",
         max_tokens=4096,
         thinking={"type": "adaptive"},
         system=[

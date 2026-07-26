@@ -80,7 +80,7 @@ def synthesise(entries: list[dict]) -> str:
 
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-opus-4-7",
+        model="claude-opus-5",
         max_tokens=2048,
         thinking={"type": "adaptive"},
         messages=[{"role": "user", "content": prompt}],
