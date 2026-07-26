@@ -33,7 +33,7 @@ These rules apply to every response in this project. They exist to drastically c
 ## Project layout (reference — do not re-explain)
 
 ```
-future_agents/
+src/future_agents/
   agents/          # BaseAgent subclasses
   core/            # EventBus, AgentRegistry, Orchestrator, BaseAgent
   definitions/     # JSON-based agent definitions + factory
@@ -45,6 +45,23 @@ future_agents/
 scripts/workers/   # GitHub Actions entrypoints (no framework deps)
 tests/             # pytest, asyncio_mode=auto
 ```
+
+## Top-level layout (grouped by content type)
+
+```
+src/        # all Python source: future_agents, guardrails, scanning, projects,
+            # token_saver.py, mcp_server.py   (installed from here; pytest pythonpath)
+data/       # data assets: agents/ (10k role YAMLs), config/, skills/
+docs/       # all guides + leadership_guides/
+web/        # browser assets (static/)
+scripts/    # CLI + GitHub Actions entrypoints
+tests/      # pytest suite
+templates/  # project scaffolding templates
+examples/   # runnable demos
+```
+
+Imports are unchanged (`future_agents.*`, `guardrails.*`, `scanning.*`,
+`projects.*`) — `src/` is the package root, not an import prefix.
 
 ## Key facts (do not re-derive)
 - Python 3.11+, Pydantic v2, ruff for lint/format, pytest-asyncio (auto mode)
@@ -218,7 +235,7 @@ versions.tf       ← pin provider versions HERE (exact is OK)
 **Package management:**
 - Check if a lighter built-in alternative exists before adding a dependency
 - When adding packages: use semver-compatible ranges
-- After adding: run the guardrails check: `python guardrails/guardrails_engine.py . --mode check`
+- After adding: run the guardrails check: `python src/guardrails/guardrails_engine.py . --mode check`
 - Suggest `pip audit` / `npm audit` when adding security-relevant packages
 
 **Code quality:**
@@ -255,13 +272,13 @@ Run these at any time during development:
 
 ```bash
 # Full check (see what would fail)
-python guardrails/guardrails_engine.py . --mode check
+python src/guardrails/guardrails_engine.py . --mode check
 
 # Auto-fix folder structure issues
-python guardrails/guardrails_engine.py . --mode fix
+python src/guardrails/guardrails_engine.py . --mode fix
 
 # Block mode (exits 1 on violations — use in CI)
-python guardrails/guardrails_engine.py . --mode block
+python src/guardrails/guardrails_engine.py . --mode block
 
 # Secrets only
 python -c "
@@ -288,13 +305,13 @@ FolderValidator().generate_structure('python-service', 'my-app', '.')
 
 ## AGENT ROLE LOOKUP
 
-10,000 IT role definitions live in `agents/`. Search by role:
+10,000 IT role definitions live in `data/agents/`. Search by role:
 
 ```bash
 # Find agents by role
 python -c "
 import json
-idx = json.load(open('agents/agents_index.json'))
+idx = json.load(open('data/agents/agents_index.json'))
 matches = [a for a in idx if 'backend' in a['role']]
 print(f'{len(matches)} agents found')
 for a in matches[:5]:
@@ -304,7 +321,7 @@ for a in matches[:5]:
 # Load a specific agent
 python -c "
 import yaml
-agent = yaml.safe_load(open('agents/technical/backend-development/agent-00001.yaml'))
+agent = yaml.safe_load(open('data/agents/technical/backend-development/agent-00001.yaml'))
 print(agent['name'], '|', agent['primary_stack'], '|', agent['guardrails_profile'])
 "
 ```

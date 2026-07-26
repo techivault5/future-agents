@@ -12,7 +12,7 @@ import pytest
 
 # ── Paths ─────────────────────────────────────────────────────────
 REPO_ROOT = Path(__file__).parent.parent
-AGENTS_DIR = REPO_ROOT / "agents"
+AGENTS_DIR = REPO_ROOT / "data" / "agents"
 AGENTS_INDEX = AGENTS_DIR / "agents_index.json"
 GUARDRAILS_DIR = REPO_ROOT / "guardrails"
 

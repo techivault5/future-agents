@@ -11,7 +11,7 @@ from projects.finance_advisor.gather import (
     refresh_youtube,
 )
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent / "projects" / "finance_advisor"
+PROJECT_DIR = Path(__file__).resolve().parent.parent / "src" / "projects" / "finance_advisor"
 
 
 def test_knowledge_files_are_valid_json():

@@ -223,17 +223,17 @@ class TestFolderValidator:
 class TestAgentsIndex:
 
     def test_agents_index_exists(self):
-        index_path = Path(__file__).parent.parent / "agents" / "agents_index.json"
+        index_path = Path(__file__).parent.parent / "data" / "agents" / "agents_index.json"
         assert index_path.exists(), "agents_index.json must exist"
 
     def test_agents_index_has_10000_entries(self):
-        index_path = Path(__file__).parent.parent / "agents" / "agents_index.json"
+        index_path = Path(__file__).parent.parent / "data" / "agents" / "agents_index.json"
         if index_path.exists():
             idx = json.loads(index_path.read_text())
             assert len(idx) == 10000, f"Expected 10000 agents, got {len(idx)}"
 
     def test_agents_have_required_fields(self):
-        index_path = Path(__file__).parent.parent / "agents" / "agents_index.json"
+        index_path = Path(__file__).parent.parent / "data" / "agents" / "agents_index.json"
         if index_path.exists():
             idx = json.loads(index_path.read_text())
             for agent in idx[:100]:  # spot-check first 100

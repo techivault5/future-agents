@@ -75,7 +75,7 @@ def existing_agent_types() -> set[str]:
 def existing_definition_types() -> set[str]:
     """Agent types from agents/*.json (excluding skeleton stubs)."""
     types: set[str] = set()
-    for f in (ROOT / "agents").glob("*.json"):
+    for f in (ROOT / "data" / "agents").glob("*.json"):
         try:
             data = json.loads(f.read_text())
             if not data.get("metadata", {}).get("auto_generated"):
@@ -102,7 +102,7 @@ def find_gaps() -> list[dict]:
 
 def generate_skeleton(gap: dict) -> Path | None:
     domain = gap["domain"]
-    out = ROOT / "agents" / f"{domain}.json"
+    out = ROOT / "data" / "agents" / f"{domain}.json"
     if out.exists():
         return None  # already exists (maybe from a prior run)
 

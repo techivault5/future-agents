@@ -17,7 +17,7 @@ from future_agents.voice.voice_profile import (
     VoiceProfile,
 )
 
-VOICE_AGENTS_DIR = Path(__file__).parent.parent.parent / "agents" / "voice"
+VOICE_AGENTS_DIR = Path(__file__).parent.parent.parent / "data" / "agents" / "voice"
 
 
 # ── SpeakerEmbedding ──────────────────────────────────────────────

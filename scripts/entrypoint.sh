@@ -50,7 +50,7 @@ banner() {
 run_guardrails() {
   local mode="$1"
   local target="${2:-$WORKSPACE}"
-  python3 "$APP/guardrails/guardrails_engine.py" "$target" --mode "$mode"
+  python3 "$APP/src/guardrails/guardrails_engine.py" "$target" --mode "$mode"
 }
 
 case "$CMD" in
@@ -131,7 +131,7 @@ case "$CMD" in
     echo ""
     python3 - <<PYEOF
 import json
-idx = json.load(open("$APP/agents/agents_index.json"))
+idx = json.load(open("$APP/data/agents/agents_index.json"))
 matches = [a for a in idx if "$TERM".lower() in a.get("role","").lower()
            or "$TERM".lower() in a.get("name","").lower()]
 print(f"Found {len(matches)} agents matching '$TERM'\n")
@@ -158,7 +158,7 @@ PYEOF
     echo ""
     python3 - <<PYEOF
 import sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from guardrails.secrets_scanner import SecretsScanner
 findings = SecretsScanner().scan_directory("$TARGET")
 if not findings:
@@ -180,7 +180,7 @@ PYEOF
     echo ""
     python3 - <<PYEOF
 import sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from guardrails.package_manager import PackageManager
 issues = PackageManager().check("$TARGET")
 if not issues:
@@ -201,7 +201,7 @@ PYEOF
     echo ""
     python3 - <<PYEOF
 import sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from guardrails.folder_validator import FolderValidator
 fv = FolderValidator()
 created = fv.generate_structure("$PROJECT_TYPE", "$PROJECT_NAME", "$TARGET", dry_run=False)
@@ -230,7 +230,7 @@ PYEOF
     echo ""
     python3 - <<PYEOF
 import asyncio, sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from future_agents.voice import VoiceCloner, VoiceRegistry
 from future_agents.voice.voice_profile import PersonalityType
 from pathlib import Path
@@ -269,7 +269,7 @@ PYEOF
     echo -e "${BOLD}🎙️  Registered Voice Profiles${RESET}"
     python3 - <<PYEOF
 import sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from future_agents.voice import VoiceRegistry
 from pathlib import Path
 
@@ -292,7 +292,7 @@ PYEOF
     echo -e "${BOLD}🔍 Voice profile search: '$QUERY'${RESET}"
     python3 - <<PYEOF
 import sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from future_agents.voice import VoiceRegistry
 from pathlib import Path
 
@@ -318,7 +318,7 @@ PYEOF
     echo -e "${BOLD}🔊 Synthesising speech: '$TEXT'${RESET}"
     python3 - <<PYEOF
 import asyncio, sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from future_agents.voice import VoiceCloner, VoiceRegistry
 from pathlib import Path
 
@@ -354,7 +354,7 @@ PYEOF
     echo -e "${BOLD}📊 Scoring voice accuracy${RESET}"
     python3 - <<PYEOF
 import asyncio, sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from future_agents.voice import VoiceRegistry, VoiceScorer
 from pathlib import Path
 
@@ -380,7 +380,7 @@ PYEOF
     echo -e "${BOLD}📦 Exporting voice profile...${RESET}"
     python3 - <<PYEOF
 import sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from future_agents.voice import VoiceRegistry
 from pathlib import Path
 
@@ -404,7 +404,7 @@ PYEOF
     echo -e "${BOLD}📥 Importing voice profile: $PACK_PATH${RESET}"
     python3 - <<PYEOF
 import sys
-sys.path.insert(0, "$APP")
+sys.path.insert(0, "$APP/src")
 from future_agents.voice import VoiceRegistry
 from pathlib import Path
 

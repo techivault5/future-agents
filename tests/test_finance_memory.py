@@ -30,7 +30,7 @@ from projects.finance_advisor.memory.skills import (
     TaxGuidanceSkill,
 )
 
-JS_SDK = Path(__file__).parent.parent / "projects/finance_advisor/memory/sdk/js/finance-memory.mjs"
+JS_SDK = Path(__file__).parent.parent / "src/projects/finance_advisor/memory/sdk/js/finance-memory.mjs"
 
 
 # ── memory types and manager ─────────────────────────────────────────────────
