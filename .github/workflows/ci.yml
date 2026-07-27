@@ -3,7 +3,10 @@ name: CI
 on:
   push:
     branches: [main]
+  # Default pull_request types omit ready_for_review, so a draft marked ready
+  # would merge without lint/tests ever running on its newest commits.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
