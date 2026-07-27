@@ -17,11 +17,17 @@ sys.path.insert(0, str(PROJECT_DIR.parent.parent))
 
 try:
     from fastapi import FastAPI, HTTPException
-    from fastapi.responses import FileResponse
+    from fastapi.responses import FileResponse, StreamingResponse
     from fastapi.staticfiles import StaticFiles
 except ImportError as err:  # pragma: no cover
     raise ImportError("FastAPI required: pip install -e '.[api]'") from err
 
+from finance_advisor.agent import (  # noqa: E402
+    build_toolset,
+    clear_session,
+    provider_catalog,
+    run_agent,
+)
 from finance_advisor.alerts import (  # noqa: E402
     CONDITIONS,
     AlertRule,
@@ -53,6 +59,7 @@ STATIC_DIR = PROJECT_DIR / "static"
 
 _store = None
 _memory_sdk: FinanceMemorySDK | None = None
+_toolset = None
 
 
 def memory_sdk() -> FinanceMemorySDK:
@@ -61,6 +68,13 @@ def memory_sdk() -> FinanceMemorySDK:
     if _memory_sdk is None:
         _memory_sdk = FinanceMemorySDK(store="sqlite", path=PROJECT_DIR / "data" / "memory.db")
     return _memory_sdk
+
+
+def agent_tools():
+    global _toolset
+    if _toolset is None:
+        _toolset = build_toolset(memory_sdk(), property_file=PROPERTY_FILE)
+    return _toolset
 
 
 def knowledge_store():
@@ -246,3 +260,54 @@ def local_runtimes():
         "capabilities": FinanceMemorySDK.capabilities().to_dict(),
         "matrix": FinanceMemorySDK.runtimes(),
     }
+
+
+# ── agentic chat (bring your own key) ────────────────────────────────────────
+
+
+@app.get("/api/agent/providers")
+def agent_providers():
+    """Providers, their default models, and whether a server key exists.
+
+    Never returns a key — only the boolean of whether one is configured.
+    """
+    return {
+        "providers": provider_catalog(),
+        "tools": [t.schema() for t in agent_tools().values()],
+    }
+
+
+@app.post("/api/agent/chat")
+def agent_chat(req: dict):
+    """Run one agent turn, streaming events as server-sent events.
+
+    The key in `api_key` is used for this request's provider calls and then
+    discarded: it is not logged, not stored, and not echoed back.
+    """
+    message = str(req.get("message", "")).strip()
+    if not message:
+        raise HTTPException(400, "message is required")
+
+    def stream():
+        for event in run_agent(
+            message=message,
+            tools=agent_tools(),
+            provider_name=str(req.get("provider", "anthropic")),
+            model=str(req.get("model", "")),
+            api_key=str(req.get("api_key", "")),
+            base_url=str(req.get("base_url", "")),
+            session=str(req.get("session", "")),
+        ):
+            yield f"data: {json.dumps(event, default=str)}\n\n"
+
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.delete("/api/agent/session/{session_id}")
+def agent_clear(session_id: str):
+    """Drop a conversation's transcript from process memory."""
+    return {"cleared": clear_session(session_id)}

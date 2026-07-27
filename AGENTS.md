@@ -68,6 +68,8 @@ directories to `workspaces`; npm cannot build them and it will only mislead.
 | A guardrail rule | `packages/guardrails/` | Add a case to `tests/test_guardrails.py` |
 | A user-facing application | `apps/<app_name>/` | Own README; add to `include` in `pyproject.toml` |
 | A finance skill | `apps/finance_advisor/memory/skills.py` | Register in `SKILLS`; mirror the maths in the JS SDK if it should work client-side |
+| A tool the chat agent can call | `apps/finance_advisor/agent/tools.py` | Add to `build_toolset`; it must be read-only or local — no orders, no mail, no writes off-box |
+| An LLM provider | `apps/finance_advisor/agent/providers.py` | Take the key as a call argument; never store, log or return it |
 | Role/agent definition data | `data/agents/…` | Regenerate `agents_index.json` |
 | A guide or doc | `docs/` | Never at the repo root — root keeps only README and CLAUDE.md |
 | A browser asset | `web/static/` | — |
@@ -122,6 +124,8 @@ These are enforced by the guardrails engine and by review:
 4. **Personal data stays local.** The finance memory store is gitignored;
    `sensitive` records redact by default in recall, exports, logs and prompts.
    Never add telemetry or an outbound call that carries user financial context.
+   The chat agent is bring-your-own-key: a user's key is a request-scoped
+   argument, never a stored field, a log line or a response body.
 5. **Escalate to a human** for: major version upgrades, new production
    environment variables, irreversible migrations, anything touching auth,
    payments, PII or PHI, and deleting files or branches.

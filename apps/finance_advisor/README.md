@@ -59,6 +59,48 @@ uvicorn finance_advisor.app:app --port 8600
 - **Guidance**: saving/budgeting/debt/India/trends tips from the knowledge base.
 - **Alerts → email**: create rules in the UI (price above/below, % drop from 52-week high, sharp daily moves, dip-watch signal). The scheduled worker (`.github/workflows/finance-alerts.yml`, 3×/day) evaluates rules and emails via SMTP. Configure repo secrets: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` (Gmail app password), `ALERT_EMAIL` (default recipient). Test locally: `python -m finance_advisor.alerts --dry-run`.
 
+## Ask the advisor — agentic chat, bring your own key
+
+The dashboard's chat panel runs a real tool-calling agent over the same data the
+rest of the page shows. It picks its own tools: recall what you have told it,
+pull live prices, run the Indian tax and SIP maths, search the knowledge base.
+
+```
+agent/
+  providers.py   Anthropic (official SDK, claude-opus-5, adaptive thinking),
+                 any OpenAI-compatible endpoint, Ollama (local, no key)
+  tools.py       recall_memory · remember_fact · user_profile · market_snapshot
+                 fund_navs · run_skill · knowledge_search · property_watch
+  loop.py        the agentic loop, streamed to the UI as SSE events
+```
+
+**Where your key lives.** You type it into the browser; it is held in
+`sessionStorage` (that tab only, gone when the tab closes), sent to the app for
+one request, used for that request's provider calls, and dropped. It is never
+written to disk, never logged, and never returned by any endpoint — `/api/agent/
+providers` reports only *whether* a server-side key exists, never its value. If
+you prefer, set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` on the server and leave
+the box empty. Choosing Ollama sends nothing off the machine.
+
+**What the agent can and cannot do.** Every tool is local or read-only public
+market data. Nothing can place an order, move money, or send mail. Memories you
+marked `sensitive` are redacted *before* recall returns them, so an exact salary
+or balance never reaches a third-party model. Conversation transcripts stay in
+the app process, capped and never persisted.
+
+```python
+from finance_advisor.agent import build_toolset, run_agent
+from finance_advisor.memory import FinanceMemorySDK
+
+tools = build_toolset(FinanceMemorySDK(store="sqlite", path="data/memory.db"))
+for event in run_agent(message="can I service a ₹35L home loan?", tools=tools,
+                       provider_name="ollama", model="llama3.1"):
+    print(event)   # tool_call | tool_result | text | usage | error | done
+```
+
+Anthropic needs `pip install -e ".[ai]"`; the other two providers need nothing
+beyond the standard library.
+
 ## Usage
 
 ```python

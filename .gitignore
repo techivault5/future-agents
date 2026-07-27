@@ -30,8 +30,11 @@ terraform.tfvars
 it-agents-guardrails-*.zip
 IT-AGENTS-GUARDRAILS-MANIFEST.md
 
-# Finance advisor local memory store (personal financial context)
+# Finance advisor local memory store (personal financial context).
+# Both paths: the app moved to apps/ in the Turborepo restructure and the stale
+# rule let the store become tracked. Never let this file into a commit.
 projects/finance_advisor/data/memory.db
+apps/finance_advisor/data/memory.db
 
 # Node / Turborepo workspace
 node_modules/
