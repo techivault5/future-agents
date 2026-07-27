@@ -32,6 +32,10 @@ api = [
     "uvicorn[standard]~=0.30",
     "python-multipart~=0.0.9",
 ]
+scanning = [
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
+]
 dev = [
     "httpx~=0.27",
     "beautifulsoup4~=4.12",
