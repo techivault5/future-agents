@@ -1532,5 +1532,5 @@ def save_agents(agents: list, output_dir: str):
 if __name__ == "__main__":
     print("Generating 10,000 IT agents...")
     agents = generate_all_agents()
-    save_agents(agents, "agents")
+    save_agents(agents, "data/agents")
     print("Done!")

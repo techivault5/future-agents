@@ -375,6 +375,23 @@ class FolderValidator:
 
         return "generic-project"
 
+    # Accepted alternative filenames. Containerfile is the OCI-standard name
+    # Podman uses; a repo that ships one is not missing a Dockerfile.
+    EQUIVALENTS = {
+        "Dockerfile": ["Containerfile"],
+        "docker-compose.yml": ["docker-compose.yaml", "compose.yaml", "compose.yml"],
+        ".dockerignore": [".containerignore"],
+        # Monorepo layouts (Turborepo/Nx style) split source across apps/ and
+        # packages/ instead of a single src/ — that satisfies the same intent.
+        "src/": ["packages/", "apps/"],
+    }
+
+    def _satisfied(self, root: Path, required_path: str) -> bool:
+        """True when the path exists, or an accepted equivalent does."""
+        if (root / required_path).exists():
+            return True
+        return any((root / alt).exists() for alt in self.EQUIVALENTS.get(required_path, ()))
+
     def validate(self, directory: str) -> list:
         findings = []
         root = Path(directory)
@@ -383,8 +400,7 @@ class FolderValidator:
 
         # 1. Check required paths
         for required_path in struct.get("required", []):
-            full_path = root / required_path
-            if not full_path.exists():
+            if not self._satisfied(root, required_path):
                 findings.append(
                     {
                         "type": "missing_required",

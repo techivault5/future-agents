@@ -17,8 +17,8 @@ platform:
 # Where agent definitions are stored and loaded from.
 # ────────────────────────────────────────────────────────────────
 agent_registry:
-  path: agents/
-  index_file: agents/agents_index.json
+  path: data/agents/
+  index_file: data/agents/agents_index.json
   cache_ttl_secs: 3600
   hot_reload: true                       # Reload changed agent files without restart
   default_profile: standard

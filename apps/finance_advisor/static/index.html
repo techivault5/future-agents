@@ -97,6 +97,29 @@
   }
   .toolbar { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
   #status { font-size: 12px; color: var(--muted); }
+
+  /* agent chat */
+  .agent { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .agent-cfg { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; align-items: center; }
+  .keynote { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+  .keynote b { color: var(--ink-2); }
+  #thread { margin: 12px 0 0; max-height: 460px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .msg { border-radius: 10px; padding: 9px 13px; font-size: 13.5px; max-width: 88%; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .msg.user { background: var(--series-1); color: #fff; align-self: flex-end; }
+  .msg.bot { background: var(--surface-2); border: 1px solid var(--border); align-self: flex-start; }
+  .msg.err { background: var(--surface-2); border: 1px solid var(--critical); color: var(--critical); align-self: flex-start; }
+  .steps { align-self: flex-start; display: flex; flex-wrap: wrap; gap: 5px; max-width: 88%; }
+  .step {
+    font-size: 11px; font-variant-numeric: tabular-nums; color: var(--ink-2);
+    border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; background: var(--surface-2);
+  }
+  .step.busy { border-color: var(--series-4); color: var(--series-4); }
+  .step.done { border-color: var(--good); }
+  .ask { display: flex; gap: 8px; margin-top: 10px; }
+  .ask input { flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 3px 11px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+  .chip:hover { color: var(--ink); border-color: var(--series-1); }
 </style>
 </head>
 <body>
@@ -111,6 +134,24 @@
   <button class="ghost" onclick="loadAll()">↻ Refresh</button>
   <button class="ghost" onclick="toggleTheme()">◐ Theme</button>
   <span id="status"></span>
+</div>
+
+<h2>🤖 Ask the advisor <span class="sub">— agentic, with your own LLM key</span></h2>
+<div class="agent">
+  <div class="agent-cfg">
+    <select id="agProvider" onchange="providerChanged()"></select>
+    <input id="agModel" placeholder="model">
+    <input id="agKey" type="password" placeholder="your API key" autocomplete="off" oninput="saveKey()">
+    <input id="agBase" placeholder="base URL (optional)" oninput="saveKey()">
+    <button class="ghost" onclick="resetChat()">⟲ New chat</button>
+  </div>
+  <div class="keynote" id="keynote"></div>
+  <div id="thread"></div>
+  <form class="ask" onsubmit="return askAgent(event)">
+    <input id="agInput" placeholder="e.g. can I afford a ₹35L home loan on my income?" autocomplete="off">
+    <button class="primary" id="agSend">Ask</button>
+  </form>
+  <div class="chips" id="agChips"></div>
 </div>
 
 <h2>📈 Markets &amp; buy-window signals</h2>
@@ -270,9 +311,116 @@ async function previewAlerts() {
     : `Checked ${d.checked} active rule(s) — nothing triggered right now.`;
 }
 
+// ── agentic chat ────────────────────────────────────────────────────────────
+// The API key lives in sessionStorage: this tab only, gone when it closes, and
+// sent to our own origin solely to be forwarded to the provider the user picked.
+const SUGGESTIONS = [
+  "My take-home is ₹1.8L/month — how much home loan can I service?",
+  "Is gold in a dip-watch window right now?",
+  "₹25k SIP for 15 years at 12% — what does that become?",
+  "I sold equity for ₹6L that I bought at ₹4L, held 2 years. Tax?",
+  "How do I cut my tax under the new regime?",
+];
+let providers = [], agentSession = crypto.randomUUID();
+
+const keyOf = p => `fa.key.${p}`, baseOf = p => `fa.base.${p}`;
+function currentProvider() { return providers.find(p => p.name === $("agProvider").value) || {}; }
+function saveKey() {
+  const p = $("agProvider").value;
+  sessionStorage.setItem(keyOf(p), $("agKey").value);
+  sessionStorage.setItem(baseOf(p), $("agBase").value);
+}
+function providerChanged() {
+  const p = currentProvider();
+  $("agModel").value = p.default_model || "";
+  $("agKey").value = sessionStorage.getItem(keyOf(p.name)) || "";
+  $("agBase").value = sessionStorage.getItem(baseOf(p.name)) || "";
+  $("agKey").disabled = !p.requires_key;
+  $("agKey").placeholder = p.requires_key ? "your API key" : "no key needed";
+  $("agBase").style.display = p.supports_base_url ? "" : "none";
+  $("keynote").innerHTML = p.requires_key
+    ? (p.server_key_available
+        ? `<b>${p.key_env}</b> is set on the server — leave the key box empty to use it, or paste your own.`
+        : `Your key stays in <b>this browser tab</b>, is sent only to run your request, and is never stored or logged. Or set <b>${p.key_env}</b> on the server.`)
+    : `Runs locally — nothing leaves this machine.`;
+}
+async function loadProviders() {
+  const d = await (await fetch("/api/agent/providers")).json();
+  providers = d.providers;
+  $("agProvider").innerHTML = providers.map(p => `<option value="${p.name}">${p.label}</option>`).join("");
+  providerChanged();
+  $("agChips").innerHTML = SUGGESTIONS.map(s =>
+    `<span class="chip" onclick="$('agInput').value=this.textContent;$('agInput').focus()">${s}</span>`).join("");
+}
+function bubble(cls, text) {
+  const el = document.createElement("div");
+  el.className = "msg " + cls;
+  el.textContent = text;
+  $("thread").appendChild(el);
+  $("thread").scrollTop = $("thread").scrollHeight;
+  return el;
+}
+function resetChat() {
+  fetch("/api/agent/session/" + agentSession, {method: "DELETE"});
+  agentSession = crypto.randomUUID();
+  $("thread").innerHTML = "";
+}
+async function askAgent(ev) {
+  ev.preventDefault();
+  const text = $("agInput").value.trim();
+  if (!text) return false;
+  $("agInput").value = "";
+  $("agSend").disabled = true;
+  bubble("user", text);
+  const steps = document.createElement("div");
+  steps.className = "steps";
+  $("thread").appendChild(steps);
+  const chip = name => {
+    const c = document.createElement("span");
+    c.className = "step busy"; c.textContent = "⛭ " + name;
+    steps.appendChild(c); return c;
+  };
+  let open = {};
+  try {
+    const resp = await fetch("/api/agent/chat", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        message: text, session: agentSession,
+        provider: $("agProvider").value, model: $("agModel").value,
+        api_key: $("agKey").value, base_url: $("agBase").value,
+      }),
+    });
+    const reader = resp.body.getReader(), dec = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream: true});
+      const parts = buf.split("\n\n");
+      buf = parts.pop();
+      for (const part of parts) {
+        if (!part.startsWith("data: ")) continue;
+        const e = JSON.parse(part.slice(6));
+        if (e.type === "tool_call") open[e.name] = chip(e.name);
+        else if (e.type === "tool_result") {
+          const c = open[e.name];
+          if (c) { c.className = "step done"; c.textContent = (e.result && e.result.error ? "⚠ " : "✓ ") + e.name; }
+        }
+        else if (e.type === "text") bubble("bot", e.text);
+        else if (e.type === "error") bubble("err", "⚠ " + e.message);
+      }
+    }
+  } catch (err) {
+    bubble("err", "⚠ " + err.message);
+  }
+  if (!steps.childElementCount) steps.remove();
+  $("agSend").disabled = false;
+  return false;
+}
+
 async function loadAll() {
   $("status").textContent = "loading…";
-  await Promise.allSettled([loadOverview(), loadFunds(), loadProperty(), loadTips(activeTopic), loadAlerts()]);
+  await Promise.allSettled([loadOverview(), loadFunds(), loadProperty(), loadTips(activeTopic), loadAlerts(), loadProviders()]);
   $("status").textContent = "";
 }
 loadAll();

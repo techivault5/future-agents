@@ -96,7 +96,7 @@ def discover_agent_implementations() -> list[dict]:
 def discover_definitions() -> list[dict]:
     """Load all agent JSON definition files."""
     results = []
-    for json_file in sorted((ROOT / "agents").glob("*.json")):
+    for json_file in sorted((ROOT / "data" / "agents").glob("*.json")):
         try:
             data = json.loads(json_file.read_text())
             results.append(

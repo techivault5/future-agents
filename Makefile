@@ -120,12 +120,12 @@ test-k:
 ## lint: Run ruff linter on the source
 lint:
 	$(ENGINE) run --rm -v "$(shell pwd):/app:z" $(IMAGE):$(TAG) \
-	  /bin/bash -c "cd /app && python3 -m ruff check guardrails/ tests/ scripts/"
+	  /bin/bash -c "cd /app && python3 -m ruff check packages/future_agents/ apps/ tests/ scripts/"
 
 ## format: Run ruff formatter (auto-fix style issues)
 format:
 	$(ENGINE) run --rm -v "$(shell pwd):/app:z" $(IMAGE):$(TAG) \
-	  /bin/bash -c "cd /app && python3 -m ruff format guardrails/ tests/ scripts/"
+	  /bin/bash -c "cd /app && python3 -m ruff format packages/future_agents/ apps/ tests/ scripts/"
 
 # ── Packaging ──────────────────────────────────────────────────
 

@@ -1,0 +1,49 @@
+{
+  "domain": "finance.trends",
+  "as_of": "2026-07",
+  "review_by": "2026-10",
+  "note": "Dated market-structure observations, not forecasts. Numbers are point-in-time and go stale; re-verify against the primary source before acting on any of them.",
+  "entries": [
+    {
+      "title": "Indian SIP flows are now structural, not sentiment (mid-2026)",
+      "content": "Contributing SIP accounts reached ~9.64 crore by May 2026, with monthly inflows above ₹30,000 crore every month of CY2026 and a March peak near ₹32,087 crore (+24% YoY). SIP assets stand near ₹17.12 lakh crore — about 21% of a ₹81.58 lakh crore industry. What this changes for you: domestic flows now provide a persistent bid under Indian equities, so waiting for a 'crash' that flows keep cushioning has been a losing strategy for five straight years. What it does NOT mean: flows are not a valuation floor. Strong flows into expensive markets raise the price you pay, not the return you get. Keep your SIP running through drawdowns — that is where the units are cheap — and let valuation govern lump-sum top-ups, not your monthly instalment.",
+      "tags": ["india", "sip", "mutual-funds", "flows", "2026", "amfi"],
+      "as_of": "2026-05",
+      "confidence": 0.9
+    },
+    {
+      "title": "Category rotation 2026: flexicap, multi-asset and gold-inclusive funds",
+      "content": "Flexicap funds have taken record inflows as investors buy manager flexibility rather than a fixed cap bucket; multi-asset and gold-holding schemes have grown sharply against earlier periods; domestic-capex and healthcare themes are drawing thematic money. The structural read: after a long single-factor run, allocation is doing more work than stock picking. The practical read for a retail SIP: a core of one large-cap or index fund plus one flexicap covers most of this without paying thematic-fund concentration risk. Thematic funds are where retail investors most often buy the top — a theme is popular precisely because it already worked. If you want the capex or healthcare exposure, take it inside a flexicap that can leave when the theme breaks.",
+      "tags": ["india", "flexicap", "multi-asset", "thematic", "rotation", "2026"],
+      "as_of": "2026-06",
+      "confidence": 0.8
+    },
+    {
+      "title": "Precious metals moved from hedge to allocation line (2026 consensus)",
+      "content": "The strategist consensus has re-rated gold from a crisis hedge to a standing allocation. J.P. Morgan's base case has gold averaging ~$5,055/oz in Q4 2026, with a year-end target revised to ~$6,300/oz in February 2026; VanEck looks for $5,000. Typical published weights: wealth-preservation portfolios 8–10% gold plus 2–3% silver; balanced portfolios 5–8% gold plus 3–5% silver. Several houses now push a '60/20/20' frame in place of 60/40, putting metals alongside equities and bonds. Drivers cited are central-bank buying and de-dollarisation rather than retail demand. Read this as a range, not a signal: the same forecasts were revised upward twice inside six months, which tells you the error bars are wide. A 5–10% metals sleeve rebalanced on a schedule captures the argument; chasing a target price does not.",
+      "tags": ["gold", "silver", "allocation", "60-40", "central-banks", "2026"],
+      "as_of": "2026-07",
+      "confidence": 0.75
+    },
+    {
+      "title": "India's VDA regime is settled — and it is what makes crypto expensive",
+      "content": "For AY 2026-27 the rules are unchanged and now routine: 30% flat on VDA gains plus 4% cess (≈31.2% effective), 1% TDS under s.194S above ₹10,000 per transfer (₹50,000 for specified persons), no distinction between a 10-day and a 10-year hold, no offset of crypto losses against other crypto gains or any other income, no carry-forward, and mandatory Schedule VDA reporting from FY2025-26. Analysts read the high rate as having pushed retail traders out while regulatory certainty draws institutions that can absorb compliance cost. The maths that matters to you: with no loss offset, a portfolio that is up 50% on one coin and down 50% on another still owes tax on the winner. That asymmetry — not volatility — is the strongest argument for keeping any VDA position to a small, deliberately-sized sleeve you would not need to rebalance often.",
+      "tags": ["crypto", "vda", "india", "tax", "tds", "2026"],
+      "as_of": "2026-07",
+      "confidence": 0.9
+    },
+    {
+      "title": "The 2026 rate gap makes debt payoff beat saving, arithmetically",
+      "content": "Average credit-card APR sits near 21% as of May 2026, with many cards at 24%+, while the best safe cash yield is around 4%. That ~17-point spread is the entire decision: a rupee or dollar aimed at card debt earns a guaranteed, tax-free return equal to the card rate — nothing in a savings account competes. Average personal-loan APR near 11.40% makes consolidation genuinely arithmetic-positive for card balances, as does a 0% balance-transfer window if you can clear it inside the promo. The sequencing that survives contact with reality: a small starter emergency fund first (about one month of essentials, or $500–1,000) so the next small crisis does not go back onto the card, then everything spare at the highest-rate debt while a token automatic transfer keeps the savings habit alive. Avalanche minimises interest; snowball wins when you need visible progress to keep going. Pick the one you will actually finish.",
+      "tags": ["debt", "credit-card", "avalanche", "consolidation", "emergency-fund", "2026"],
+      "as_of": "2026-05",
+      "confidence": 0.9
+    },
+    {
+      "title": "How to use anything in this file without getting hurt by it",
+      "content": "Every number here is a point-in-time observation with a date attached, and the forecasts are the loudest and least reliable part. Three habits make dated market commentary safe to hold: (1) separate structure from prediction — 'SIP flows are 21% of industry AUM' is a fact you can plan around, '$6,300 gold' is a guess with a wide error bar; (2) let allocation decisions come from your goal horizon and cash-flow needs, then use trends only to size the edges of a plan you already had; (3) treat any entry past its review_by date as unverified. If a claim here would change what you buy, open the primary source — AMFI's monthly data, the CBDT circular, the bank's own rate card — before you act.",
+      "tags": ["method", "caution", "staleness", "sources"],
+      "confidence": 0.95
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Alert rules for the Finance Advisor dashboard.
 
-Rules are stored in data/alerts.json. `python -m projects.finance_advisor.alerts
+Rules are stored in data/alerts.json. `python -m finance_advisor.alerts
 --check` evaluates all active rules against live market data and emails
 triggered ones via SMTP (config from env; see .env.example). Run it on a
 schedule (GitHub Actions workflow: finance-alerts.yml).
@@ -136,7 +136,7 @@ def send_email(subject: str, body: str, to_addr: str) -> bool:
 
 def check_and_notify(dry_run: bool = False) -> int:
     """Evaluate all rules against live data; email triggered ones. Returns count."""
-    from projects.finance_advisor.market_data import fetch_all_quotes
+    from finance_advisor.market_data import fetch_all_quotes
 
     rules = load_alerts()
     if not rules:

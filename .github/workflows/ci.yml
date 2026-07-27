@@ -3,7 +3,10 @@ name: CI
 on:
   push:
     branches: [main]
+  # Default pull_request types omit ready_for_review, so a draft marked ready
+  # would merge without lint/tests ever running on its newest commits.
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -19,8 +22,8 @@ jobs:
           python-version: '3.11'
           cache: pip
       - run: pip install -e ".[dev]"
-      - run: ruff check future_agents/ scripts/
-      - run: ruff format --check future_agents/ scripts/
+      - run: ruff check packages/future_agents/ apps/ scripts/
+      - run: ruff format --check packages/future_agents/ apps/ scripts/
 
   test:
     name: Tests (pytest)

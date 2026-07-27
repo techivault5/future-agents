@@ -17,7 +17,7 @@ from pathlib import Path
 from future_agents.system import AgentSystem
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFINITIONS_DIR = PROJECT_ROOT / "agents"
+DEFINITIONS_DIR = PROJECT_ROOT / "data" / "agents"
 
 
 def pp(data: dict, indent: int = 2) -> None:

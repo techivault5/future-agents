@@ -1,0 +1,34 @@
+# Pre-commit hooks — the same checks CI runs, before the commit lands.
+#   pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.8
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^(packages|apps|scripts|tests)/
+      - id: ruff-format
+        files: ^(packages/future_agents|apps|scripts)/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        exclude: ^data/agents/  # 10k generated role definitions
+      - id: check-json
+        exclude: ^data/agents/
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+      - id: end-of-file-fixer
+        exclude: ^data/agents/
+      - id: trailing-whitespace
+        exclude: ^data/agents/
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: guardrails
+        name: IT Agents Guardrails (secrets, packages, structure)
+        entry: python packages/guardrails/guardrails_engine.py . --mode check
+        language: system
+        pass_filenames: false

@@ -31,7 +31,7 @@ jobs:
         run: pip install pyyaml packaging
 
       - name: Run guardrails
-        run: python guardrails/guardrails_engine.py . --mode block
+        run: python packages/guardrails/guardrails_engine.py . --mode block
         env:
           GUARDRAILS_INTERACTIVE: "false"
           GUARDRAILS_CONFIG: config/guardrails_config.yaml

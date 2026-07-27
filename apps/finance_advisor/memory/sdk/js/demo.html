@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finance Memory SDK — browser demo</title>
+<style>
+  :root { color-scheme: dark; --bg:#0d0d0d; --card:#1a1a19; --ink:#fff; --ink2:#c3c2b7;
+          --muted:#898781; --line:rgba(255,255,255,.1); --accent:#3987e5; --good:#0ca30c; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); padding: 20px; max-width: 980px; margin: 0 auto;
+         font: 14px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  h2 { font-size: 14px; margin: 22px 0 8px; }
+  .sub, .note { color: var(--muted); font-size: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+          padding: 14px; margin-bottom: 10px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input, select, button, textarea { background: #232322; color: var(--ink); font: inherit;
+          border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font-size: 13px; }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); border-color: transparent; font-weight: 650; }
+  pre { background: #111; border: 1px solid var(--line); border-radius: 8px; padding: 10px;
+        overflow-x: auto; font-size: 12px; color: var(--ink2); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #2c2c2a; vertical-align: top; }
+  th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .pill { display: inline-block; font-size: 11px; border: 1px solid var(--line);
+          border-radius: 999px; padding: 1px 8px; color: var(--ink2); }
+  .hit { border-left: 2px solid var(--accent); padding-left: 8px; margin-bottom: 6px; font-size: 13px; }
+  .disclaimer { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
+                font-size: 12px; color: var(--muted); margin: 10px 0; }
+</style>
+</head>
+<body>
+<h1>🧠 Finance Memory SDK — browser</h1>
+<p class="sub">Zero dependencies, zero network. Memories persist in <code>localStorage</code>; embeddings are byte-identical to the Python SDK, so an export here imports there.</p>
+<div class="disclaimer">⚠️ Educational demo — not licensed financial advice.</div>
+
+<h2>1 · Write memories</h2>
+<div class="card">
+  <div class="row">
+    <input id="mContent" placeholder="e.g. take_home=180000" style="flex:1;min-width:240px">
+    <select id="mType">
+      <option value="semantic">semantic (durable fact)</option>
+      <option value="episodic">episodic (event)</option>
+      <option value="working">working (1h TTL)</option>
+      <option value="procedural">procedural (how-to)</option>
+      <option value="graph">graph (entity)</option>
+    </select>
+    <label class="sub"><input type="checkbox" id="mSensitive"> sensitive</label>
+    <button class="primary" onclick="addMemory()">Remember</button>
+    <button onclick="seed()">Seed sample profile</button>
+  </div>
+  <p class="note" style="margin-top:6px">Tip: <code>key=value</code> content tagged <code>profile</code> becomes part of the profile dict.</p>
+</div>
+
+<h2>2 · Recall (hybrid: embedding + keyword + recency + importance)</h2>
+<div class="card">
+  <div class="row">
+    <input id="qText" placeholder="what do I earn?" style="flex:1;min-width:240px" onkeydown="if(event.key==='Enter')doRecall()">
+    <button class="primary" onclick="doRecall()">Recall</button>
+    <button onclick="showStats()">Stats</button>
+    <button onclick="doExport()">Export JSON</button>
+  </div>
+  <div id="hits" style="margin-top:10px"></div>
+</div>
+
+<h2>3 · Finance skills</h2>
+<div class="card">
+  <div class="row">
+    <select id="skillName" onchange="renderSkillForm()"></select>
+    <span id="skillCovers" class="sub"></span>
+  </div>
+  <div class="row" id="skillArgs" style="margin-top:8px"></div>
+  <div class="row" style="margin-top:8px"><button class="primary" onclick="runSkill()">Run skill</button></div>
+  <pre id="skillOut" style="margin-top:10px">(no result yet)</pre>
+</div>
+
+<h2>4 · Local runtimes available to this page</h2>
+<div class="card">
+  <div id="caps" class="sub" style="margin-bottom:8px"></div>
+  <table id="runtimeTable"></table>
+</div>
+
+<script type="module">
+import { FinanceMemorySDK, MemoryType } from './finance-memory.mjs';
+
+const sdk = new FinanceMemorySDK({ store: 'local' });
+window.sdk = sdk;
+
+const $ = (id) => document.getElementById(id);
+
+const SKILL_FORMS = {
+  loans: [
+    ['principal', 'number', 3500000],
+    ['annualRatePct', 'number', 8.6],
+    ['months', 'number', 240],
+  ],
+  mutual_funds: [
+    ['monthly', 'number', 25000],
+    ['years', 'number', 15],
+    ['annualReturnPct', 'number', 12],
+  ],
+  crypto: [
+    ['portfolioValue', 'number', 2000000],
+    ['riskTolerance', 'text', 'moderate'],
+  ],
+  capital_gains: [
+    ['buyValue', 'number', 500000],
+    ['sellValue', 'number', 800000],
+    ['holdingMonths', 'number', 18],
+  ],
+  taxes: [
+    ['regime', 'text', 'old'],
+    ['existing80c', 'number', 50000],
+  ],
+};
+
+window.addMemory = () => {
+  const content = $('mContent').value.trim();
+  if (!content) return;
+  const tags = content.includes('=') ? ['profile'] : [];
+  sdk.remember(content, { type: $('mType').value, tags, sensitive: $('mSensitive').checked });
+  $('mContent').value = '';
+  showStats();
+};
+
+window.seed = () => {
+  sdk.remember('take_home=180000', { tags: ['profile'], sensitive: true, importance: 0.8 });
+  sdk.remember('risk_tolerance=moderate', { tags: ['profile'], importance: 0.7 });
+  sdk.remember('goal=house down payment in 5 years', { tags: ['profile', 'goal'], importance: 0.85 });
+  sdk.remember('asked whether the gold dip is a buy window', { type: MemoryType.EPISODIC });
+  sdk.remember('asked about SIP step-up for the house goal', { type: MemoryType.EPISODIC });
+  showStats();
+};
+
+window.doRecall = () => {
+  const hits = sdk.recall($('qText').value || 'income', 5);
+  $('hits').innerHTML = hits.length
+    ? hits.map((h) => `<div class="hit"><b>${h.content}</b><br>
+        <span class="sub">${h.type} · score ${h.score.toFixed(3)}
+        (sim ${h.similarity.toFixed(2)} · kw ${h.keyword.toFixed(2)} · rec ${h.recency.toFixed(2)})</span></div>`).join('')
+    : '<span class="sub">No memories yet — write one or seed the sample profile.</span>';
+};
+
+window.showStats = () => {
+  const s = sdk.stats();
+  $('hits').innerHTML = `<pre>${JSON.stringify({ stats: s, profile: sdk.profile() }, null, 2)}</pre>`;
+};
+
+window.doExport = () => {
+  $('hits').innerHTML = `<pre>${JSON.stringify(sdk.export(), null, 2)}</pre>`;
+};
+
+window.renderSkillForm = () => {
+  const name = $('skillName').value;
+  const fields = SKILL_FORMS[name] || [];
+  $('skillCovers').textContent = FinanceMemorySDK.skills().find((s) => s.name === name)?.covers || '';
+  $('skillArgs').innerHTML = fields
+    .map(([key, type, value]) => `<label class="sub">${key}
+      <input data-arg="${key}" type="${type}" value="${value}" style="width:130px"></label>`)
+    .join('');
+};
+
+window.runSkill = () => {
+  const args = {};
+  for (const input of $('skillArgs').querySelectorAll('[data-arg]')) {
+    args[input.dataset.arg] = input.type === 'number' ? Number(input.value) : input.value;
+  }
+  $('skillOut').textContent = JSON.stringify(sdk.advise($('skillName').value, args), null, 2);
+};
+
+// boot
+$('skillName').innerHTML = FinanceMemorySDK.skills()
+  .map((s) => `<option value="${s.name}">${s.name}</option>`).join('');
+renderSkillForm();
+
+const caps = FinanceMemorySDK.capabilities();
+$('caps').textContent = `environment: ${caps.environment} · WebGPU: ${caps.webgpu ? 'yes' : 'no'}`
+  + ` · localStorage: ${caps.localStorage ? 'yes' : 'no'} · recommended: ${caps.recommended}`;
+
+$('runtimeTable').innerHTML = '<tr><th>Runtime</th><th>Target</th><th>Runs where</th><th>Good for</th><th>Setup</th></tr>'
+  + FinanceMemorySDK.runtimes().map((r) => `<tr>
+      <td><b>${r.name}</b></td><td><span class="pill">${r.target}</span></td>
+      <td>${r.runs_where}</td><td>${r.good_for}</td><td>${r.setup_effort}</td></tr>`).join('');
+
+showStats();
+</script>
+</body>
+</html>

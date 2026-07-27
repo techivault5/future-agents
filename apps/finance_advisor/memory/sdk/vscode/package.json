@@ -1,0 +1,56 @@
+{
+  "name": "finance-memory-vscode",
+  "displayName": "Finance Advisor Memory",
+  "description": "Memory-aware, educational finance helpers (loans, SIPs, crypto, capital gains, taxes) running fully offline in VS Code.",
+  "version": "0.1.0",
+  "publisher": "future-agents",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Other", "Education"],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "financeMemory.ask",
+        "title": "Finance Advisor: Ask a finance question (recall memory)"
+      },
+      {
+        "command": "financeMemory.remember",
+        "title": "Finance Advisor: Remember a fact about my finances"
+      },
+      {
+        "command": "financeMemory.runSkill",
+        "title": "Finance Advisor: Run a skill (loans, SIP, crypto, gains, taxes)"
+      },
+      {
+        "command": "financeMemory.showRuntimes",
+        "title": "Finance Advisor: Show local model runtimes"
+      },
+      {
+        "command": "financeMemory.exportMemory",
+        "title": "Finance Advisor: Export memory as JSON"
+      }
+    ],
+    "configuration": {
+      "title": "Finance Advisor Memory",
+      "properties": {
+        "financeMemory.storagePath": {
+          "type": "string",
+          "default": "",
+          "description": "File to persist memories in. Empty means use the extension's global storage."
+        },
+        "financeMemory.subject": {
+          "type": "string",
+          "default": "user",
+          "description": "Memory subject, so several profiles can share one install."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "node --check extension.js"
+  }
+}

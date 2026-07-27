@@ -17,6 +17,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -65,6 +66,33 @@ def load_knowledge(store: KnowledgeStore | None = None) -> KnowledgeStore:
                 )
             )
     return store
+
+
+def review_status(today: str | None = None) -> list[dict]:
+    """Which knowledge files are past their `review_by` month.
+
+    Dated market commentary rots quietly: the numbers stay confident while the
+    market moves. Files that carry `review_by` (YYYY-MM) get checked here, so
+    refreshing them is a cheap deterministic lookup instead of re-reading the
+    whole knowledge base to guess what aged.
+    """
+    now = today or datetime.now(timezone.utc).strftime("%Y-%m")
+    out = []
+    for path in sorted(KNOWLEDGE_DIR.glob("*.json")):
+        data = json.loads(path.read_text())
+        review_by = data.get("review_by")
+        if not review_by:
+            continue
+        out.append(
+            {
+                "file": path.name,
+                "as_of": data.get("as_of", "?"),
+                "review_by": review_by,
+                "entries": len(data.get("entries", [])),
+                "stale": review_by < now,
+            }
+        )
+    return out
 
 
 def build_advisor() -> AgentDefinition:
@@ -142,9 +170,19 @@ def main() -> int:
     parser.add_argument("--search", help="Search the knowledge base")
     parser.add_argument("--domain", help="Filter search/list by domain")
     parser.add_argument("--youtube", action="store_true", help="Refresh latest channel uploads")
+    parser.add_argument("--stale", action="store_true", help="List knowledge past its review_by")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+
+    if args.stale:
+        rows = review_status()
+        stale = [r for r in rows if r["stale"]]
+        for row in rows:
+            mark = "STALE" if row["stale"] else "ok   "
+            print(f"{mark} {row['file']}  as_of={row['as_of']}  review_by={row['review_by']}")
+        print(f"\n{len(stale)} of {len(rows)} dated file(s) need a refresh")
+        return 1 if stale else 0
 
     store = load_knowledge()
     if args.youtube:

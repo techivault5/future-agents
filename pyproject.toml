@@ -21,6 +21,12 @@ dependencies = [
 ai = [
     "anthropic>=0.40.0",
 ]
+# Optional local NLP for semantic memory recall (CPU/GPU/Metal/NPU).
+# The default HashingEmbedder needs none of this.
+localnlp = [
+    "sentence-transformers~=3.0",
+    "onnxruntime~=1.18",
+]
 api = [
     "fastapi~=0.111",
     "uvicorn[standard]~=0.30",
@@ -37,14 +43,20 @@ dev = [
     "pytest-asyncio>=0.21",
     "pytest-xdist~=3.5",
     "pytest-cov~=5.0",
-    "ruff>=0.1.0",
+    # Minor-pinned deliberately: a formatter is only useful if CI and every
+    # developer run the same one. ruff 0.16 began formatting Python blocks
+    # inside Markdown, which turned a green branch red on an unrelated push.
+    # Patches still flow; bumping the minor is a visible, reviewable change.
+    "ruff~=0.16.0",
 ]
 
 [tool.setuptools.packages.find]
-include = ["future_agents*", "guardrails*"]
+where = ["packages", "apps"]
+include = ["future_agents*", "guardrails*", "scanning*", "finance_advisor*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+pythonpath = ["packages", "apps", "."]
 testpaths = ["tests"]
 
 [tool.ruff]
@@ -55,6 +67,6 @@ select = ["E", "F", "I"]
 
 [tool.ruff.lint.per-file-ignores]
 # Document agents use lazy try/except imports for optional heavy deps
-"future_agents/agents/pdf_agent.py" = ["F401"]
-"future_agents/agents/ppt_agent.py" = ["F401"]
-"future_agents/agents/word_agent.py" = ["F401"]
+"packages/future_agents/agents/pdf_agent.py" = ["F401"]
+"packages/future_agents/agents/ppt_agent.py" = ["F401"]
+"packages/future_agents/agents/word_agent.py" = ["F401"]
