@@ -1,0 +1,38 @@
+{
+  "domain": "finance.habits",
+  "as_of": "2026-07",
+  "review_by": "2027-07",
+  "note": "Two very different evidence grades, deliberately kept apart. The routine entries are anecdote about a handful of famous people and are marked low confidence. The sleep-and-decisions entries rest on published research and are marked high. Do not let the famous names borrow credibility from the studies.",
+  "entries": [
+    {
+      "title": "Sleep loss moves money decisions in one direction — worse",
+      "content": "This is the part of the 'bedtime routine' genre that actually holds up. Sleep restriction reliably reduces financial risk aversion, weakens impulse control in spending, and shortens planning horizons — and the effects show up after a single restricted night. They are directional, not random noise: short sleep does not make you erratic, it makes you predictably more willing to take a bad bet and less able to weigh a downside. The mechanism is prefrontal: the executive regions that price consequences are the ones that degrade first, which is why overconfidence rises at the same time judgement falls. Practical use: treat 'am I rested?' as a precondition for any decision involving new risk, a large sum, or an irreversible commitment. Rescheduling a portfolio decision to a morning after real sleep costs nothing and removes a known bias.",
+      "tags": ["sleep", "behaviour", "risk", "impulse-spending", "decision-making"],
+      "confidence": 0.85
+    },
+    {
+      "title": "Never transact tired: a rule you can actually follow",
+      "content": "Turn the research into one mechanical rule rather than a resolution. Anything that (a) commits more than one month of income, (b) is hard to reverse, or (c) is a new kind of risk you have not taken before waits until you have slept and it is daylight. Everything else — the automated SIP, the standing transfer, the scheduled EMI — should already be on autopilot precisely so it never depends on your state. The design principle underneath: automation exists to move decisions out of the hours when your judgement is worst. Late-night trading apps, one-tap credit and 'limited time' offers are all built for the tired version of you. The defence is structural, not willpower — remove the app from the phone's home screen, keep the card out of the browser, and let the calendar rather than the impulse decide when you act.",
+      "tags": ["sleep", "automation", "rules", "impulse-spending", "method"],
+      "confidence": 0.8
+    },
+    {
+      "title": "The five-minute evening money review",
+      "content": "The one habit from the successful-people genre worth copying, because it is cheap and its benefit does not depend on who does it: a short, fixed review at the end of the day. Three questions — what did I spend today, what is due tomorrow, and what is the single most important money thing to handle next? Written down, not held in the head. Two mechanisms make this work: writing tomorrow's priority before sleep removes the low-grade rumination that keeps people awake, and a daily spend glance catches the small recurring leaks that a monthly budget review averages away. Keep it to five minutes; the moment it becomes a ritual with a spreadsheet, it stops happening. If you only take one thing from this file, take this — and note that its value comes from the mechanism, not from any famous person having done it.",
+      "tags": ["routine", "review", "budgeting", "habit", "planning"],
+      "confidence": 0.7
+    },
+    {
+      "title": "What well-known people actually report doing at night — and the survivorship problem",
+      "content": "Commonly reported evening habits among widely covered founders and public figures: reading a physical book for roughly half an hour (Gates, Obama); writing down tomorrow's single most important task; a short walk to close out the working day (Buffer's Joel Gascoigne, ~20 minutes); a hard stop time for work regardless of what is unfinished (Wholesale Ted's Sarah Chrisp, laptop off at 6pm); keeping devices out of the bedroom (Arianna Huffington); and treating sleep as non-negotiable — Gates has said seven hours is his floor for creative work, and Eric Schmidt has written that sleep gates his ability to do essentially anything. Read this list as hypotheses, not instructions. It is drawn from people who succeeded, so it cannot tell you whether the routine caused the outcome, the outcome afforded the routine, or the two are unrelated — nobody publishes the evening routines of the equally disciplined people whose companies failed. What survives that objection is the small set of habits with an independent mechanism: less screen light and less work rumination genuinely improve sleep, and sleep genuinely improves financial judgement. Copy those. Skip the 4am wake-up and the cold plunge; they are personality, not strategy.",
+      "tags": ["routines", "founders", "survivorship-bias", "anecdote", "caution"],
+      "confidence": 0.4
+    },
+    {
+      "title": "Why this file is graded, and how to read anything like it",
+      "content": "Habit content is the most credulous corner of personal finance: a famous name attached to a routine reads as evidence when it is anecdote, and the surrounding article rarely separates the two. This file grades its entries on purpose — 0.85 for effects measured in published studies, 0.4 for what a handful of people report about their evenings — and the grades are the point, not decoration. Apply the same test to anything you read next: ask what would have to be true for this to be wrong, and whether anyone would have published the counterexample. A claim like 'short sleep reduces risk aversion' can be tested and has been. A claim like 'successful people wake at 5am' cannot be, because the sample is selected on the outcome. Neither is worthless — but only one of them should change what you do with money.",
+      "tags": ["method", "evidence", "confidence", "caution"],
+      "confidence": 0.9
+    }
+  ]
+}

@@ -68,6 +68,18 @@ def load_knowledge(store: KnowledgeStore | None = None) -> KnowledgeStore:
     return store
 
 
+# Guidance tabs → knowledge domain. Lives here, not in app.py, so it is testable
+# without FastAPI installed — CI installs [dev], not [api].
+TIP_TOPICS = {
+    "saving": "finance.saving",
+    "debt": "finance.debt",
+    "budgeting": "finance.budgeting",
+    "india": "finance.india",
+    "trends": "finance.trends",
+    "habits": "finance.habits",
+}
+
+
 def review_status(today: str | None = None) -> list[dict]:
     """Which knowledge files are past their `review_by` month.
 

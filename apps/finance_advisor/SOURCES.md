@@ -54,6 +54,21 @@ Research gathered July 2026. Curated into `knowledge/*.json`.
 
 Forecast figures above are strategist opinion with wide error bars — the gold target was revised twice inside six months. They are recorded as a range, never as a signal.
 
+## Evening habits & sleep (`evening_money_habits.json`)
+
+Research — the entries graded 0.8+:
+- [Insufficient Sleep and Intraday Financial Decision Making, *Management Science*](https://doi.org/10.1287/mnsc.2023.04031)
+- [The impact of sleep loss on decision making, *ScienceDirect*](https://www.sciencedirect.com/science/article/pii/S108707922500067X) · [Duke — sleep and economic preferences (PDF)](https://sites.duke.edu/huettellab/files/2013/07/2013_Sleep_Libedensky.pdf) · [Iowa gambling-task studies on sleep loss](https://drkumardiscovery.com/posts/studies-from-psychological-laboratory-university-iowa-effects-loss/)
+
+Reported routines — the entry graded 0.4:
+- [Money.com — what 11 successful people do right before bed](https://money.com/bedtime-routines-success/) · [Fortune — nighttime routines of entrepreneurs](https://fortune.com/2014/11/04/nighttime-routines-of-successful-entrepreneurs) · [Let's Reach Success — evening routines of top CEOs](https://letsreachsuccess.com/evening-routines/)
+
+These are secondhand reports of what public figures say they do, drawn from a
+sample selected on success. They are recorded as hypotheses with the
+survivorship problem stated in the entry itself, and deliberately graded below
+the research they sit next to. No transcripts were read — the source is
+reporting, not the videos.
+
 ## Notes
 - Rate-sensitive facts (APRs, APYs, prime rate) are stamped in entry content as 2026 conditions; refresh periodically.
 - Dated files carry `as_of` + `review_by`; `python apps/finance_advisor/gather.py --stale` lists what is past due and exits non-zero, so the refresh cycle costs a command instead of a re-read.
