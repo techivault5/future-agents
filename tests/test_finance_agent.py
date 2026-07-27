@@ -18,6 +18,7 @@ from finance_advisor.agent import (
     run_agent,
 )
 from finance_advisor.agent.providers import _to_anthropic, _to_openai
+from finance_advisor.agent.tools import MAX_RESULT_CHARS
 from finance_advisor.memory import FinanceMemorySDK
 
 
@@ -231,3 +232,31 @@ def test_openai_shape_serialises_tool_calls_as_json_strings():
     assert out[0]["role"] == "system"
     assert json.loads(out[2]["tool_calls"][0]["function"]["arguments"]) == {"skill": "loans"}
     assert out[3]["role"] == "tool"
+
+
+# ── prompt-token economy ─────────────────────────────────────────────────────
+
+
+def test_market_snapshot_drops_chart_only_fields(tools):
+    from finance_advisor.agent.tools import _compact_quote
+
+    raw = {
+        "key": "gold",
+        "name": "Gold",
+        "price": 118.6234,
+        "sparkline": [1.0] * 30,
+        "outlook": "",
+        "signal": "dip-watch",
+    }
+    out = _compact_quote(raw)
+    assert "sparkline" not in out and "key" not in out
+    assert out["price"] == 118.62
+    assert "outlook" not in out  # empty values are dropped too
+    assert out["signal"] == "dip-watch"
+
+
+def test_a_snapshot_fits_inside_the_tool_result_budget(tools):
+    """It did not before: 30 floats per asset pushed it past the cap, and the
+    model received truncated JSON it could not parse."""
+    payload = json.dumps(tools["market_snapshot"].run(), default=str)
+    assert len(payload) < MAX_RESULT_CHARS

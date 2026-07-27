@@ -47,6 +47,20 @@ _INT = {"type": "integer"}
 _NUM = {"type": "number"}
 _BOOL = {"type": "boolean"}
 
+# Fields that exist for the dashboard's charts and have no value in a prompt.
+# `sparkline` alone is 30 floats per asset — it pushed the raw snapshot past
+# MAX_RESULT_CHARS, so the model received truncated, unparseable JSON.
+_CHART_ONLY = ("sparkline", "key")
+
+
+def _compact_quote(quote: dict) -> dict:
+    """Drop chart-only fields and round; the model reads numbers, not pixels."""
+    return {
+        k: round(v, 2) if isinstance(v, float) else v
+        for k, v in quote.items()
+        if k not in _CHART_ONLY and v not in (None, "")
+    }
+
 
 def build_toolset(sdk: FinanceMemorySDK, property_file=None) -> dict[str, Tool]:
     """Bind every tool to one memory SDK instance."""
@@ -78,7 +92,7 @@ def build_toolset(sdk: FinanceMemorySDK, property_file=None) -> dict[str, Tool]:
         return {"profile": sdk.profile()}
 
     def market_snapshot() -> dict:
-        return {"quotes": fetch_all_quotes(), "fx": fetch_fx()}
+        return {"quotes": [_compact_quote(q) for q in fetch_all_quotes()], "fx": fetch_fx()}
 
     def fund_navs() -> dict:
         return {"funds": fetch_fund_navs()}

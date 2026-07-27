@@ -3,13 +3,13 @@
 import json
 from pathlib import Path
 
-from future_agents.definitions.loader import DefinitionLoader
 from finance_advisor.gather import (
     KNOWLEDGE_DIR,
     build_advisor,
     load_knowledge,
     refresh_youtube,
 )
+from future_agents.definitions.loader import DefinitionLoader
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent / "apps" / "finance_advisor"
 
@@ -136,3 +136,21 @@ def test_email_skipped_without_smtp_config(monkeypatch):
     for var in ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"):
         monkeypatch.delenv(var, raising=False)
     assert send_email("s", "b", "x@example.com") is False
+
+
+def test_dated_knowledge_declares_a_review_date():
+    """Market commentary rots quietly — dated files must say when to recheck."""
+    from finance_advisor.gather import review_status
+
+    rows = review_status(today="2026-07")
+    assert rows, "no knowledge file carries as_of/review_by"
+    for row in rows:
+        assert row["review_by"] >= row["as_of"]
+        assert row["entries"] > 0
+
+
+def test_review_status_flags_a_file_past_its_date():
+    from finance_advisor.gather import review_status
+
+    assert all(r["stale"] for r in review_status(today="2099-01"))
+    assert not any(r["stale"] for r in review_status(today="2000-01"))

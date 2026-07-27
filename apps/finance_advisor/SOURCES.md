@@ -45,6 +45,16 @@ Research gathered July 2026. Curated into `knowledge/*.json`.
 - [The Money Decoded — 22 best finance channels India & US 2026](https://themoneydecoded.com/blog/best-finance-youtube-channels)
 - [Pocketful — best stock market channels India 2026](https://www.pocketful.in/blog/best-youtube-channels-for-stock-market-in-india/)
 
+## Strategy trends — mid-2026 refresh (`strategy_trends_2026.json`, review_by 2026-10)
+- [ICFM — SIP inflows above ₹30,000 crore, what it signals for 2026](https://www.icfmindia.com/news/mutual-fund-sip-inflows-remain-above-30000-crore-what-it-means-for-investors-in-2026) (9.64 cr SIP accounts, ₹17.12 lakh cr SIP AUM ≈ 21% of industry)
+- [Equity Research India — which categories SIP money went to in 2026](https://www.equityresearchindia.com/post/sip-inflow-trends-in-2026-which-fund-categories-are-attracting-the-most-money) · [Aditya Birla — 2026 fund themes](https://mutualfund.adityabirlacapital.com/blog/mutual-funds-to-watch-2026) (flexicap records, multi-asset + gold growth, capex/healthcare themes)
+- [Sprott — gold & silver outlook 2026](https://sprott.com/insights/gold-silver-outlook-2026/) · [GoldSilver — J.P. Morgan gold allocation forecast](https://goldsilver.com/industry-news/article/gold-portfolio-allocation-2026-what-j-p-morgans-forecast-means-for-investors/) · [VanEck — 2026 portfolio-manager predictions](https://www.vaneck.com/us/en/blogs/investment-outlook/plan-for-2026-predictions-from-our-portfolio-managers/) · [Financial Content — the 60/20/20 argument](https://markets.financialcontent.com/stocks/article/marketminute-2026-3-12-the-6040-portfolio-is-dead-gold-and-silver-ascend-as-institutional-pillars-in-2026)
+- [CoinDCX — India crypto tax guide 2026](https://coindcx.com/blog/cryptocurrency/crypto-tax-guide-india/) · [Tax Garden — Schedule VDA, AY 2026-27](https://taxgarden.in/blog/crypto-vda-tax-india-ay-2026-27-schedule-vda-itr-guide) (30% + 4% cess, 1% TDS s.194S, no offset, no carry-forward)
+- [Digest Your Finances — why 2026 is the year to kill card debt](https://digestyourfinances.com/high-interest-rates-pay-off-debt-2026/) · [Savings Grove — payoff strategies 2026](https://savingsgrove.com/blogs/guides/debt-payoff-strategies) (≈21% average card APR vs ≈4% safe cash yield; ≈11.40% average personal-loan APR)
+
+Forecast figures above are strategist opinion with wide error bars — the gold target was revised twice inside six months. They are recorded as a range, never as a signal.
+
 ## Notes
 - Rate-sensitive facts (APRs, APYs, prime rate) are stamped in entry content as 2026 conditions; refresh periodically.
+- Dated files carry `as_of` + `review_by`; `python apps/finance_advisor/gather.py --stale` lists what is past due and exits non-zero, so the refresh cycle costs a command instead of a re-read.
 - `gather.py --youtube` pulls latest uploads (needs `YOUTUBE_API_KEY`) at lower confidence (0.6) than curated entries.
