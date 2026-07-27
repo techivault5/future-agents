@@ -154,3 +154,20 @@ def test_review_status_flags_a_file_past_its_date():
 
     assert all(r["stale"] for r in review_status(today="2099-01"))
     assert not any(r["stale"] for r in review_status(today="2000-01"))
+
+
+def test_habit_knowledge_grades_anecdote_below_research():
+    """The famous-names entry must not borrow credibility from the studies."""
+    data = json.loads((KNOWLEDGE_DIR / "evening_money_habits.json").read_text())
+    by_tag = {t: e for e in data["entries"] for t in e["tags"]}
+    assert by_tag["survivorship-bias"]["confidence"] <= 0.5
+    assert by_tag["decision-making"]["confidence"] >= 0.8
+
+
+def test_every_tips_topic_resolves_to_a_populated_domain():
+    """A topic tab that returns nothing is worse than no tab."""
+    from finance_advisor.gather import TIP_TOPICS
+
+    store = load_knowledge()
+    for topic, domain in TIP_TOPICS.items():
+        assert store.by_domain(domain), f"{topic} tab -> {domain} is empty"

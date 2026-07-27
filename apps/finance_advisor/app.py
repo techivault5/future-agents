@@ -35,7 +35,7 @@ from finance_advisor.alerts import (  # noqa: E402
     load_alerts,
     save_alerts,
 )
-from finance_advisor.gather import load_knowledge  # noqa: E402
+from finance_advisor.gather import TIP_TOPICS, load_knowledge  # noqa: E402
 from finance_advisor.market_data import (  # noqa: E402
     WATCHED_ASSETS,
     fetch_all_quotes,
@@ -110,15 +110,8 @@ def property_watch():
 
 @app.get("/api/tips")
 def tips(topic: str = "saving"):
-    domain_map = {
-        "saving": "finance.saving",
-        "debt": "finance.debt",
-        "budgeting": "finance.budgeting",
-        "india": "finance.india",
-        "trends": "finance.trends",
-    }
     store = knowledge_store()
-    entries = store.by_domain(domain_map.get(topic, "finance.saving"))
+    entries = store.by_domain(TIP_TOPICS.get(topic, "finance.saving"))
     return {
         "topic": topic,
         "tips": [{"title": e.title, "content": e.content, "tags": e.tags} for e in entries],
