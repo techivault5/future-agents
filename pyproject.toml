@@ -43,7 +43,11 @@ dev = [
     "pytest-asyncio>=0.21",
     "pytest-xdist~=3.5",
     "pytest-cov~=5.0",
-    "ruff>=0.1.0",
+    # Minor-pinned deliberately: a formatter is only useful if CI and every
+    # developer run the same one. ruff 0.16 began formatting Python blocks
+    # inside Markdown, which turned a green branch red on an unrelated push.
+    # Patches still flow; bumping the minor is a visible, reviewable change.
+    "ruff~=0.16.0",
 ]
 
 [tool.setuptools.packages.find]

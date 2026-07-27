@@ -104,6 +104,10 @@ Or install the hooks once and let them run for you:
 - CI runs on the **merge commit** with `main`, so a lint error can appear in a
   PR that neither branch has alone. If CI fails and local passes, merge `main`
   first and re-check.
+- `ruff` is minor-pinned (`~=0.16.0`) so CI and your machine format identically.
+  If your local ruff disagrees with CI, check `ruff --version` first — a stale
+  binary earlier on `PATH` will shadow the installed one. Note that ruff also
+  formats Python code blocks **inside Markdown**, so READMEs are in scope.
 - The guardrails engine detects this repo as a `python-service` and enforces
   that profile's required files. It accepts `Containerfile` as a `Dockerfile`
   equivalent (Podman-first repo).

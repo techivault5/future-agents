@@ -105,7 +105,7 @@ from finance_advisor.memory import FinanceMemorySDK
 
 sdk = FinanceMemorySDK(store="sqlite", path="data/memory.db")
 sdk.remember("take_home=180000", tags=["profile"], sensitive=True)
-sdk.recall("what do I earn")                     # → the take_home fact, redacted
+sdk.recall("what do I earn")  # → the take_home fact, redacted
 sdk.advise("loans", principal=3_500_000, annual_rate_pct=8.6, months=240)
 ```
 

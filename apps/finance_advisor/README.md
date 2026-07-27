@@ -37,6 +37,7 @@ across runtimes, so memories are portable. See `memory/README.md`.
 
 ```python
 from finance_advisor.memory import FinanceMemorySDK
+
 sdk = FinanceMemorySDK(store="sqlite", path="data/memory.db")
 sdk.remember("take_home=180000", tags=["profile"], sensitive=True)
 sdk.advise("loans", principal=3_500_000, annual_rate_pct=8.6, months=240)
@@ -93,9 +94,10 @@ from finance_advisor.agent import build_toolset, run_agent
 from finance_advisor.memory import FinanceMemorySDK
 
 tools = build_toolset(FinanceMemorySDK(store="sqlite", path="data/memory.db"))
-for event in run_agent(message="can I service a ₹35L home loan?", tools=tools,
-                       provider_name="ollama", model="llama3.1"):
-    print(event)   # tool_call | tool_result | text | usage | error | done
+for event in run_agent(
+    message="can I service a ₹35L home loan?", tools=tools, provider_name="ollama", model="llama3.1"
+):
+    print(event)  # tool_call | tool_result | text | usage | error | done
 ```
 
 Anthropic needs `pip install -e ".[ai]"`; the other two providers need nothing
@@ -106,11 +108,11 @@ beyond the standard library.
 ```python
 from finance_advisor.gather import load_knowledge, build_advisor
 
-store = load_knowledge()                 # KnowledgeStore with all entries
+store = load_knowledge()  # KnowledgeStore with all entries
 store.search("avalanche", domain="finance.debt")
 store.by_tag("emergency-fund")
 
-defn = build_advisor()                   # AgentDefinition for the advisor
+defn = build_advisor()  # AgentDefinition for the advisor
 ```
 
 CLI:
