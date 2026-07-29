@@ -60,6 +60,66 @@ uvicorn finance_advisor.app:app --port 8600
 - **Guidance**: saving/budgeting/debt/India/trends tips from the knowledge base.
 - **Alerts → email**: create rules in the UI (price above/below, % drop from 52-week high, sharp daily moves, dip-watch signal). The scheduled worker (`.github/workflows/finance-alerts.yml`, 3×/day) evaluates rules and emails via SMTP. Configure repo secrets: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` (Gmail app password), `ALERT_EMAIL` (default recipient). Test locally: `python -m finance_advisor.alerts --dry-run`.
 
+## Plan my money — scenario planner with what-ifs
+
+Describe your situation; get an ordered plan, a projection band, and levers you
+can pull to see what each one is worth.
+
+```
+planner/
+  models.py    Scenario · Debt · Goal → Plan · Step · Projection · ProtectionGap
+  engine.py    month-by-month simulation, ordered steps, insurance + goal checks
+  whatif.py    ten variants, each re-run against the baseline through one code path
+```
+
+**Deterministic, not predictive.** No forecasting model and no LLM touches the
+numbers — every figure is arithmetic on your own inputs under assumptions
+printed on the result. A plan you can recompute by hand is one you can argue
+with. Results come as a **band** (8% / 12% / 15%), never a single figure,
+because one number reads as a promise.
+
+**The ordering** is the opinionated part, and each step says why it sits where
+it does: insurance gap → starter buffer → debt above your hurdle rate →
+emergency fund → unused tax deductions → automated investing. Debt *below* the
+hurdle is presented as a comparison to run, not an instruction, because the
+honest answer depends on returns nobody knows in advance.
+
+**Fields that change the answer**, and no others: income, expenses, bonus and
+increment; cash, investments and debts; age, dependants and employment type
+(which sets the buffer at 6 or 12 months); term and health cover; tax regime
+and 80C/NPS usage; inflation, timeline, strategy and goals. Goals are entered in
+today's rupees and inflated to their due date. A retirement corpus is derived
+from age and spending on the 4% convention.
+
+```python
+from finance_advisor.planner import Scenario, Debt, Goal, build_plan, run_variant
+
+plan = build_plan(
+    Scenario(
+        monthly_income=180_000,
+        monthly_expenses=90_000,
+        cash_savings=200_000,
+        debts=[Debt(name="Card", balance=180_000, annual_rate_pct=42, min_payment=9_000)],
+        goals=[Goal(name="House deposit", amount_today=2_000_000, years=5)],
+        age=34,
+        dependants=2,
+        timeline_months=120,
+    )
+)
+run_variant(plan.scenario, "extra_monthly", {"amount": 5_000})
+```
+
+What-ifs: `extra_monthly`, `lump_sum`, `job_loss`, `rate_shock`, `cut_expenses`,
+`snowball`, `avalanche`, `prepay_all`, `invest_instead`, `high_inflation`. When
+a variant pushes a debt across your hurdle rate the strategy itself changes —
+which can send total interest the way you least expect — so the result says so
+rather than letting it look like a bug.
+
+Endpoints: `POST /api/plan`, `GET /api/plan/whatifs`, `POST /api/plan/whatif`.
+The scenario is used for the request and **not stored**; nothing about your
+balance sheet is persisted unless you explicitly save a memory. The chat agent
+reaches the same engine through the `build_scenario_plan` and `what_if` tools.
+
 ## Ask the advisor — agentic chat, bring your own key
 
 The dashboard's chat panel runs a real tool-calling agent over the same data the

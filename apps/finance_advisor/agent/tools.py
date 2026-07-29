@@ -118,6 +118,30 @@ def build_toolset(sdk: FinanceMemorySDK, property_file=None) -> dict[str, Tool]:
             return {"error": "property data unavailable"}
         return json.loads(property_file.read_text())
 
+    def build_scenario_plan(scenario: dict) -> dict:
+        from finance_advisor.planner import Scenario, build_plan
+
+        try:
+            plan = build_plan(Scenario(**scenario))
+        except ValueError as err:
+            return {"error": f"invalid scenario: {err}"}
+        # Trim what the prompt cannot use: the year-by-year series is for the
+        # chart, and echoing the scenario back costs tokens to tell the model
+        # what it just sent.
+        return plan.model_dump(
+            exclude={"scenario": True, "projections": {"__all__": {"net_worth_by_year"}}}
+        )
+
+    def what_if(scenario: dict, key: str, params: dict | None = None) -> dict:
+        from finance_advisor.planner import Scenario, run_variant
+
+        try:
+            return run_variant(Scenario(**scenario), key, params or {})
+        except ValueError as err:
+            return {"error": f"invalid scenario: {err}"}
+        except KeyError as err:
+            return {"error": str(err)}
+
     tools = [
         Tool(
             "recall_memory",
@@ -187,6 +211,39 @@ def build_toolset(sdk: FinanceMemorySDK, property_file=None) -> dict[str, Tool]:
             "knowledge base gathered from financial educators.",
             _obj({"query": _STR, "limit": _INT}, ["query"]),
             knowledge_search,
+        ),
+        Tool(
+            "build_scenario_plan",
+            "Turn the user's whole situation into an ordered, step-by-step plan "
+            "with milestones, per-goal monthly requirements, an insurance gap "
+            "check and a projection band. Use this whenever they describe income, "
+            "expenses, debts or goals together and want to know where to start. "
+            "scenario keys: monthly_income, monthly_expenses, cash_savings, "
+            "existing_investments, annual_bonus, annual_increment_pct, age, "
+            "dependants, employment (salaried|self_employed|business), term_cover, "
+            "health_cover, tax_regime (new|old), existing_80c, timeline_months, "
+            "inflation_pct, strategy (avalanche|snowball), debts:[{name, balance, "
+            "annual_rate_pct, min_payment}], goals:[{name, amount_today, years}]. "
+            "Only monthly_income and monthly_expenses are required.",
+            _obj({"scenario": {"type": "object", "additionalProperties": True}}, ["scenario"]),
+            build_scenario_plan,
+        ),
+        Tool(
+            "what_if",
+            "Re-run a scenario under one changed assumption and report the "
+            "difference against the baseline. keys: extra_monthly, lump_sum, "
+            "job_loss, rate_shock, cut_expenses, snowball, avalanche, prepay_all, "
+            "invest_instead, high_inflation. Optional params, e.g. "
+            "{'amount': 5000} or {'months': 3, 'drop_pct': 100}.",
+            _obj(
+                {
+                    "scenario": {"type": "object", "additionalProperties": True},
+                    "key": _STR,
+                    "params": {"type": "object", "additionalProperties": True},
+                },
+                ["scenario", "key"],
+            ),
+            what_if,
         ),
         Tool(
             "property_watch",
