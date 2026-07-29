@@ -69,6 +69,7 @@ directories to `workspaces`; npm cannot build them and it will only mislead.
 | A user-facing application | `apps/<app_name>/` | Own README; add to `include` in `pyproject.toml` |
 | A finance skill | `apps/finance_advisor/memory/skills.py` | Register in `SKILLS`; mirror the maths in the JS SDK if it should work client-side |
 | A tool the chat agent can call | `apps/finance_advisor/agent/tools.py` | Add to `build_toolset`; it must be read-only or local — no orders, no mail, no writes off-box |
+| A planner input or what-if lever | `apps/finance_advisor/planner/` | A field must change an output, or don't collect it; a what-if must run through `simulate()` so both sides are built the same way |
 | An LLM provider | `apps/finance_advisor/agent/providers.py` | Take the key as a call argument; never store, log or return it |
 | Role/agent definition data | `data/agents/…` | Regenerate `agents_index.json` |
 | A guide or doc | `docs/` | Never at the repo root — root keeps only README and CLAUDE.md |

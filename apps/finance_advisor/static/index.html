@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Finance Advisor</title>
+<!-- Inline so the browser stops requesting /favicon.ico and logging a 404. -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>💰</text></svg>">
 <style>
   :root {
     color-scheme: dark;
@@ -120,6 +122,36 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .chip { background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 3px 11px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
   .chip:hover { color: var(--ink); border-color: var(--series-1); }
+
+  /* scenario planner */
+  .plan-form { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 10px; }
+  .field { display: flex; flex-direction: column; gap: 3px; }
+  .field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .field .hint { font-size: 10.5px; color: var(--muted); }
+  .debt-row, .goal-row { display: grid; grid-template-columns: 1.4fr 1fr 0.8fr 1fr auto; gap: 6px; margin-top: 6px; }
+  .goal-row { grid-template-columns: 1.4fr 1fr 0.8fr auto; }
+  .rm { background: none; border: none; color: var(--critical); cursor: pointer; font-size: 14px; }
+  .subhead { font-size: 12px; font-weight: 650; color: var(--ink-2); margin: 14px 0 2px; }
+  .headline { font-size: 14.5px; line-height: 1.55; border-left: 3px solid var(--series-1); padding-left: 12px; margin: 4px 0 12px; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--series-1); border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; }
+  .step-card .n { color: var(--series-1); font-weight: 700; font-size: 12px; }
+  .step-card h4 { font-size: 13.5px; font-weight: 650; margin: 1px 0 5px; }
+  .step-card .why { font-size: 12.5px; color: var(--ink-2); margin-bottom: 5px; }
+  .step-card .do { font-size: 12.5px; }
+  .warn-list { border: 1px solid var(--serious); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; background: var(--surface); }
+  .warn-list li { font-size: 12.5px; color: var(--ink-2); margin-left: 4px; }
+  .band { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 8px 0; }
+  .band .b { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 13px; }
+  .band .b .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+  .band .b .val { font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .band .b.base { border-color: var(--series-1); }
+  .wi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px; }
+  .wi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 13px; cursor: pointer; }
+  .wi:hover { border-color: var(--series-1); }
+  .wi .q { font-size: 12.5px; font-weight: 600; }
+  .wi .r { font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+  .wi .r.good { color: var(--up); } .wi .r.bad { color: var(--down); }
 </style>
 </head>
 <body>
@@ -135,6 +167,41 @@
   <button class="ghost" onclick="toggleTheme()">◐ Theme</button>
   <span id="status"></span>
 </div>
+
+<h2>🧭 Plan my money <span class="sub">— your scenario, step by step, with what-ifs</span></h2>
+<form class="plan-form" onsubmit="return runPlan(event)">
+  <div class="fields">
+    <div class="field"><label>Monthly take-home ₹</label><input id="pIncome" type="number" value="180000" required></div>
+    <div class="field"><label>Monthly expenses ₹</label><input id="pExpenses" type="number" value="90000" required><span class="hint">excluding EMIs</span></div>
+    <div class="field"><label>Cash savings ₹</label><input id="pCash" type="number" value="200000"></div>
+    <div class="field"><label>Already invested ₹</label><input id="pInvested" type="number" value="0"></div>
+    <div class="field"><label>Annual bonus ₹</label><input id="pBonus" type="number" value="0"></div>
+    <div class="field"><label>Yearly increment %</label><input id="pIncrement" type="number" step="0.5" value="5"></div>
+    <div class="field"><label>Age</label><input id="pAge" type="number" value="34"></div>
+    <div class="field"><label>Dependants</label><input id="pDependants" type="number" value="0"></div>
+    <div class="field"><label>Employment</label><select id="pEmployment">
+      <option value="salaried">Salaried</option><option value="self_employed">Self-employed</option><option value="business">Business</option></select>
+      <span class="hint">sets the buffer size</span></div>
+    <div class="field"><label>Term cover ₹</label><input id="pTerm" type="number" value="0"></div>
+    <div class="field"><label>Health cover ₹</label><input id="pHealth" type="number" value="0"></div>
+    <div class="field"><label>Tax regime</label><select id="pRegime">
+      <option value="new">New</option><option value="old">Old (80C applies)</option></select></div>
+    <div class="field"><label>80C used ₹</label><input id="p80c" type="number" value="0"></div>
+    <div class="field"><label>Timeline (years)</label><input id="pYears" type="number" value="10" required></div>
+    <div class="field"><label>Inflation %</label><input id="pInflation" type="number" step="0.5" value="6"></div>
+    <div class="field"><label>Debt order</label><select id="pStrategy">
+      <option value="avalanche">Avalanche (highest rate)</option><option value="snowball">Snowball (smallest first)</option></select></div>
+  </div>
+
+  <div class="subhead">Debts <button type="button" class="chip" onclick="addDebt()">＋ add</button></div>
+  <div id="pDebts"></div>
+
+  <div class="subhead">Goals — in today's money <button type="button" class="chip" onclick="addGoal()">＋ add</button></div>
+  <div id="pGoals"></div>
+
+  <div class="toolbar"><button class="primary">▶ Build my plan</button><span id="planStatus" class="sub"></span></div>
+</form>
+<div id="planOut"></div>
 
 <h2>🤖 Ask the advisor <span class="sub">— agentic, with your own LLM key</span></h2>
 <div class="agent">
@@ -311,6 +378,130 @@ async function previewAlerts() {
     : `Checked ${d.checked} active rule(s) — nothing triggered right now.`;
 }
 
+// ── scenario planner ────────────────────────────────────────────────────────
+// The scenario is posted per request and never stored server-side; nothing about
+// a balance sheet is persisted unless the user explicitly saves a memory.
+const rupee = n => "₹" + Math.round(n).toLocaleString("en-IN");
+let lastScenario = null;
+
+function addDebt(name = "", bal = "", rate = "", emi = "") {
+  const d = document.createElement("div");
+  d.className = "debt-row";
+  d.innerHTML = `<input placeholder="Name e.g. Credit card" value="${name}">
+    <input type="number" placeholder="Balance ₹" value="${bal}">
+    <input type="number" step="0.1" placeholder="Rate %" value="${rate}">
+    <input type="number" placeholder="EMI / min ₹" value="${emi}">
+    <button type="button" class="rm" onclick="this.parentNode.remove()">✕</button>`;
+  $("pDebts").appendChild(d);
+}
+function addGoal(name = "", amt = "", yrs = "") {
+  const g = document.createElement("div");
+  g.className = "goal-row";
+  g.innerHTML = `<input placeholder="Goal e.g. House deposit" value="${name}">
+    <input type="number" placeholder="Amount today ₹" value="${amt}">
+    <input type="number" step="0.5" placeholder="Years" value="${yrs}">
+    <button type="button" class="rm" onclick="this.parentNode.remove()">✕</button>`;
+  $("pGoals").appendChild(g);
+}
+function readRows(id, keys) {
+  return [...$(id).children].map(row => {
+    const v = [...row.querySelectorAll("input")].map(i => i.value);
+    if (!v[0] || !v[1]) return null;
+    return Object.fromEntries(keys.map((k, i) => [k, i === 0 ? v[i] : parseFloat(v[i]) || 0]));
+  }).filter(Boolean);
+}
+function readScenario() {
+  return {
+    monthly_income: +$("pIncome").value, monthly_expenses: +$("pExpenses").value,
+    cash_savings: +$("pCash").value || 0, existing_investments: +$("pInvested").value || 0,
+    annual_bonus: +$("pBonus").value || 0, annual_increment_pct: +$("pIncrement").value || 0,
+    age: +$("pAge").value || null, dependants: +$("pDependants").value || 0,
+    employment: $("pEmployment").value, term_cover: +$("pTerm").value || 0,
+    health_cover: +$("pHealth").value || 0, tax_regime: $("pRegime").value,
+    existing_80c: +$("p80c").value || 0, inflation_pct: +$("pInflation").value || 6,
+    strategy: $("pStrategy").value, timeline_months: Math.round((+$("pYears").value || 10) * 12),
+    debts: readRows("pDebts", ["name", "balance", "annual_rate_pct", "min_payment"]),
+    goals: readRows("pGoals", ["name", "amount_today", "years"]),
+  };
+}
+
+async function runPlan(ev) {
+  ev.preventDefault();
+  $("planStatus").textContent = "simulating…";
+  lastScenario = readScenario();
+  const resp = await fetch("/api/plan", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(lastScenario)});
+  if (!resp.ok) {
+    $("planOut").innerHTML = `<div class="warn-list">Could not build a plan: ${await resp.text()}</div>`;
+    $("planStatus").textContent = ""; return false;
+  }
+  renderPlan(await resp.json());
+  $("planStatus").textContent = "";
+  loadWhatIfs();
+  return false;
+}
+
+function renderPlan(p) {
+  const band = b => p.projections.find(x => x.band === b) || {};
+  const g = p.goals.map(x => `<tr><td>${x.name}</td><td class="num">${rupee(x.amount_today)}</td>
+      <td class="num">${rupee(x.amount_at_due)}</td><td class="num">${rupee(x.monthly_needed)}</td>
+      <td>${x.on_track ? "✅ fits" : "⚠️ short"}</td></tr>`).join("");
+  const prot = p.protection;
+  $("planOut").innerHTML = `
+    <div class="headline">${p.headline}</div>
+    ${p.warnings.length ? `<div class="warn-list"><b style="font-size:12.5px">Worth knowing</b><ul>${
+      p.warnings.map(w => `<li>${w}</li>`).join("")}</ul></div>` : ""}
+    <div class="subhead">Where to start — in this order</div>
+    ${p.steps.map(s => `<div class="step-card"><span class="n">STEP ${s.order}</span>
+      <h4>${s.title}${s.amount_monthly ? ` <span class="sub">· ${rupee(s.amount_monthly)}/mo</span>` : ""}</h4>
+      <div class="why">${s.why}</div><div class="do">→ ${s.action}</div></div>`).join("")}
+    <div class="subhead">Projected net worth after ${(band("base").months / 12).toFixed(0)} years</div>
+    <div class="band">${["pessimistic", "base", "optimistic"].map(b => `
+      <div class="b ${b === "base" ? "base" : ""}"><div class="lbl">${b} · ${band(b).annual_return_pct}%</div>
+      <div class="val">${rupee(band(b).final_net_worth)}</div></div>`).join("")}</div>
+    <p class="sub">${p.disclaimer}</p>
+    ${prot ? `<div class="subhead">Insurance check</div>
+      <div class="card"><p class="sub">Term cover needed ${rupee(prot.term_cover_needed)} ·
+      gap <b>${rupee(prot.term_cover_gap)}</b><br>Health cover suggested ${rupee(prot.health_cover_suggested)} ·
+      gap <b>${rupee(prot.health_cover_gap)}</b></p><p class="sub" style="margin-top:6px">${prot.note}</p></div>` : ""}
+    ${g ? `<div class="subhead">Goals</div><table><tr><th>Goal</th><th>Today</th><th>When due</th>
+      <th>Needed / month</th><th></th></tr>${g}</table>
+      <p class="sub" style="margin-top:6px">"When due" applies your inflation rate — a goal in today's
+      rupees costs more later. "Needed / month" assumes the base 12% band.</p>` : ""}
+    <div class="subhead">What if…</div>
+    <div class="wi-grid" id="whatifs"></div>`;
+}
+
+async function loadWhatIfs() {
+  const d = await (await fetch("/api/plan/whatifs")).json();
+  const el = $("whatifs");
+  if (!el) return;
+  el.innerHTML = d.whatifs.map(w =>
+    `<div class="wi" id="wi-${w.key}" onclick="runWhatIf('${w.key}')">
+      <div class="q">${w.question}</div><div class="r">tap to simulate</div></div>`).join("");
+}
+
+async function runWhatIf(key) {
+  const card = $("wi-" + key);
+  card.querySelector(".r").textContent = "simulating…";
+  const r = await (await fetch("/api/plan/whatif", {method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({scenario: lastScenario, key})})).json();
+  const el = card.querySelector(".r");
+  el.textContent = r.summary;
+  el.className = "r " + (r.delta.net_worth > 0 ? "good" : r.delta.net_worth < 0 ? "bad" : "");
+  // A hurdle crossing silently swaps the strategy, which can send interest the
+  // way the reader least expects. Say so rather than letting it look like a bug.
+  card.querySelector(".note")?.remove();
+  if (r.note) {
+    const n = document.createElement("div");
+    n.className = "note sub";
+    n.style.marginTop = "5px";
+    n.textContent = "ⓘ " + r.note;
+    card.appendChild(n);
+  }
+}
+
 // ── agentic chat ────────────────────────────────────────────────────────────
 // The API key lives in sessionStorage: this tab only, gone when it closes, and
 // sent to our own origin solely to be forwarded to the provider the user picked.
@@ -423,6 +614,9 @@ async function loadAll() {
   await Promise.allSettled([loadOverview(), loadFunds(), loadProperty(), loadTips(activeTopic), loadAlerts(), loadProviders()]);
   $("status").textContent = "";
 }
+addDebt("Credit card", 180000, 42, 9000);
+addDebt("Home loan", 3500000, 8.6, 30596);
+addGoal("House deposit", 2000000, 5);
 loadAll();
 setInterval(loadOverview, 5 * 60 * 1000);
 </script>

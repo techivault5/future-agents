@@ -43,6 +43,13 @@ from finance_advisor.market_data import (  # noqa: E402
     fetch_fx,
 )
 from finance_advisor.memory import FinanceMemorySDK  # noqa: E402
+from finance_advisor.planner import (  # noqa: E402
+    Scenario,
+    build_plan,
+    catalog,
+    compare_all,
+    run_variant,
+)
 
 app = FastAPI(title="Finance Advisor", version="1.0.0")
 
@@ -304,3 +311,42 @@ def agent_chat(req: dict):
 def agent_clear(session_id: str):
     """Drop a conversation's transcript from process memory."""
     return {"cleared": clear_session(session_id)}
+
+
+# ── scenario planner ─────────────────────────────────────────────────────────
+
+
+@app.post("/api/plan")
+def create_plan(scenario: Scenario):
+    """Ordered steps, milestones, goal outlooks and a projection band.
+
+    The scenario is used for this request and not stored — nothing about the
+    user's balance sheet is persisted unless they explicitly save a memory.
+    """
+    return build_plan(scenario).model_dump()
+
+
+@app.get("/api/plan/whatifs")
+def list_whatifs():
+    """The what-if levers available, with the question each one answers."""
+    return {"whatifs": catalog()}
+
+
+@app.post("/api/plan/whatif")
+def run_whatif(body: dict):
+    """Run one what-if, or all of them, against a scenario.
+
+    Body: {scenario: {...}, key?: "extra_monthly", params?: {...}}
+    Omitting `key` runs every variant so their effects can be ranked.
+    """
+    try:
+        scenario = Scenario(**body.get("scenario", {}))
+    except ValueError as err:
+        raise HTTPException(400, f"invalid scenario: {err}") from err
+    key = body.get("key")
+    if not key:
+        return {"results": compare_all(scenario)}
+    try:
+        return run_variant(scenario, key, body.get("params") or {})
+    except KeyError as err:
+        raise HTTPException(404, str(err)) from err
