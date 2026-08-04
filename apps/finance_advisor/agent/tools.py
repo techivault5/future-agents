@@ -132,6 +132,26 @@ def build_toolset(sdk: FinanceMemorySDK, property_file=None) -> dict[str, Tool]:
             exclude={"scenario": True, "projections": {"__all__": {"net_worth_by_year"}}}
         )
 
+    def savings_opportunities(scenario: dict) -> dict:
+        from finance_advisor.planner import (
+            Scenario,
+            countable,
+            freedom_snapshot,
+            personalise,
+        )
+
+        try:
+            parsed = Scenario(**scenario)
+        except ValueError as err:
+            return {"error": f"invalid scenario: {err}"}
+        levers = personalise(parsed)
+        return {
+            "freedom": freedom_snapshot(parsed).model_dump(),
+            "levers": [x.model_dump() for x in levers],
+            "total_monthly": round(sum(x.monthly_saving for x in countable(levers)), 2),
+            "total_compounded": round(sum(x.compounded_value for x in countable(levers)), 2),
+        }
+
     def what_if(scenario: dict, key: str, params: dict | None = None) -> dict:
         from finance_advisor.planner import Scenario, run_variant
 
@@ -227,6 +247,17 @@ def build_toolset(sdk: FinanceMemorySDK, property_file=None) -> dict[str, Tool]:
             "Only monthly_income and monthly_expenses are required.",
             _obj({"scenario": {"type": "object", "additionalProperties": True}}, ["scenario"]),
             build_scenario_plan,
+        ),
+        Tool(
+            "savings_opportunities",
+            "Personalised ways this specific user can free up money, each priced "
+            "by what it compounds into over their timeline, plus where they sit "
+            "on the road to financial independence (savings rate, FI number, "
+            "Coast FI, stage, and the one thing that matters next). Use when they "
+            "ask how to save more, where to start, or how to reach financial "
+            "freedom. Takes the same scenario shape as build_scenario_plan.",
+            _obj({"scenario": {"type": "object", "additionalProperties": True}}, ["scenario"]),
+            savings_opportunities,
         ),
         Tool(
             "what_if",

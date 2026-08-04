@@ -182,6 +182,83 @@ class Scenario(BaseModel):
         return [*self.goals, *([retirement] if retirement else [])]
 
 
+class SavingCategory(str, Enum):
+    """Where a rupee comes from. Ordered roughly by how reliably it shows up."""
+
+    LEAKS = "plug_leaks"  # money already leaving for nothing: interest, fees
+    RETURNS = "return_efficiency"  # same money, better placed
+    TAX = "tax_efficiency"  # deductions and regime choice
+    FIXED = "cut_fixed_costs"  # the big recurring commitments
+    BEHAVIOUR = "behaviour"  # automation and step-ups
+    EARN = "earn_more"  # the only lever with no ceiling
+
+
+class Effort(str, Enum):
+    EASY = "easy"  # one afternoon, done forever
+    MEDIUM = "medium"  # paperwork or a negotiation
+    HARD = "hard"  # a lifestyle or career change
+
+
+class FIStage(str, Enum):
+    """The ladder. Each rung has exactly one thing that matters next."""
+
+    UNDERWATER = "underwater"
+    BUFFERED = "buffered"
+    SOLVENT = "solvent"
+    SECURE = "secure"
+    INVESTING = "investing"
+    COAST = "coast_fi"
+    FREE = "financially_free"
+
+
+STAGE_ORDER = [
+    FIStage.UNDERWATER,
+    FIStage.BUFFERED,
+    FIStage.SOLVENT,
+    FIStage.SECURE,
+    FIStage.INVESTING,
+    FIStage.COAST,
+    FIStage.FREE,
+]
+
+
+class SavingLever(BaseModel):
+    """One personalised way to free up money, priced over the user's horizon."""
+
+    id: str
+    category: SavingCategory
+    title: str
+    why: str
+    action: str
+    monthly_saving: float
+    effort: Effort
+    confidence: float = Field(ge=0, le=1, description="How firm the estimate is")
+    compounded_value: float = Field(
+        description="What this saving becomes if invested for the whole timeline"
+    )
+    basis: str = Field(description="The arithmetic, so the number can be checked")
+    alternative_to: str | None = Field(
+        default=None,
+        description="Set when a higher-ranked lever targets the same money. Shown "
+        "to the user, but excluded from the total so nothing is counted twice.",
+    )
+
+
+class FreedomSnapshot(BaseModel):
+    """Where the user sits on the road to not needing a salary."""
+
+    savings_rate_pct: float
+    fi_number: float
+    invested_now: float
+    progress_pct: float
+    years_to_fi: float | None
+    coast_fi_number: float | None
+    stage: FIStage
+    stage_label: str
+    next_action: str
+    note: str
+
+
 class Milestone(BaseModel):
     name: str
     month: int | None = Field(description="Months from now; None if not reached in the horizon")
@@ -239,6 +316,10 @@ class Plan(BaseModel):
     projections: list[Projection]
     goals: list[GoalOutlook] = Field(default_factory=list)
     protection: ProtectionGap | None = None
+    savings: list[SavingLever] = Field(default_factory=list)
+    savings_total_monthly: float = 0.0
+    savings_total_compounded: float = 0.0
+    freedom: FreedomSnapshot | None = None
     warnings: list[str] = Field(default_factory=list)
     disclaimer: str = (
         "Projections are arithmetic under stated assumptions, not predictions. "
