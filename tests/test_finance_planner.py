@@ -6,16 +6,23 @@ import pytest
 from finance_advisor.planner import (
     Debt,
     Employment,
+    FIStage,
     Goal,
     Scenario,
     Strategy,
     TaxRegime,
     build_plan,
     catalog,
+    coast_fi_target,
     compare_all,
+    fi_target,
+    freedom_snapshot,
+    future_value,
+    personalise,
     protection_gap,
     run_variant,
     simulate,
+    years_to_fi,
 )
 from finance_advisor.planner.engine import inr
 from finance_advisor.planner.models import RETURN_BANDS
@@ -291,3 +298,130 @@ def test_compare_all_runs_every_variant():
 def test_amounts_use_indian_digit_grouping(amount, expected):
     """Western grouping reads as a typo to this app's audience."""
     assert inr(amount) == expected
+
+
+# ── personalised savings levers ──────────────────────────────────────────────
+
+
+def test_future_value_matches_the_annuity_formula():
+    """₹2,000/month for 10 years at 12% — the headline claim, checked.
+
+    12% is the *effective annual* rate, so the monthly rate is 1.12^(1/12)-1 =
+    0.9488%, not 1%. Using the nominal 1% inflates this to ₹4.60L and is the
+    most common way this figure is quoted wrong.
+    """
+    assert future_value(2_000, 10, 12) == pytest.approx(4_43_860, rel=1e-3)
+    assert future_value(0, 10, 12) == 0
+    assert future_value(1_000, 0, 12) == 0
+    assert future_value(1_000, 1, 0) == pytest.approx(12_000)
+
+
+def test_levers_are_detected_from_the_users_own_numbers():
+    """No card, no card lever — the whole point of 'personalised'."""
+    with_card = {x.id for x in personalise(scenario(debts=[CARD]))}
+    without = {x.id for x in personalise(scenario())}
+    assert "card_interest" in with_card
+    assert "card_interest" not in without
+
+
+def test_card_interest_lever_prices_the_actual_accrual():
+    lever = next(x for x in personalise(scenario(debts=[CARD])) if x.id == "card_interest")
+    assert lever.monthly_saving == pytest.approx(180_000 * 0.42 / 12)
+
+
+def test_idle_cash_lever_only_fires_above_the_emergency_target():
+    lean = personalise(scenario(cash_savings=100_000))
+    rich = personalise(scenario(cash_savings=2_000_000))
+    assert not any(x.id == "idle_cash" for x in lean)
+    assert any(x.id == "idle_cash" for x in rich)
+
+
+def test_tax_lever_respects_the_regime():
+    old = personalise(scenario(tax_regime=TaxRegime.OLD))
+    new = personalise(scenario(tax_regime=TaxRegime.NEW))
+    assert any(x.id == "tax_headroom" for x in old)
+    assert not any(x.id == "tax_headroom" for x in new)
+
+
+def test_levers_are_ranked_by_compounded_value_not_monthly_amount():
+    """Those two orderings differ, and only one of them matters."""
+    levers = personalise(
+        scenario(debts=[CARD], cash_savings=2_000_000, existing_investments=1_000_000)
+    )
+    values = [x.compounded_value for x in levers]
+    assert values == sorted(values, reverse=True)
+
+
+def test_every_lever_shows_its_arithmetic():
+    for lever in personalise(scenario(debts=[CARD], existing_investments=1_000_000)):
+        assert lever.basis, f"{lever.id} has no basis"
+        assert lever.compounded_value > lever.monthly_saving
+
+
+def test_overlapping_levers_are_flagged_and_excluded_from_the_total():
+    """Clearing a card and refinancing it target the same rupees. Summing both
+    would invent money that does not exist."""
+    plan = build_plan(scenario(debts=[CARD]))
+    refinance = next(x for x in plan.savings if x.id == "consolidate")
+    assert refinance.alternative_to == "Stop the credit-card interest"
+    countable_total = sum(x.monthly_saving for x in plan.savings if x.alternative_to is None)
+    assert plan.savings_total_monthly == pytest.approx(countable_total)
+    assert plan.savings_total_monthly < sum(x.monthly_saving for x in plan.savings)
+
+
+def test_low_confidence_levers_never_lead_the_list():
+    levers = personalise(scenario(debts=[CARD], existing_investments=1_000_000))
+    assert levers[0].confidence >= 0.5
+
+
+# ── financial freedom ────────────────────────────────────────────────────────
+
+
+def test_fi_number_is_annual_spending_at_the_four_percent_rate():
+    assert fi_target(scenario()) == pytest.approx(90_000 * 12 / 0.04)
+
+
+def test_stage_climbs_the_ladder_as_the_situation_improves():
+    underwater = freedom_snapshot(scenario(monthly_income=50_000, monthly_expenses=80_000))
+    no_buffer = freedom_snapshot(scenario(cash_savings=0))
+    in_debt = freedom_snapshot(scenario(cash_savings=500_000, debts=[CARD]))
+    free = freedom_snapshot(
+        scenario(cash_savings=1_000_000, existing_investments=100_000_000, term_cover=1)
+    )
+    assert underwater.stage is FIStage.UNDERWATER
+    assert no_buffer.stage is FIStage.BUFFERED
+    assert in_debt.stage is FIStage.SOLVENT
+    assert free.stage is FIStage.FREE
+
+
+def test_coast_fi_is_recognised_before_full_independence():
+    """Enough invested to reach FI by retirement without adding another rupee."""
+    s = scenario(age=35, retirement_age=60, cash_savings=1_000_000, term_cover=1)
+    coast = coast_fi_target(s)
+    snapshot = freedom_snapshot(s.model_copy(update={"existing_investments": coast * 1.05}))
+    assert snapshot.stage is FIStage.COAST
+
+
+def test_savings_rate_drives_the_timeline_more_than_income_does():
+    """The classic result: doubling income while doubling spending changes nothing."""
+    modest = years_to_fi(scenario(monthly_income=100_000, monthly_expenses=50_000))
+    doubled = years_to_fi(scenario(monthly_income=200_000, monthly_expenses=100_000))
+    assert modest == pytest.approx(doubled, rel=0.02)
+
+
+def test_a_higher_savings_rate_shortens_the_timeline():
+    frugal = years_to_fi(scenario(monthly_expenses=50_000))
+    spendy = years_to_fi(scenario(monthly_expenses=120_000))
+    assert frugal < spendy
+
+
+def test_no_timeline_without_a_surplus():
+    assert years_to_fi(scenario(monthly_income=50_000, monthly_expenses=80_000)) is None
+
+
+def test_freedom_snapshot_reaches_the_plan_and_the_api_shape():
+    plan = build_plan(scenario(debts=[CARD], age=34))
+    assert plan.freedom is not None
+    assert plan.freedom.stage_label
+    assert plan.freedom.next_action
+    assert plan.savings

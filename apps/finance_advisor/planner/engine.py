@@ -29,6 +29,7 @@ from finance_advisor.planner.models import (
     Strategy,
     TaxRegime,
 )
+from finance_advisor.planner.savings import countable, freedom_snapshot, personalise
 
 STARTER_BUFFER_MONTHS = 1
 # A family floater below this is nominal cover in Indian metros, where a single
@@ -439,6 +440,8 @@ def build_plan(scenario: Scenario) -> Plan:
     gap = protection_gap(scenario)
     steps = _steps(scenario, base, gap)
     goals = _goal_outlooks(scenario, RETURN_BANDS["base"])
+    levers = personalise(scenario)
+    freedom = freedom_snapshot(scenario)
     surplus = scenario.monthly_surplus
     feasible = surplus > 0
 
@@ -508,6 +511,10 @@ def build_plan(scenario: Scenario) -> Plan:
         projections=projections,
         goals=goals,
         protection=gap,
+        savings=levers,
+        savings_total_monthly=round(sum(x.monthly_saving for x in countable(levers)), 2),
+        savings_total_compounded=round(sum(x.compounded_value for x in countable(levers)), 2),
+        freedom=freedom,
         warnings=warnings,
     )
 

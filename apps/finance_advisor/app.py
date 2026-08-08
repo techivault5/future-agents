@@ -48,6 +48,9 @@ from finance_advisor.planner import (  # noqa: E402
     build_plan,
     catalog,
     compare_all,
+    countable,
+    freedom_snapshot,
+    personalise,
     run_variant,
 )
 
@@ -324,6 +327,18 @@ def create_plan(scenario: Scenario):
     user's balance sheet is persisted unless they explicitly save a memory.
     """
     return build_plan(scenario).model_dump()
+
+
+@app.post("/api/plan/savings")
+def savings_only(scenario: Scenario):
+    """Just the personalised levers and the freedom snapshot, without a full plan."""
+    levers = personalise(scenario)
+    return {
+        "freedom": freedom_snapshot(scenario).model_dump(),
+        "levers": [x.model_dump() for x in levers],
+        "total_monthly": round(sum(x.monthly_saving for x in countable(levers)), 2),
+        "total_compounded": round(sum(x.compounded_value for x in countable(levers)), 2),
+    }
 
 
 @app.get("/api/plan/whatifs")

@@ -152,6 +152,33 @@
   .wi .q { font-size: 12.5px; font-weight: 600; }
   .wi .r { font-size: 12px; color: var(--ink-2); margin-top: 5px; }
   .wi .r.good { color: var(--up); } .wi .r.bad { color: var(--down); }
+
+  /* financial freedom + savings levers */
+  .freedom { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+  .ladder { display: flex; gap: 3px; margin: 10px 0 6px; }
+  .rung { flex: 1; height: 6px; border-radius: 3px; background: var(--grid); }
+  .rung.done { background: var(--series-2); }
+  .rung.now { background: var(--series-1); }
+  .rung-labels { display: flex; gap: 3px; font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .02em; }
+  .rung-labels span { flex: 1; text-align: center; }
+  .rung-labels span.now { color: var(--series-1); font-weight: 700; }
+  .fstats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
+  .fstat .k { font-size: 10.5px; color: var(--muted); text-transform: uppercase; }
+  .fstat .v { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .lever { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; margin-bottom: 7px; }
+  .lever .top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .lever h4 { font-size: 13.5px; font-weight: 650; }
+  .lever .cat { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px; }
+  .lever .amt { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums; }
+  .lever .amt .m { font-size: 13px; font-weight: 650; }
+  .lever .amt .c { font-size: 15px; font-weight: 700; color: var(--series-2); }
+  .lever .amt .cl { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+  .lever .why, .lever .do, .lever .basis { font-size: 12.5px; color: var(--ink-2); margin-top: 5px; }
+  .lever .basis { color: var(--muted); font-size: 11.5px; }
+  .lever.alt { opacity: .72; border-style: dashed; }
+  .lever .altnote { font-size: 11.5px; color: var(--warning); margin-top: 4px; }
+  .effort { font-size: 10px; border-radius: 999px; padding: 1px 7px; border: 1px solid var(--border); }
+  .effort.easy { color: var(--good); } .effort.medium { color: var(--warning); } .effort.hard { color: var(--serious); }
 </style>
 </head>
 <body>
@@ -468,8 +495,62 @@ function renderPlan(p) {
       <th>Needed / month</th><th></th></tr>${g}</table>
       <p class="sub" style="margin-top:6px">"When due" applies your inflation rate — a goal in today's
       rupees costs more later. "Needed / month" assumes the base 12% band.</p>` : ""}
+    ${renderFreedom(p.freedom)}
+    ${renderLevers(p)}
     <div class="subhead">What if…</div>
     <div class="wi-grid" id="whatifs"></div>`;
+}
+
+const STAGES = ["underwater", "buffered", "solvent", "secure", "investing", "coast_fi", "financially_free"];
+const STAGE_SHORT = ["gap", "buffer", "solvent", "secure", "compounding", "coast", "free"];
+
+function renderFreedom(f) {
+  if (!f) return "";
+  const at = STAGES.indexOf(f.stage);
+  return `<div class="subhead">Where you are on the road to financial freedom</div>
+  <div class="freedom">
+    <div style="font-size:15px;font-weight:650">${f.stage_label}</div>
+    <div class="ladder">${STAGES.map((s, i) =>
+      `<span class="rung ${i < at ? "done" : i === at ? "now" : ""}"></span>`).join("")}</div>
+    <div class="rung-labels">${STAGE_SHORT.map((s, i) =>
+      `<span class="${i === at ? "now" : ""}">${s}</span>`).join("")}</div>
+    <div class="do" style="font-size:12.5px;margin-top:9px">→ ${f.next_action}</div>
+    <div class="fstats">
+      <div class="fstat"><div class="k">Savings rate</div><div class="v">${f.savings_rate_pct}%</div></div>
+      <div class="fstat"><div class="k">FI number</div><div class="v">${rupee(f.fi_number)}</div></div>
+      <div class="fstat"><div class="k">Progress</div><div class="v">${f.progress_pct}%</div></div>
+      <div class="fstat"><div class="k">Years to FI</div><div class="v">${f.years_to_fi ?? "—"}</div></div>
+      ${f.coast_fi_number ? `<div class="fstat"><div class="k">Coast FI at</div>
+        <div class="v">${rupee(f.coast_fi_number)}</div></div>` : ""}
+    </div>
+    <p class="sub" style="margin-top:9px">${f.note}</p>
+  </div>`;
+}
+
+function renderLevers(p) {
+  if (!p.savings || !p.savings.length) return "";
+  const years = Math.round(p.projections[0].months / 12);
+  return `<div class="subhead">Your savings levers — ranked by what they compound into</div>
+  <div class="headline" style="border-color:var(--series-2)">
+    Acting on all of these frees <b>${rupee(p.savings_total_monthly)}/month</b>, which invested for
+    ${years} years at 12% becomes <b>${rupee(p.savings_total_compounded)}</b>. That is the whole
+    argument for treating small leaks as urgent — the monthly figure is not what they cost you.
+  </div>
+  ${p.savings.map(l => `<div class="lever ${l.alternative_to ? "alt" : ""}">
+    <div class="top">
+      <span class="cat">${l.category.replace(/_/g, " ")}</span>
+      <h4>${l.title}</h4>
+      <span class="effort ${l.effort}">${l.effort}</span>
+      <span class="amt"><span class="m">${rupee(l.monthly_saving)}/mo</span><br>
+        <span class="c">${rupee(l.compounded_value)}</span>
+        <span class="cl">over ${years}y</span></span>
+    </div>
+    <div class="why">${l.why}</div>
+    <div class="do">→ ${l.action}</div>
+    <div class="basis">Basis: ${l.basis}${l.confidence < 0.5 ? " · low confidence — verify before relying on it" : ""}</div>
+    ${l.alternative_to ? `<div class="altnote">⚠ Alternative to "${l.alternative_to}", not additional —
+      excluded from the total above so nothing is counted twice.</div>` : ""}
+  </div>`).join("")}`;
 }
 
 async function loadWhatIfs() {
