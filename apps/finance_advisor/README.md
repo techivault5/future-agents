@@ -69,6 +69,7 @@ can pull to see what each one is worth.
 planner/
   models.py    Scenario · Debt · Goal → Plan · Step · Projection · ProtectionGap
   engine.py    month-by-month simulation, ordered steps, insurance + goal checks
+  savings.py   personalised levers + the financial-freedom stage ladder
   whatif.py    ten variants, each re-run against the baseline through one code path
 ```
 
@@ -109,16 +110,50 @@ plan = build_plan(
 run_variant(plan.scenario, "extra_monthly", {"amount": 5_000})
 ```
 
+### Savings levers, priced by what they compound into
+
+Generic tips ("cancel subscriptions") are worthless because they don't know the
+reader. Every lever is **detected from the user's own numbers**, produces an
+amount derived from those numbers, and shows its arithmetic in a `basis` field
+so the figure can be checked rather than believed.
+
+The ranking is the point: levers are ordered by **what the saving becomes**, not
+by how big the monthly figure looks — those two orderings differ, and only one
+of them matters. ₹2,000/month is ₹4.44 lakh over ten years at 12%.
+
+Categories: `plug_leaks` · `return_efficiency` · `tax_efficiency` ·
+`cut_fixed_costs` · `behaviour` · `earn_more`. Each lever carries an effort
+rating and a confidence score; low-confidence ones (the discretionary audit)
+are labelled as prompts to look, not measurements, and never lead the list.
+
+**Overlapping levers are flagged, not summed.** Clearing a card and refinancing
+it target the same rupees — adding both would invent money. The dominated lever
+is still shown, marked `alternative_to`, and excluded from the total.
+
+### Financial-freedom stage
+
+Seven rungs — underwater → buffered → solvent → secure → investing → **Coast FI**
+→ financially free — with exactly one thing that matters on the rung you're on.
+Plus savings rate, FI number (4% convention), progress, years to FI, and the
+Coast FI number: the amount that compounds to your FI target by retirement with
+no further contributions.
+
+`years_to_fi` demonstrates the result people find counter-intuitive and a test
+asserts it: **doubling income while doubling spending changes the timeline not
+at all.** Savings rate dominates return.
+
 What-ifs: `extra_monthly`, `lump_sum`, `job_loss`, `rate_shock`, `cut_expenses`,
 `snowball`, `avalanche`, `prepay_all`, `invest_instead`, `high_inflation`. When
 a variant pushes a debt across your hurdle rate the strategy itself changes —
 which can send total interest the way you least expect — so the result says so
 rather than letting it look like a bug.
 
-Endpoints: `POST /api/plan`, `GET /api/plan/whatifs`, `POST /api/plan/whatif`.
+Endpoints: `POST /api/plan`, `POST /api/plan/savings`, `GET /api/plan/whatifs`,
+`POST /api/plan/whatif`.
 The scenario is used for the request and **not stored**; nothing about your
 balance sheet is persisted unless you explicitly save a memory. The chat agent
-reaches the same engine through the `build_scenario_plan` and `what_if` tools.
+reaches the same engine through the `build_scenario_plan`, `savings_opportunities`
+and `what_if` tools.
 
 ## Ask the advisor — agentic chat, bring your own key
 
