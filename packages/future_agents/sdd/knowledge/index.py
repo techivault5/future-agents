@@ -587,7 +587,7 @@ def _tokens(text: str) -> list[str]:
     ]
 
 
-def _stem(word: str) -> str:
+def stem(word: str) -> str:
     """Crude, symmetric suffix stripping — applied to index and query alike.
 
     Linguistic accuracy does not matter here; agreement between the two sides
@@ -602,6 +602,10 @@ def _stem(word: str) -> str:
     if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
         return word[:-1]
     return word
+
+
+#: The memory hub shares this vocabulary so both sides stem identically.
+_stem = stem
 
 
 def _name_tokens(note: FileNote) -> set[str]:

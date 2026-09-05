@@ -225,12 +225,51 @@ def get_cases(q: Optional[str] = Query(None), limit: int = Query(20, ge=1, le=10
                 {"score": m.score, "reason": m.reason, "case": m.case.model_dump(mode="json")}
                 for m in report.matches
             ],
+            "lessons": [ln.model_dump(mode="json") for ln in report.lessons],
             "warnings": report.warnings(),
         }
     return {
         "stats": _memory.stats(),
         "cases": [c.model_dump(mode="json") for c in _memory.all_cases()[:limit]],
     }
+
+
+@router.get("/api/sdd/memory/lessons", summary="Recurring lessons and their confidence")
+def get_lessons(
+    q: Optional[str] = Query(None),
+    scope: Optional[str] = Query(None),
+    include_dormant: bool = Query(False),
+) -> dict:
+    half_life = _memory.config.lessons.half_life_days
+    lessons = (
+        _memory.lessons.all_lessons()
+        if include_dormant
+        else _memory.lessons_for(q or "", scope=scope)
+    )
+    return {
+        "stats": _memory.lessons.stats(),
+        "lessons": [
+            {
+                **lesson.model_dump(mode="json"),
+                "confidence": lesson.confidence(half_life_days=half_life),
+            }
+            for lesson in lessons
+        ],
+    }
+
+
+@router.get("/api/sdd/memory/answers", summary="Answers memory can stand in for")
+def get_answers(limit: int = Query(50, ge=1, le=200)) -> dict:
+    return {
+        "stats": _memory.answers.stats(),
+        "answers": [r.model_dump(mode="json") for r in _memory.answers.all_records()[:limit]],
+    }
+
+
+@router.post("/api/sdd/memory/consolidate", summary="Merge, promote, decay and prune memory")
+def post_consolidate() -> dict:
+    report = _memory.consolidate()
+    return {"changed": report.changed, "summary": report.summary(), **report.model_dump()}
 
 
 @router.get("/api/sdd/constitution", summary="The constitution as markdown")

@@ -125,6 +125,7 @@ class Assumption(BaseModel):
     basis: str = ""
     risk: str = "medium"  # low | medium | high
     confirmed: bool = False
+    source: str = "auto"  # auto (inferred) | memory (recalled) | human (stated)
     source_question_id: Optional[str] = None
 
 
@@ -335,6 +336,7 @@ class Plan(Hashable):
     risks: list[Risk] = Field(default_factory=list)
     historical_warnings: list[str] = Field(default_factory=list)
     memory_case_ids: list[str] = Field(default_factory=list)
+    memory_lesson_ids: list[str] = Field(default_factory=list)
     placements: list[PlacementDecision] = Field(default_factory=list)
     reuse_candidates: list[RepoMatch] = Field(default_factory=list)
     confidence: float = 0.0
@@ -641,15 +643,22 @@ class MemoryCase(BaseModel):
     tags: list[str] = Field(default_factory=list)
     outcome: str = "success"  # success | partial | failure
     requirement_ids: list[str] = Field(default_factory=list)
+    scope: str = "global"  # repo the lesson was learned in, or "global"
+    occurrences: int = 1  # merged duplicates of the same objective
+    run_id: str = ""
+    sanitized: bool = False  # text passed the injection filter on the way in
     created_at: datetime = Field(default_factory=_now)
+    updated_at: datetime = Field(default_factory=_now)
 
     def to_markdown(self) -> str:
         parts = [
             f"# {self.title}",
             "",
             f"- **Outcome:** {self.outcome}",
+            f"- **Scope:** {self.scope}",
             f"- **Tags:** {', '.join(self.tags) if self.tags else '—'}",
-            f"- **Recorded:** {self.created_at.date().isoformat()}",
+            f"- **Recorded:** {self.created_at.date().isoformat()}"
+            + (f" (seen {self.occurrences}×)" if self.occurrences > 1 else ""),
             "",
             "## Objective",
             self.objective,
@@ -664,6 +673,56 @@ class MemoryCase(BaseModel):
         ]
         parts.extend(f"- {p}" for p in self.pitfalls or ["None recorded"])
         return "\n".join(parts) + "\n"
+
+
+class Lesson(BaseModel):
+    """A pitfall that recurred, promoted out of single cases into a rule.
+
+    One case is an anecdote; the same pitfall in two cases is a property of the
+    codebase. Lessons carry hits and dates so confidence can rise with evidence
+    and fall with age — a lesson nobody hits again eventually goes dormant
+    instead of nagging the planner forever.
+    """
+
+    id: str = Field(default_factory=lambda: _nid("lsn"))
+    text: str
+    scope: str = "global"  # repo name, or "global"
+    topic: str = ""
+    hits: int = 1
+    sources: list[str] = Field(default_factory=list)  # case ids
+    status: str = "pending"  # pending (not yet promoted) | active | dormant
+    first_seen: datetime = Field(default_factory=_now)
+    last_seen: datetime = Field(default_factory=_now)
+
+    def confidence(self, *, now: Optional[datetime] = None, half_life_days: float = 120.0) -> float:
+        """Evidence raises it, age halves it. Never quite 1.0 — nothing is certain."""
+        moment = now or _now()
+        age_days = max(0.0, (moment - self.last_seen).total_seconds() / 86400.0)
+        evidence = min(0.95, 0.35 + 0.2 * self.hits)
+        decay = 0.5 ** (age_days / half_life_days) if half_life_days > 0 else 1.0
+        return round(evidence * decay, 3)
+
+
+class AnswerRecord(BaseModel):
+    """An answer a human already gave, keyed so the same question is not re-asked.
+
+    Scoped, because "which queue do we use?" has a different answer per repo,
+    and dated, because an answer from two years ago is a guess, not a fact.
+    """
+
+    id: str = Field(default_factory=lambda: _nid("ans"))
+    fingerprint: str
+    question: str
+    answer: str
+    topic: str = ""
+    scope: str = "global"
+    answered_by: str = "human"
+    hits: int = 0
+    first_seen: datetime = Field(default_factory=_now)
+    last_seen: datetime = Field(default_factory=_now)
+
+    def age_days(self, *, now: Optional[datetime] = None) -> float:
+        return max(0.0, ((now or _now()) - self.last_seen).total_seconds() / 86400.0)
 
 
 # ── Pipeline state ────────────────────────────────────────────────────────────

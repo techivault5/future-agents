@@ -32,7 +32,7 @@ from future_agents.sdd import (
 )
 from future_agents.sdd.config import ConfigError, MemoryHubConfig
 from future_agents.sdd.constitution import Severity
-from future_agents.sdd.memory_hub import MemoryCase
+from future_agents.sdd.memory import MemoryCase
 from future_agents.sdd.models import (
     AcceptanceCriterion,
     Component,

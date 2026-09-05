@@ -18,7 +18,7 @@ from future_agents.sdd.config import SpecKitConfig
 from future_agents.sdd.constitution import Severity, Violation
 from future_agents.sdd.execution.resilience import BudgetExceeded, BudgetGuard
 from future_agents.sdd.knowledge import RepoKnowledge
-from future_agents.sdd.memory_hub import MemoryHub
+from future_agents.sdd.memory import MemoryHub
 from future_agents.sdd.models import (
     Budget,
     ClarificationOutcome,
@@ -65,7 +65,11 @@ class DeliveryPipeline:
         # intent, which gates are mandatory, what coverage it accepts.
         self.config = self.persona.apply_to_config(base)
         self.router = router or EngineRouter(self.config)
-        self.memory = memory or MemoryHub(self.config.memory_hub)
+        # Memory is scoped to the repository under work: a lesson learned in the
+        # billing service is evidence about the billing service, and only a hint
+        # anywhere else.
+        self.scope = _scope_of(repo_root)
+        self.memory = memory or MemoryHub(self.config.memory_hub, scope=self.scope)
         self.constitution = self.config.constitution()
         self.on_event = on_event
         self.repo_root = repo_root
@@ -79,7 +83,7 @@ class DeliveryPipeline:
         # A run that cannot exceed its ceilings cannot become a cost incident.
         self.budget = budget or Budget()
 
-        self.clarifier = IntentClarifier(self.config)
+        self.clarifier = IntentClarifier(self.config, recall=self._recall)
         self.pm = PMStage(self.config, self.router, self.knowledge)
         self.architect = ArchitectStage(
             self.config, self.router, self.persona, self.toolchain, self.knowledge
@@ -90,6 +94,13 @@ class DeliveryPipeline:
         self.worker = WorkerStage(backend)
         self.qa = QAStage(self.config)
         self.delivery = DeliveryStage()
+
+    def _recall(self, question: str, topic: str, blocking: bool) -> Optional[tuple[str, str]]:
+        """Adapt the memory hub to the clarifier's plain-callable recall hook."""
+        remembered = self.memory.recall_answer(
+            question, topic=topic, blocking=blocking, scope=self.scope
+        )
+        return (remembered.answer, remembered.basis) if remembered else None
 
     # ── Entry points ──────────────────────────────────────────────────────────
 
@@ -113,7 +124,15 @@ class DeliveryPipeline:
         state.clarification = self.clarifier.apply_answers(
             state.objective, state.clarification, answers, answered_by
         )
-        self._log(state, Stage.CLARIFY, f"{len(answers)} answer(s) recorded")
+        learned = self.memory.remember_answers(
+            state.clarification, scope=self.scope, answered_by=answered_by
+        )
+        self._log(
+            state,
+            Stage.CLARIFY,
+            f"{len(answers)} answer(s) recorded",
+            remembered=learned,
+        )
         return self._after_clarification(state)
 
     def hold_meeting(
@@ -125,7 +144,12 @@ class DeliveryPipeline:
         state.clarification = self.clarifier.record_meeting(
             state.objective, state.clarification, notes, answers
         )
-        self._log(state, Stage.CLARIFY, "meeting held")
+        # A meeting is the most expensive answer the system can buy. Remembering
+        # what was said there is what stops it buying the same one twice.
+        learned = self.memory.remember_answers(
+            state.clarification, scope=self.scope, answered_by="meeting"
+        )
+        self._log(state, Stage.CLARIFY, "meeting held", remembered=learned)
         return self._after_clarification(state)
 
     def run(self, objective: Objective, answers: Optional[dict[str, str]] = None) -> RunState:
@@ -148,6 +172,7 @@ class DeliveryPipeline:
             Stage.CLARIFY,
             f"{state.clarification.outcome.value} (confidence {state.clarification.confidence})",
             questions=len(state.clarification.questions),
+            recalled=[a.statement for a in state.clarification.assumptions if a.source == "memory"],
         )
         return self._after_clarification(state)
 
@@ -181,7 +206,10 @@ class DeliveryPipeline:
         )
 
         state.stage = Stage.PLAN
-        memory_report = self.memory.retrieve(f"{spec.title} {spec.summary}")
+        memory_report = self.memory.retrieve(
+            " ".join([spec.title, spec.summary, *(r.statement for r in spec.requirements)]),
+            scope=self.scope,
+        )
         plan = self.architect.draft(spec, memory_report)
         violations = self.constitution.check_plan(plan, spec)
         if self._blocking(violations):
@@ -192,6 +220,7 @@ class DeliveryPipeline:
             Stage.PLAN,
             f"{len(plan.components)} component(s), {len(plan.historical_warnings)} warning(s)",
             cases=plan.memory_case_ids,
+            lessons=[lesson.id for lesson in memory_report.lessons],
             placements=[p.summary() for p in plan.placements[:5]],
         )
 
@@ -239,9 +268,17 @@ class DeliveryPipeline:
         )
 
         state.stage = Stage.HARVEST
-        case = self.memory.harvest(state)
+        case = self.memory.harvest(state, scope=self.scope)
         state.case_id = case.id
-        self._log(state, Stage.HARVEST, f"case {case.id} ({case.outcome})")
+        # Harvest writes; consolidation is what turns writes into knowledge —
+        # duplicates merge, recurring pitfalls become lessons, stale ones fade.
+        report = self.memory.consolidate()
+        self._log(
+            state,
+            Stage.HARVEST,
+            f"case {case.id} ({case.outcome})",
+            consolidation=report.summary() if report.changed else "no change",
+        )
 
         state.stage = Stage.DONE
         return state
@@ -281,3 +318,12 @@ def save_state(state: RunState, directory: str | Path) -> Path:
 
 def load_state(path: str | Path) -> RunState:
     return RunState.model_validate(json.loads(Path(path).read_text()))
+
+
+def _scope_of(repo_root: Optional[str]) -> str:
+    """A repo's directory name is its memory scope; no repo means global."""
+    from future_agents.sdd.memory import GLOBAL_SCOPE
+
+    if not repo_root:
+        return GLOBAL_SCOPE
+    return Path(repo_root).resolve().name or GLOBAL_SCOPE

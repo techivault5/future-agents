@@ -42,6 +42,7 @@ from future_agents.sdd.handbook.figures import (
     autonomy_loop,
     delivery_pipeline,
     deployment_topology,
+    memory_tiers,
     multi_repo_program,
     traceability_chain,
 )
@@ -532,8 +533,8 @@ def ch_summary() -> list[Any]:
                 ],
                 [
                     "Learns from failures",
-                    "Cases are harvested; failures outrank successes in retrieval",
-                    "memory_hub.py",
+                    "Cases, lessons and prior answers; failures and recurrence outrank the rest",
+                    "memory/",
                 ],
                 [
                     "Never silently assumes",
@@ -693,7 +694,11 @@ def ch_architecture() -> list[Any]:
                     "Role/intent → engine, with fallback",
                     "EngineRouter, Engine, NullEngine",
                 ],
-                ["memory_hub.py", "Case-based reasoning", "MemoryHub, MemoryCase, RetrievalReport"],
+                [
+                    "memory/",
+                    "Cases, lessons, answers",
+                    "MemoryHub, CaseStore, LessonBook, AnswerBook",
+                ],
                 [
                     "stages.py",
                     "PM, Architect, Planner, Worker, QA, Delivery",
@@ -1795,14 +1800,56 @@ def ch_qa() -> list[Any]:
 
 def ch_memory() -> list[Any]:
     return [
-        h1("14 · The memory hub"),
+        h1("14 · Memory"),
         p(
-            "Agents that forget repeat the same mistake every sprint. After every run the "
-            "harvester compresses what happened into a case: the objective, the problem, the "
-            "solution, and — the part that earns its keep — the pitfalls. Cases are markdown on "
-            "disk, so they are reviewable, diffable and greppable, with a JSON index for retrieval."
+            "A team that forgets is a team that re-learns. This system carries three different "
+            'kinds of knowledge between deliveries, because "remember things" is really three '
+            "jobs: what we did (episodic), what goes wrong here (semantic), and what a human "
+            "already told us (procedural). All three live as plain files under "
+            "<font face='Courier'>docs/memory/</font> — markdown cases a person can read and "
+            "review, plus three JSON indexes. No database, no embedding service, no network call "
+            "on the read path."
         ),
-        h2("14.1 Where pitfalls come from"),
+        *figure(
+            memory_tiers,
+            "Figure 14.1 — the three tiers, what writes each of them, and where each one "
+            "re-enters the next run.",
+        ),
+        h2("14.1 Three tiers"),
+        table(
+            [
+                ["Tier", "Holds", "Answers", "Written by", "Module"],
+                [
+                    "Episodic",
+                    "one case per run",
+                    "have we done something like this?",
+                    "harvest",
+                    "memory/cases.py",
+                ],
+                [
+                    "Semantic",
+                    "pitfalls that recurred",
+                    "what goes wrong here?",
+                    "consolidation",
+                    "memory/lessons.py",
+                ],
+                [
+                    "Procedural",
+                    "prior human answers",
+                    "what were we already told?",
+                    "clarify",
+                    "memory/answers.py",
+                ],
+            ],
+            widths=[0.75, 1.15, 1.6, 0.95, 1.2],
+            mono_columns=(4,),
+        ),
+        p(
+            "<b>MemoryHub</b> is the single object the pipeline holds, and it is safe when memory "
+            "is switched off: every method degrades to an empty answer rather than an exception, "
+            "so a run never fails because the memory store is missing, empty or corrupt."
+        ),
+        h2("14.2 Where pitfalls come from"),
         table(
             [
                 ["Source", "Becomes"],
@@ -1816,25 +1863,98 @@ def ch_memory() -> list[Any]:
             ],
             widths=[1.5, 3.2],
         ),
-        *listing("memory_hub", "_pitfalls"),
-        h2("14.2 Retrieval, biased toward failure"),
-        p(
-            "Matching is keyword overlap (Jaccard) with a 1.5× boost for cases whose outcome was "
-            "not a success. A case that records a pitfall changes the next plan; a success case "
-            "rarely does. The top-k matches are injected into the plan as "
-            "<font face='Courier'>historical_warnings</font> and as risks with "
-            "<font face='Courier'>source=memory</font>."
+        *listing("memory/cases", "pitfalls_from_run"),
+        PageBreak(),
+        h2("14.3 Retrieval, and why it ranks the way it does"),
+        table(
+            [
+                ["Rule", "Why"],
+                [
+                    "recall of the query, not Jaccard",
+                    "a rich case must not be punished for being rich",
+                ],
+                [
+                    "title and tags weigh 3×, prose 1×",
+                    "where a term hits says more than how often",
+                ],
+                ["failures ×1.5", "a pitfall changes the next plan; a smooth run rarely does"],
+                [
+                    "recency half-life of 90 days",
+                    "an old decision describes a codebase that has moved on",
+                ],
+                [
+                    "same repo ×1.4, foreign ×0.6",
+                    "a lesson from this repo is evidence; elsewhere it is a hint",
+                ],
+                ["recurrence up to ×1.5", "the same thing twice is a pattern, not an accident"],
+            ],
+            widths=[1.6, 3.1],
         ),
-        *listing("memory_hub", "MemoryHub.retrieve"),
-        h2("14.3 Harvest"),
-        *listing("memory_hub", "MemoryHub.harvest"),
-        h2("14.4 The case format"),
+        *listing("memory/cases", "CaseStore.retrieve"),
+        *listing("memory/cases", "CaseStore._score", "weighted recall across the case's fields"),
+        PageBreak(),
+        h2("14.4 From anecdote to lesson"),
+        p(
+            "One case is an anecdote. The same pitfall in two independent cases is a property of "
+            "the codebase — and that is what the planner deserves to be told. Promotion enforces "
+            "the evidence bar, and two sightings inside a single run do not count twice."
+        ),
+        *listing("memory/lessons", "LessonBook.observe"),
+        p(
+            "Confidence moves in both directions: evidence raises it, age halves it. Past "
+            "<font face='Courier'>dormant_after_days</font> a lesson stops being injected at all. "
+            "It is kept rather than deleted, so if the problem returns the lesson wakes with its "
+            "history intact. This is the part that keeps memory from becoming a nag."
+        ),
+        *listing("models", "Lesson.confidence"),
+        h2("14.5 The answer book — not asking twice"),
+        p(
+            "The clarifier's job is to ask what it cannot know. Asking the <i>same</i> question "
+            "every quarter is not diligence, it is amnesia, and it is the fastest way to make "
+            "people stop replying. A question whose fingerprint has been answered before comes "
+            "back as a stated assumption with <font face='Courier'>source=memory</font> and full "
+            "provenance, instead of a blocking question."
+        ),
+        table(
+            [
+                ["Guard", "Behaviour"],
+                ["scope", "an answer from another repo does not speak for this one (default)"],
+                ["age", "past max_age_days the answer is a guess, so the question is re-asked"],
+                [
+                    "blocking questions",
+                    "safety, compliance and irreversibility triggers are re-confirmed however "
+                    "well remembered",
+                ],
+                [
+                    "confidence",
+                    "a recalled answer removes 75% of the unknown's penalty, never 100% — it is "
+                    "not a fresh confirmation",
+                ],
+            ],
+            widths=[1.2, 3.5],
+        ),
+        *listing("memory/answers", "AnswerBook.recall"),
+        PageBreak(),
+        h2("14.6 Consolidation — the maintenance pass"),
+        p(
+            "An append-only memory rots in three predictable ways, and consolidation answers each "
+            "one: duplicates merge into a single case with an occurrence count (which then "
+            "outranks singletons, because recurrence is signal); recurring pitfalls are promoted "
+            "into lessons; and growth is bounded by pruning the oldest <i>successful</i>, "
+            "uncited cases first. Failures and anything a lesson cites as evidence are never "
+            "pruned. It runs after every harvest, and from the CLI."
+        ),
+        *listing("memory/consolidate", "consolidate"),
+        *listing("memory/consolidate", "_merge_duplicates", "the survivor keeps the worst outcome"),
+        PageBreak(),
+        h2("14.7 The case format"),
         *code(
             "# Weekly churn report for sales\n"
             "\n"
             "- **Outcome:** failure\n"
+            "- **Scope:** analytics-service\n"
             "- **Tags:** meeting_transcript, reporting, qa-fail\n"
-            "- **Recorded:** 2026-09-05\n"
+            "- **Recorded:** 2026-09-05 (seen 2×)\n"
             "\n"
             "## Objective\n"
             "Sales must get a weekly churn report so that account managers can call at-risk customers\n"
@@ -1850,11 +1970,42 @@ def ch_memory() -> list[Any]:
             "  answer: Snowflake, refreshed nightly at 02:00\n"
             "- QA blocker: REQ-003-AC-001 not verified — no passing test task"
         ),
-        h2("14.5 Swapping in a vector store"),
+        h2("14.8 Memory is an attack surface"),
         p(
-            "Retrieval is deliberately behind one method. A semantic store (Chroma, pgvector, a "
-            "hosted index) replaces <font face='Courier'>MemoryHub.retrieve</font> without any "
-            "other module noticing; the markdown cases remain the durable, reviewable record."
+            "Cases are built from ticket bodies, meeting notes and QA output, and are later "
+            "injected into planning prompts. Without a filter, one poisoned ticket writes a "
+            '"lesson" that steers every future run in that repository — a persistence '
+            "mechanism, not a one-shot prompt injection. Everything written passes the intake "
+            "sanitiser, and what was removed is recorded on the case so a human reviewing memory "
+            "can see that the source text tried something."
+        ),
+        *listing("memory/__init__", "MemoryHub._clean"),
+        h2("14.9 Operating it"),
+        table(
+            [
+                ["Command", "Does"],
+                ["spec_kit.py cases --query …", "search cases and lessons for one topic"],
+                ["spec_kit.py memory stats", "counts, outcomes, lesson confidence, answer reuse"],
+                ["spec_kit.py memory lessons", "the active rulebook, ranked by confidence"],
+                ["spec_kit.py memory answers", "what the system would answer without asking"],
+                ["spec_kit.py memory consolidate", "merge, promote, decay, prune"],
+                ["spec_kit.py memory forget --id … --yes", "remove a case or a lesson"],
+            ],
+            widths=[2.3, 2.4],
+            mono_columns=(0,),
+        ),
+        caption(
+            "The same surface over HTTP: GET /api/sdd/cases, /api/sdd/memory/lessons, "
+            "/api/sdd/memory/answers, POST /api/sdd/memory/consolidate."
+        ),
+        h2("14.10 Swapping in a vector store"),
+        p(
+            "Retrieval sits behind one method. A semantic store (Chroma, pgvector, a hosted "
+            "index) replaces <font face='Courier'>CaseStore.retrieve</font> without any other "
+            "module noticing — the lesson book, the answer book and consolidation all keep "
+            "working, and the markdown cases remain the durable, reviewable record. Keyword "
+            "retrieval is the floor, not the ceiling: it needs no service, no model and no "
+            "network, which is why it is the default."
         ),
         PageBreak(),
     ]
@@ -2043,6 +2194,12 @@ def ch_configuration() -> list[Any]:
         ["memory_hub", "case_studies_path", "where markdown cases are written"],
         ["memory_hub", "retrieval.max_context_injection", "how many past cases enter a plan"],
         ["memory_hub", "retrieval.prefer_failures", "weight failures above successes"],
+        ["memory_hub", "retrieval.scope_strict", "hide other repositories\u2019 cases entirely"],
+        ["memory_hub", "lessons.promote_after", "sightings before a pitfall becomes a lesson"],
+        ["memory_hub", "lessons.half_life_days", "how fast lesson confidence decays"],
+        ["memory_hub", "answers.reuse_blocking", "recall answers to blocking questions too"],
+        ["memory_hub", "answers.max_age_days", "when a remembered answer becomes a guess"],
+        ["memory_hub", "max_cases", "ceiling before consolidation prunes old successes"],
         ["clarification", "ready_threshold", "confidence at which the system starts building"],
         ["clarification", "meeting_threshold", "below this, a meeting instead of a form"],
         ["clarification", "max_rounds", "async rounds before escalating"],
@@ -2288,9 +2445,10 @@ PATTERNS = [
         "Case-based memory",
         "The same mistake is made in three sprints by three people.",
         "Harvest each run into a markdown case; retrieve the closest before planning; weight "
-        "failures above successes.",
-        "memory_hub.py",
-        "Keyword retrieval is shallow; cases need occasional pruning.",
+        "failures, recency and same-repo evidence above the rest; promote a pitfall to a "
+        "lesson once it recurs.",
+        "memory/",
+        "Keyword retrieval is shallow; consolidation must run or the store rots.",
     ),
     (
         "Router with fallback",

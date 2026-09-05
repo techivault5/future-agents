@@ -6,7 +6,7 @@ from typing import Optional
 
 from future_agents.sdd.config import SpecKitConfig
 from future_agents.sdd.knowledge import RepoKnowledge
-from future_agents.sdd.memory_hub import RetrievalReport
+from future_agents.sdd.memory import RetrievalReport
 from future_agents.sdd.models import (
     Component,
     PlacementDecision,
@@ -66,13 +66,17 @@ class ArchitectStage:
                 )
             )
         warnings = memory.warnings() if memory else []
+        # A lesson recurred across runs; a case pitfall happened once. The plan
+        # should not weigh those the same.
+        lesson_texts = {lesson.text for lesson in memory.lessons} if memory else set()
         for warning in warnings:
+            recurring = any(warning.startswith(text) for text in lesson_texts)
             risks.append(
                 Risk(
                     description=warning,
-                    severity="medium",
+                    severity="high" if recurring else "medium",
                     mitigation="address explicitly in the task graph",
-                    source="memory",
+                    source="memory-lesson" if recurring else "memory",
                 )
             )
 
@@ -100,6 +104,7 @@ class ArchitectStage:
             risks=risks,
             historical_warnings=warnings,
             memory_case_ids=[m.case.id for m in memory.matches] if memory else [],
+            memory_lesson_ids=[ln.id for ln in memory.lessons] if memory else [],
             placements=placements,
             reuse_candidates=reuse,
             confidence=round(max(0.0, spec.confidence - 0.05 * high), 3),

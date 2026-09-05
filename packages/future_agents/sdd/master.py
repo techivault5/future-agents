@@ -19,7 +19,7 @@ from typing import Callable, Iterable, Optional
 from pydantic import BaseModel, Field
 
 from future_agents.sdd.config import SpecKitConfig
-from future_agents.sdd.memory_hub import MemoryHub
+from future_agents.sdd.memory import MemoryHub
 from future_agents.sdd.models import (
     ClarificationOutcome,
     CycleError,

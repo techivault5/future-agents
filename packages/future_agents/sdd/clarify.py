@@ -88,6 +88,10 @@ class Signal:
 
 Detector = Callable[[Objective, "ClarifierContext"], list[Signal]]
 
+#: `(question, topic, blocking) -> (answer, basis)` — memory's answer book, kept
+#: as a plain callable so the clarifier never has to import the memory package.
+RecallFn = Callable[[str, str, bool], Optional[tuple[str, str]]]
+
 
 @dataclass
 class ClarifierContext:
@@ -99,9 +103,17 @@ class ClarifierContext:
 class IntentClarifier:
     """Scores an objective and produces the questions worth a human's time."""
 
-    def __init__(self, config: Optional[SpecKitConfig] = None) -> None:
+    def __init__(
+        self,
+        config: Optional[SpecKitConfig] = None,
+        recall: Optional[RecallFn] = None,
+    ) -> None:
         self.config = config or SpecKitConfig()
         self.settings: ClarificationConfig = self.config.clarification
+        # Memory's answer book, if the caller wired one. A question a human has
+        # already answered is not an unknown; re-asking it is how a system
+        # teaches people to stop replying.
+        self.recall = recall
         self._detectors: list[Detector] = [
             _detect_vague_terms,
             _detect_missing_metric,
@@ -134,6 +146,25 @@ class IntentClarifier:
             existing = answered.get(_signal_key(signal))
             if existing is not None:
                 questions.append(existing)
+                continue
+            remembered = (
+                self.recall(signal.question, signal.topic.value, signal.blocking)
+                if self.recall
+                else None
+            )
+            if remembered is not None:
+                answer, basis = remembered
+                assumptions.append(
+                    Assumption(
+                        statement=answer,
+                        basis=basis,
+                        risk="low" if signal.weight < 0.12 else "medium",
+                        source="memory",
+                    )
+                )
+                # A human's prior answer is better evidence than an inference,
+                # but it is still not a fresh confirmation: some doubt remains.
+                penalty += signal.weight * 0.25
                 continue
             if (
                 self.settings.auto_assume_low_risk

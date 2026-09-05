@@ -8,6 +8,8 @@
     python scripts/spec_kit.py meeting --state … --notes-file notes.md
     python scripts/spec_kit.py status --state …
     python scripts/spec_kit.py cases --query "churn report"
+    python scripts/spec_kit.py memory lessons
+    python scripts/spec_kit.py memory consolidate
     python scripts/spec_kit.py constitution
     python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml
 """
@@ -156,23 +158,88 @@ def cmd_status(args: argparse.Namespace) -> int:
     return _report(state, Path(args.state))
 
 
-def cmd_cases(args: argparse.Namespace) -> int:
+def _hub(args: argparse.Namespace) -> MemoryHub:
     config = SpecKitConfig.load(args.config, root=REPO_ROOT)
-    hub = MemoryHub(config.memory_hub, root=REPO_ROOT)
+    scope = getattr(args, "scope", "") or REPO_ROOT.name
+    return MemoryHub(config.memory_hub, root=REPO_ROOT, scope=scope)
+
+
+def cmd_cases(args: argparse.Namespace) -> int:
+    hub = _hub(args)
     if args.query:
         report = hub.retrieve(args.query)
-        if not report.matches:
-            print("no matching cases")
+        if not report.matches and not report.lessons:
+            print("nothing remembered about that")
             return 0
+        for lesson in report.lessons:
+            print(f"{lesson.id}  lesson  seen {lesson.hits}×  [{lesson.scope}]  {lesson.text}")
         for match in report.matches:
-            print(f"{match.case.id}  {match.score}  [{match.case.outcome}]  {match.case.title}")
+            print(
+                f"{match.case.id}  {match.score}  [{match.case.outcome}]  "
+                f"{match.case.title}  ({match.reason})"
+            )
             for pitfall in match.case.pitfalls:
                 print(f"    - {pitfall}")
         return 0
-    print(hub.stats())
     for case in hub.all_cases()[:20]:
-        print(f"{case.id}  [{case.outcome}]  {case.title}")
+        seen = f" ×{case.occurrences}" if case.occurrences > 1 else ""
+        print(f"{case.id}  [{case.outcome}]  {case.scope}{seen}  {case.title}")
     return 0
+
+
+def cmd_memory(args: argparse.Namespace) -> int:
+    """Inspect and maintain what the system has learned."""
+    hub = _hub(args)
+    action = args.action
+
+    if action == "stats":
+        print(json.dumps(hub.stats(), indent=2, default=str))
+        return 0
+
+    if action == "lessons":
+        lessons = hub.lessons.all_lessons() if args.all else hub.lessons_for(args.query or "")
+        if not lessons:
+            print("no lessons yet — they are promoted once a pitfall recurs")
+            return 0
+        half_life = hub.config.lessons.half_life_days
+        for lesson in lessons:
+            confidence = lesson.confidence(half_life_days=half_life)
+            print(
+                f"{lesson.id}  {lesson.status:<7} conf {confidence:<5} "
+                f"seen {lesson.hits}×  [{lesson.scope}]  {lesson.text}"
+            )
+        return 0
+
+    if action == "answers":
+        records = hub.answers.all_records()
+        if not records:
+            print("no remembered answers")
+            return 0
+        for record in records:
+            print(
+                f"{record.fingerprint}  [{record.scope}]  reused {record.hits}×  "
+                f"{record.age_days():.0f}d old\n    Q: {record.question}\n    A: {record.answer}"
+            )
+        return 0
+
+    if action == "consolidate":
+        report = hub.consolidate()
+        print(report.summary() if report.changed else "nothing to consolidate")
+        return 0
+
+    if action == "forget":
+        if not args.id:
+            print("forget needs --id (a case id or a lesson id)", file=sys.stderr)
+            return 2
+        if not args.yes:
+            print("refusing to delete without --yes", file=sys.stderr)
+            return 2
+        removed = hub.forget_lessons(args.id) + hub.forget_cases(args.id)
+        print(f"forgot {removed} entr{'y' if removed == 1 else 'ies'}")
+        return 0
+
+    print(f"unknown memory action: {action}", file=sys.stderr)
+    return 2
 
 
 def cmd_constitution(args: argparse.Namespace) -> int:
@@ -586,7 +653,20 @@ def build_parser() -> argparse.ArgumentParser:
 
     cases = sub.add_parser("cases", help="browse or search the memory hub")
     cases.add_argument("--query")
+    cases.add_argument("--scope", default="", help="repository scope (default: this repo)")
     cases.set_defaults(func=cmd_cases)
+
+    memory = sub.add_parser("memory", help="inspect and maintain memory: cases, lessons, answers")
+    memory.add_argument(
+        "action",
+        choices=["stats", "lessons", "answers", "consolidate", "forget"],
+    )
+    memory.add_argument("--query", default="", help="rank lessons against this text")
+    memory.add_argument("--scope", default="", help="repository scope (default: this repo)")
+    memory.add_argument("--all", action="store_true", help="include dormant and pending lessons")
+    memory.add_argument("--id", action="append", default=[], help="case or lesson id to forget")
+    memory.add_argument("--yes", action="store_true", help="confirm a destructive forget")
+    memory.set_defaults(func=cmd_memory)
 
     constitution = sub.add_parser("constitution", help="render the constitution as markdown")
     constitution.set_defaults(func=cmd_constitution)

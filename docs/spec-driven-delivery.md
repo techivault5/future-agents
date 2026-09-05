@@ -46,7 +46,7 @@ packages/future_agents/sdd/
   clarify.py         intent scoring, questions, meetings
   pipeline.py        the stage machine
   master.py          multi-repo orchestration
-  memory_hub.py      case-based reasoning
+  memory/            cases (episodic) · lessons (semantic) · answers (procedural)
   router.py          role/intent → engine
   stages/            pm · architect · planner · worker · qa · delivery · _extract
   repos/             languages (19 toolchains) · scaffold (required structure)
@@ -86,7 +86,9 @@ intake → clarify → spec → plan → tasks → work → qa → deliver → h
 | `WorkResult[]` | `stages.WorkerStage` | per-task status and coverage claims |
 | `QAReport` | `stages.QAStage` | behaviour checks, findings, verdict |
 | `Delivery` | `stages.DeliveryStage` | accepted? + unconfirmed assumptions |
-| `MemoryCase` | `memory_hub.py` | pitfalls that constrain the next plan |
+| `MemoryCase` | `memory/cases.py` | pitfalls that constrain the next plan |
+| `Lesson` | `memory/lessons.py` | a pitfall that recurred, with a half-life |
+| `AnswerRecord` | `memory/answers.py` | what a human already answered |
 
 Each stage is **deterministic without a model**. An engine (Claude, Copilot,
 anything) only enriches free-text fields through `EngineRouter`; if it is absent,
@@ -160,17 +162,57 @@ state = pipeline.hold_meeting(state, notes, {question_id: answer})
 
 ---
 
-## 4 · Memory hub (case-based reasoning)
+## 4 · Memory
 
-Cases are markdown on disk (`docs/memory/cases/`) plus a JSON index —
-reviewable, diffable, greppable. `MemoryHub.harvest(state)` compresses a
-finished run into problem / solution / **pitfalls**, where pitfalls are mined
-from the blocking questions that had to be asked, the meeting that was needed,
-QA findings, and failed tasks.
+"Remember things" is three jobs, so memory has three tiers. All of them are
+plain files under `docs/memory/` — markdown a human can read and review, plus
+three JSON indexes. No database, no embedding service, no network call on the
+read path.
 
-Retrieval runs before `plan.md` is drafted; matched pitfalls are injected as
-`Plan.historical_warnings` and as `Risk(source="memory")` — constraints on the
-plan, not suggestions in a prompt.
+| Tier | Module | Holds | Written by | Read by |
+|------|--------|-------|-----------|---------|
+| Episodic | `memory/cases.py` | one case per run | harvest | the architect, before planning |
+| Semantic | `memory/lessons.py` | pitfalls that recurred | consolidation | the architect, as high-severity risks |
+| Procedural | `memory/answers.py` | prior human answers | clarify | the clarifier, instead of re-asking |
+
+**Harvest.** `MemoryHub.harvest(state)` compresses a finished run into problem /
+solution / **pitfalls**, mined from the blocking questions that had to be asked,
+the meeting that was needed, QA findings, and failed tasks. Cases are scoped to
+the repository they were learned in.
+
+**Retrieval** runs before `plan.md` is drafted and ranks on recall of the query
+(not Jaccard), field weight, prior failure, recency (90-day half-life), same-repo
+evidence, and recurrence. Matches are injected as `Plan.historical_warnings` and
+as `Risk(source="memory")` — constraints on the plan, not suggestions in a prompt.
+
+**Lessons.** One case is an anecdote. A pitfall seen in `promote_after` (default
+2) distinct cases becomes a `Lesson`, enters plans as a *high-severity* risk, and
+carries confidence that rises with evidence and halves every 120 days. Past a
+year unseen it goes dormant — kept, not deleted, so it wakes if the problem
+returns.
+
+**The answer book.** A question whose fingerprint a human has already answered
+comes back as an `Assumption` with `source="memory"` and full provenance instead
+of a blocking question. Guards: answers are scoped per repo, expire after 180
+days, and **blocking questions are always re-asked** — a safety, compliance or
+irreversibility trigger is re-confirmed however well remembered.
+
+**Consolidation** runs after every harvest: duplicate cases merge (with an
+occurrence count that then outranks singletons), pitfalls are promoted, lessons
+age out, and growth is bounded by pruning the oldest *successful*, uncited
+cases. Failures and anything a lesson cites are never pruned.
+
+**Memory is an attack surface.** Cases are built from ticket bodies and meeting
+notes and are later injected into planning prompts, so a poisoned ticket would
+otherwise persist as a "lesson" that steers every future run. Everything written
+passes the intake sanitiser, and what was removed is recorded on the case.
+
+```bash
+python scripts/spec_kit.py cases --query "nightly export"   # cases + lessons
+python scripts/spec_kit.py memory lessons                   # the active rulebook
+python scripts/spec_kit.py memory answers                   # what we would not re-ask
+python scripts/spec_kit.py memory consolidate               # merge · promote · decay · prune
+```
 
 ---
 
@@ -256,7 +298,10 @@ HTTP (`uvicorn future_agents.api.main:app`):
 | `GET /api/sdd/runs/{id}/questions` | what the system needs from a human |
 | `POST /api/sdd/runs/{id}/answers` | answer and resume |
 | `POST /api/sdd/runs/{id}/meeting` | record a meeting and resume |
-| `GET /api/sdd/cases` | search the memory hub |
+| `GET /api/sdd/cases` | search cases and lessons |
+| `GET /api/sdd/memory/lessons` | the active rulebook and its confidence |
+| `GET /api/sdd/memory/answers` | answers memory can stand in for |
+| `POST /api/sdd/memory/consolidate` | merge, promote, decay, prune |
 | `GET /api/sdd/constitution` | governance rules (MCP resource) |
 | `POST /api/sdd/cicd/diff-gate` | golden-pattern check |
 
@@ -524,8 +569,12 @@ HTTP: `POST /api/sdd/tickets`, `POST /api/sdd/work`, `GET /api/sdd/queue`,
 - Requirement extraction is heuristic (modal verbs, imperatives, transcript
   attribution). It reads a well-run meeting well and a rambling one poorly —
   an engine on `pm_agent` improves the prose, not the IDs.
-- Memory retrieval is keyword/Jaccard, not embeddings. Swap in a vector store
-  behind `MemoryHub.retrieve` when the case count outgrows it.
+- Memory retrieval is keyword-based (weighted recall over stemmed tokens), not
+  embeddings. Swap in a vector store behind `CaseStore.retrieve` when the case
+  count outgrows it; the lesson book, the answer book and consolidation are
+  unaffected.
+- A lesson needs two independent cases before it is trusted, so the first
+  occurrence of a new class of problem teaches nothing until it recurs.
 - `dry_run_backend` does no work. Delivery is only as real as the backend wired
   behind it.
 - API runs live in memory; use `save_state`/`load_state` for durability.

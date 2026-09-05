@@ -1,4 +1,4 @@
-"""The handbook's figures — four diagrams that carry the architecture.
+"""The handbook's figures — the diagrams that carry the architecture.
 
 Each function returns a `Diagram`, so the same figure renders into the PDF as
 vector art and exports to SVG for slides and READMEs:
@@ -448,12 +448,119 @@ def deployment_topology() -> Diagram:
     return figure
 
 
+def memory_tiers() -> Diagram:
+    """What each tier remembers, what writes it, and where it re-enters a run."""
+    figure = Diagram(172, 112)
+    figure.band(6, 34, "Write", BAND_VERIFY)
+    figure.band(44, 26, "Keep", BAND_UNDERSTAND)
+    figure.band(74, 30, "Read", BAND_DESIGN)
+
+    run = figure.node(4, 14, 32, 16, "Finished run", "spec · QA · errors", badge="1", accent=ACCENT)
+    harvest = figure.node(
+        42, 14, 32, 16, "Harvest", "one case per run", badge="2", accent=ACCENT, font_size=6.2
+    )
+    consolidate = figure.node(
+        80,
+        14,
+        36,
+        16,
+        "Consolidate",
+        "merge · promote · decay · prune",
+        badge="3",
+        accent=GREEN,
+        font_size=6.2,
+    )
+    answered = figure.node(
+        122,
+        14,
+        44,
+        16,
+        "Answered questions",
+        "from a human or a meeting",
+        badge="4",
+        fill=BOX_WARN,
+        accent=AMBER,
+        font_size=6.2,
+    )
+    figure.connect(run, harvest)
+    figure.connect(harvest, consolidate)
+
+    cases = figure.node(
+        4, 52, 40, 15, "Episodic · cases", "markdown + index", accent=AMBER, font_size=6.2
+    )
+    lessons = figure.node(
+        52,
+        52,
+        48,
+        15,
+        "Semantic · lessons",
+        "a pitfall seen twice, with a half-life",
+        accent=AMBER,
+        font_size=6.2,
+    )
+    answers = figure.node(
+        108,
+        52,
+        58,
+        15,
+        "Procedural · answers",
+        "scoped, dated, fingerprinted",
+        accent=AMBER,
+        font_size=6.2,
+    )
+    figure.connect(harvest, cases, from_side="bottom", to_side="top")
+    figure.connect(consolidate, lessons, from_side="bottom", to_side="top")
+    figure.connect(answered, answers, from_side="bottom", to_side="top")
+
+    plan = figure.node(
+        14,
+        82,
+        56,
+        16,
+        "Plan",
+        "lessons enter as high-severity risks",
+        badge="6",
+        accent=ACCENT,
+        font_size=6.2,
+    )
+    clarify = figure.node(
+        104,
+        82,
+        60,
+        16,
+        "Clarify",
+        "a known question becomes an assumption",
+        badge="5",
+        accent=ACCENT,
+        font_size=6.2,
+    )
+    figure.connect(cases, plan, from_side="bottom", to_side="top", dashed=True)
+    figure.connect(lessons, plan, from_side="bottom", to_side="top", dashed=True)
+    figure.connect(answers, clarify, from_side="bottom", to_side="top", dashed=True)
+
+    figure.caption(
+        4,
+        104,
+        "Every run leaves a trace, what is kept is files a human can read, and both re-enter "
+        "the next run.",
+        bold=True,
+    )
+    figure.caption(
+        4,
+        108,
+        "Blocking questions are re-asked however well remembered; everything written is "
+        "sanitised first — memory is where an injection would persist.",
+    )
+    return figure
+
+
 FIGURES = {
     "delivery-pipeline": delivery_pipeline,
     "deployment-topology": deployment_topology,
     "autonomy-loop": autonomy_loop,
     "traceability-chain": traceability_chain,
     "multi-repo-program": multi_repo_program,
+    "memory-tiers": memory_tiers,
 }
 
 

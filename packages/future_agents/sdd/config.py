@@ -69,6 +69,28 @@ class RetrievalConfig(BaseModel):
     max_context_injection: int = 3
     min_score: float = 0.15
     prefer_failures: bool = True  # negative cases teach more than successes
+    scope_boost: float = 1.4  # a case from this repo outranks a foreign one
+    scope_strict: bool = False  # True → foreign cases are not retrieved at all
+
+
+class LessonConfig(BaseModel):
+    """Semantic memory: pitfalls that recurred, kept as rules with a half-life."""
+
+    enabled: bool = True
+    promote_after: int = 2  # a pitfall seen in N distinct cases becomes a lesson
+    half_life_days: float = 120.0  # confidence halves over this span without a hit
+    dormant_after_days: float = 365.0  # unseen this long → stops being injected
+    max_injected: int = 5  # ceiling on lessons pushed into one plan
+    min_confidence: float = 0.2
+
+
+class AnswerBookConfig(BaseModel):
+    """Procedural memory: what a human already told us, so we stop re-asking."""
+
+    enabled: bool = True
+    reuse_blocking: bool = False  # blocking unknowns are re-asked even if known
+    max_age_days: float = 180.0  # older answers are stale; ask again
+    scope_strict: bool = True  # an answer from another repo is not this repo's
 
 
 class MemoryHubConfig(BaseModel):
@@ -76,6 +98,11 @@ class MemoryHubConfig(BaseModel):
     case_studies_path: str = "docs/memory/cases"
     index_path: str = ""
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
+    lessons: LessonConfig = Field(default_factory=LessonConfig)
+    answers: AnswerBookConfig = Field(default_factory=AnswerBookConfig)
+    recency_half_life_days: float = 90.0  # retrieval prefers recent cases
+    max_cases: int = 500  # beyond this, consolidation prunes old successes
+    sanitize_on_write: bool = True  # memory is a prompt-injection persistence vector
 
 
 class ClarificationConfig(BaseModel):

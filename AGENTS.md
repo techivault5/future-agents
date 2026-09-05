@@ -67,6 +67,7 @@ directories to `workspaces`; npm cannot build them and it will only mislead.
 | A spec-driven delivery stage or gate | `packages/future_agents/sdd/` | Stages stay deterministic without an LLM; an engine may only enrich free text. Rules go in `data/config/spec_kit/spec-kit-enterprise.yaml`, never inline |
 | Support for another language | one `Toolchain` entry in `packages/future_agents/sdd/repos/languages.py` | Nothing else changes — detection, scaffolding, CI and task commands all read from it |
 | A repo-knowledge rule or detector | `packages/future_agents/sdd/knowledge/` | Placement must cite its evidence; a false "this already exists" is worse than none |
+| A memory tier, retrieval rule or lesson policy | `packages/future_agents/sdd/memory/` | Everything written is sanitised first, everything remembered decays, and a blocking question is re-asked however well remembered |
 | A ticket source (Jira, ServiceNow, …) | `packages/future_agents/sdd/intake/adapters.py` | Take the payload, never fetch it; carry an `ExternalRef`; sanitise the text |
 | A worker agent or skill | `data/config/spec_kit/workforce.yaml` + `workforce.bind(...)` | Specs are data, handlers are code. A skill must return `Evidence` that says what actually ran |
 | A seniority profile | `packages/future_agents/sdd/personas.py` | A persona must change behaviour (thresholds, gates, risks), not tone |

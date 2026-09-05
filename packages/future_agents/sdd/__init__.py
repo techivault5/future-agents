@@ -37,9 +37,19 @@ from future_agents.sdd.knowledge import (
     RepoKnowledge,
 )
 from future_agents.sdd.master import MasterOrchestrator, ProgramRun, RepoTarget
-from future_agents.sdd.memory_hub import MemoryHub, RetrievalReport
+from future_agents.sdd.memory import (
+    AnswerBook,
+    CaseMatch,
+    CaseStore,
+    ConsolidationReport,
+    LessonBook,
+    MemoryHub,
+    Recalled,
+    RetrievalReport,
+)
 from future_agents.sdd.models import (
     AcceptanceCriterion,
+    AnswerRecord,
     Assignment,
     Assumption,
     Budget,
@@ -50,6 +60,7 @@ from future_agents.sdd.models import (
     ExternalRef,
     ForbiddenZone,
     IntakeSource,
+    Lesson,
     MeetingRequest,
     MemoryCase,
     Objective,
@@ -167,8 +178,16 @@ __all__ = [
     "LoopDetector",
     "MasterOrchestrator",
     "MeetingRequest",
+    "AnswerBook",
+    "AnswerRecord",
+    "CaseMatch",
+    "CaseStore",
+    "ConsolidationReport",
+    "Lesson",
+    "LessonBook",
     "MemoryCase",
     "MemoryHub",
+    "Recalled",
     "NoAgentAvailable",
     "NullEngine",
     "Objective",
