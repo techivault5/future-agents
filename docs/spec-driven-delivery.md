@@ -12,6 +12,10 @@ Implementation: `packages/future_agents/sdd/`. Rulebook:
 `data/config/spec_kit/spec-kit-enterprise.yaml`. CLI: `scripts/spec_kit.py`.
 API: `/api/sdd/*`.
 
+**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 54 pages
+covering every stage, pattern and code path, generated from the source itself
+(`python scripts/generate_handbook.py`). This page is the summary.
+
 ---
 
 ## 1 · The pipeline
@@ -231,6 +235,82 @@ Coverage claims are what QA verifies against, so a backend must only claim a
 criterion it actually exercised.
 
 ---
+
+---
+
+## 9a · Personas, languages, structure, and many repos
+
+Four capabilities layered on the pipeline above. Full detail in the handbook
+(chapters 7–9 and 14).
+
+### Personas — working at 25 years of experience
+
+`packages/future_agents/sdd/personas.py`. A persona changes behaviour, not tone:
+
+| Effect | Mechanism |
+|---|---|
+| How hard intent is interrogated | `ready_threshold` / `meeting_threshold` |
+| What coverage is acceptable | `qa.required_coverage` |
+| Which reviews are mandatory | `gate_tasks()` appends REVIEW units to the DAG |
+| Which design constraints apply | `risks_for()` appends plan risks |
+| Which engine runs a role | `engine_overrides` |
+
+Built in: `principal_hybrid` (default — AI/ML + full-stack, 25y),
+`principal_ai_engineer`, `principal_fullstack`, `staff_platform`, `pragmatic`.
+An unknown id falls back to the hybrid rather than raising.
+
+```bash
+python scripts/spec_kit.py personas
+python scripts/spec_kit.py --persona principal_ai_engineer run --statement "…"
+```
+
+### Any language
+
+`languages.py` holds 19 toolchains — Python, TypeScript, JavaScript, Go, Rust,
+Java, Kotlin, C#, Ruby, PHP, Swift, C/C++, Scala, Elixir, Dart, R, SQL/dbt,
+Terraform, Shell. Each carries install/test/lint/format/typecheck/build/audit
+commands, the ecosystem's layout, its dependency-pinning policy, and a starter
+manifest. Repos are **detected** from manifests and extensions (a manifest
+outweighs 50 files), never assumed, and nothing in the pipeline hard-codes
+`pytest`.
+
+```bash
+python scripts/spec_kit.py detect --path .
+python scripts/spec_kit.py languages
+```
+
+### Repository structure
+
+`scaffold.py` computes what a repo is missing and writes only that — idempotent,
+dry-run by default, never creating a forbidden file (`.env`, key material,
+state files). Universal surface: README, .gitignore, .env.example,
+docs/architecture.md, docs/runbook.md, docs/adr/0001, a CI workflow built from
+that language's own commands, plus the language manifest and its expected
+layout. Monorepos keep `packages/`/`apps/` — the validator accepts conventional
+roots instead of littering.
+
+```bash
+python scripts/spec_kit.py scaffold --path ../new-service --language go --write
+```
+
+When a pipeline is given `repo_root`, missing structure becomes an INFRA task in
+the delivery rather than a lint failure three weeks later.
+
+### Master orchestrator
+
+`master.py` runs one objective across many repositories: profiles each, routes
+by keyword/language (an explicit list always wins), orders them into dependency
+waves, and — the part that matters to a human — **merges every repo's questions
+into one set**, so one answer sheet or one meeting unblocks the whole program.
+Each repo plans against its own toolchain and, optionally, its own persona.
+
+```bash
+python scripts/spec_kit.py program \
+  --repo checkout-api=../checkout-api --repo web-app=../web-app \
+  --depends web-app:checkout-api \
+  --source meeting_transcript --input notes.txt \
+  --statement "Add saved payment methods to checkout"
+```
 
 ## 10 · Limits (stated plainly)
 

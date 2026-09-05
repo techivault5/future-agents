@@ -41,6 +41,8 @@ packages/future_agents/
   models/          # Pydantic models (knowledge, skill, feedback, etc.)
   patterns/        # Agentic patterns: PatternLibrary, ToolRegistry, ReActRunner, ReflectionRunner
   sdd/             # Spec-driven delivery: clarify → spec → plan → tasks → work → QA → deliver
+                   #   + personas (25y profiles), languages (19 toolchains),
+                   #     scaffold (repo structure), master (multi-repo orchestrator)
   workers/         # BaseWorker, WorkerScheduler, + 5 worker types
   system.py        # AgentSystem — top-level entry point
 scripts/workers/   # GitHub Actions entrypoints (no framework deps)
