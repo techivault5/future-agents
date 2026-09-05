@@ -1,9 +1,14 @@
 """The handbook's figures — four diagrams that carry the architecture.
 
 Each function returns a `Diagram`, so the same figure renders into the PDF as
-vector art and exports to SVG/PNG for slides and READMEs:
+vector art and exports to SVG for slides and READMEs:
 
     python scripts/generate_handbook.py --diagrams docs/diagrams
+
+PNG export additionally needs a raster backend — `pip install rlPyCairo`, which
+wants the cairo system library. It is deliberately *not* a project dependency:
+the PDF and the SVGs need nothing beyond reportlab, and a build that cannot
+compile cairo must still produce the handbook.
 """
 
 from __future__ import annotations
