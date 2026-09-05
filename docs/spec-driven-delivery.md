@@ -1,0 +1,624 @@
+# Spec-Driven Delivery (SDD)
+
+**Objective in → verified delivery out → lesson recorded.**
+
+The system turns a human objective (a meeting line, a ticket, a chat message)
+into a spec, a plan, a task DAG, executed work, a QA verdict and a delivery
+record — pausing to ask the human when, and only when, an unknown would change
+the outcome. Every artifact is data, every gate is executable, and the whole run
+is one resumable JSON document.
+
+Implementation: `packages/future_agents/sdd/`. Rulebook:
+`data/config/spec_kit/spec-kit-enterprise.yaml`. CLI: `scripts/spec_kit.py`.
+API: `/api/sdd/*`.
+
+**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 66 pages
+covering every stage, pattern and code path, generated from the source itself
+(`python scripts/generate_handbook.py`). This page is the summary.
+
+![Delivery pipeline](diagrams/delivery-pipeline.png)
+
+Diagrams live in `docs/diagrams/` as SVG and PNG, generated from
+`packages/future_agents/sdd/handbook/figures.py`:
+
+```bash
+python scripts/generate_handbook.py --diagrams
+```
+
+| Figure | Shows |
+|---|---|
+| `delivery-pipeline` | the whole system, numbered step by step |
+| `deployment-topology` | what is a process, what is state, what is external |
+| `autonomy-loop` | ticket → queue → worker → agents → evidence |
+| `traceability-chain` | REQ → criterion → tasks → evidence → coverage |
+| `multi-repo-program` | routing, dependency waves, one merged question set |
+
+---
+
+## 0 · Package layout
+
+```
+packages/future_agents/sdd/
+  models.py          IR artifacts + run state (the only place artifacts are defined)
+  config.py          spec-kit-enterprise.yaml loader
+  constitution.py    executable gates
+  personas.py        seniority profiles
+  clarify.py         intent scoring, questions, meetings
+  pipeline.py        the stage machine
+  master.py          multi-repo orchestration
+  memory/            cases (episodic) · lessons (semantic) · answers (procedural)
+  observability/     signals · objectives · alerts · runbook, per feature
+  router.py          role/intent → engine
+  stages/            pm · architect · planner · worker · qa · delivery · _extract
+  repos/             languages (19 toolchains) · scaffold (required structure)
+  knowledge/         index · conventions · placement  (repo RAG)
+  intake/            adapters (github/jira/linear/slack/transcript) · sanitize
+  store/             run_store (durable, leased) · queue · audit
+  workforce/         registry · dispatch · skills   (pluggable agents)
+  execution/         backends · sandbox · resilience
+  runner.py          TicketWorker — the loop over the queue
+  handbook/          the generated PDF
+```
+
+Embedding it elsewhere is one import root and one object:
+
+```python
+from future_agents.sdd import DeliveryPipeline, RepoKnowledge, SpecKitConfig
+
+RepoKnowledge.build("../any-repo")          # works on any language, any repo
+DeliveryPipeline(SpecKitConfig.load(), repo_root="../any-repo")
+```
+
+## 1 · The pipeline
+
+```
+intake → clarify → spec → plan → tasks → work → qa → deliver → harvest
+          ↑ ↓
+       async questions / meeting
+```
+
+| Artifact | Module | Bounds the next stage by |
+|---|---|---|
+| `Objective` | `models.py` | raw intent + source + constraints |
+| `ClarificationResult` | `clarify.py` | confidence, questions, assumptions, meeting |
+| `Spec` | `stages.PMStage` | `REQ-nnn` + Given/When/Then `AC` ids |
+| `Plan` | `stages.ArchitectStage` | components, risks, `spec_hash` |
+| `TaskGraph` | `stages.TaskPlanner` | test-first DAG, `plan_hash` |
+| `WorkResult[]` | `stages.WorkerStage` | per-task status and coverage claims |
+| `QAReport` | `stages.QAStage` | behaviour checks, findings, verdict |
+| `Delivery` | `stages.DeliveryStage` | accepted? + unconfirmed assumptions |
+| `ObservabilityPlan` | `observability/planner.py` | signals, SLOs, alerts and the runbook |
+| `MemoryCase` | `memory/cases.py` | pitfalls that constrain the next plan |
+| `Lesson` | `memory/lessons.py` | a pitfall that recurred, with a half-life |
+| `AnswerRecord` | `memory/answers.py` | what a human already answered |
+
+Each stage is **deterministic without a model**. An engine (Claude, Copilot,
+anything) only enriches free-text fields through `EngineRouter`; if it is absent,
+slow, or fails, the pipeline still produces the same structure. That is what
+makes runs reproducible, testable in CI, and cheap to dry-run.
+
+---
+
+## 2 · What changed from the original design
+
+The draft architecture was sound in shape. These are the refinements that make
+it survive contact with real work:
+
+| # | Refinement | Why |
+|---|---|---|
+| 1 | **Clarification is a first-class stage**, not a PM-agent side effect | The dominant failure mode of agent pipelines is confidently building the wrong thing. Intent is *scored*, and low confidence stops the run. |
+| 2 | **Escalation ladder**: auto-assume → async questions → meeting → blocked | A meeting is expensive. Only unknowns that survive an async round, or a genuinely tangled objective, earn one. |
+| 3 | **Traceability IDs** (`REQ-001` → `REQ-001-AC-001` → `T-007`) | Coverage becomes computable instead of asserted. QA can name exactly which criterion is unverified. |
+| 4 | **Assumption ledger** | Every unknown the pipeline resolved on its own is recorded and surfaced at delivery. Nothing is silently guessed. |
+| 5 | **Content hashes on every artifact** | A plan drawn from a superseded spec is a *stale-plan* violation, not a silent inconsistency. |
+| 6 | **Test-first DAG** — the implement task depends on its test task | Test parity is enforced by graph shape, not by hoping the worker writes tests. |
+| 7 | **Failures weighted above successes in memory retrieval** | A case that records a pitfall changes the next plan; a success case rarely does. |
+| 8 | **Executable constitution** | Rules are data with gate methods (`check_spec`, `check_plan`, `check_tasks`, `diff_gate`), with markdown *rendered from* them so prose cannot drift. |
+| 9 | **QA scope fences are enforced in code** | The agent cannot fail a pipeline over load testing that was never in scope. |
+| 10 | **Current model IDs** | The draft pinned `claude-3.5-sonnet` / `claude-3.5-haiku`. The rulebook now uses the Claude 5 family (`claude-opus-5`, `claude-sonnet-5`, `claude-haiku-4-5-20251001`) and routes by role and intent. |
+| 11 | **Config rejects inline secrets at load time** | `${ENV_VAR}` or a secrets manager, enforced by the loader — not by review. |
+| 12 | **Runs are resumable JSON** | A run can wait days for a meeting and resume in a different process. |
+
+---
+
+## 3 · The clarification gate
+
+`IntentClarifier` runs a set of detectors over the objective and everything
+attached to it. Each detector returns signals with a confidence cost:
+
+| Detector | Fires on | Blocking |
+|---|---|---|
+| vague terms | "faster", "robust", "user-friendly", "TBD" | no |
+| missing metric | change objectives with no baseline/target | yes |
+| missing acceptance | no observable outcome stated | no (assumed) |
+| missing data source | data/report work with no system of record | yes |
+| missing integration target | integration work with no counterparty | yes |
+| dangling reference | objective opens with "it"/"this" | yes |
+| multi-objective | "and also", "as well as" | no |
+| escalation trigger | auth, payments, PII, PHI, migrations | yes |
+| open-ended | ends in "?" or fewer than six words | yes |
+
+```
+confidence = (1 − Σ signal weights) × structure_bonus
+```
+
+`structure_bonus` rewards well-formed intake (constraints, raw inputs, a
+deadline). Then:
+
+- `confidence ≥ ready_threshold` and no blocking unknowns → **spec now**
+- `confidence < meeting_threshold` → **meeting** (too tangled for a form)
+- blocking unknowns survive `max_rounds` async rounds → **meeting**
+- otherwise → **async questions**
+
+Low-risk unknowns with a sensible default become `Assumption` records instead of
+questions (`auto_assume_low_risk`), and every one of them appears on the
+delivery record as unconfirmed.
+
+A meeting request arrives complete: title, reason, agenda (one line per open
+question), attendees and duration. Closing it is one call — notes become
+objective context, answers close the questions, and the run continues:
+
+```python
+state = pipeline.hold_meeting(state, notes, {question_id: answer})
+```
+
+---
+
+## 3b · Observability — the scope every feature carries
+
+A feature is not designed until you can say how you would know it is broken, so
+the same spec that produces the code produces the monitoring. Nothing here is a
+prompt asking a model to remember telemetry.
+
+| From the spec | Becomes | Why |
+|---|---|---|
+| every component | counter, histogram, span | is it running, is it slow, is it failing |
+| every MUST requirement | an objective (SLO) | "working" has to be a number before it can be checked |
+| every objective | a fast page + a slow ticket | burn rate separates an outage from a trend |
+| every alert | a runbook anchor | an alert with no next step is a siren |
+| the whole change | a dashboard + health checks | someone has to be able to look at it |
+
+**The objective's kind is read, not chosen.** A numeric deadline makes it
+latency, a schedule makes it freshness, a prohibition makes it correctness,
+queue language makes it saturation. A requirement promising two things earns two
+objectives — otherwise *fast and wrong* reads as green.
+
+**Instrumentation is scheduled work.** `TaskKind.OBSERVABILITY` units enter the
+DAG depending on the code they instrument, are dispatched to the
+`observability_engineer` agent, and are verified like anything else: the QA
+report carries `observability_coverage`, so "we'll add metrics later" appears as
+a finding rather than a silence.
+
+**Cardinality is a design decision.** Labels are declared per signal, screened
+against a forbidden list (`user_id`, `email`, …) and capped — unbounded
+cardinality is how an observability bill becomes its own incident.
+
+**Gates.** `observability-required`, `-signal-per-component`, `-slo-for-must`,
+`-alert-per-slo`, `-runbook-required`, `-task-required`. They warn by default so
+a team can adopt this without a flag day; `observability.block_on_gap: true`
+makes an unwatched feature fail the gate.
+
+```bash
+python scripts/spec_kit.py observability --state .spec-kit/runs/run-x.json
+python scripts/spec_kit.py observability --state … --runbook docs/runbooks/feature.md
+```
+
+---
+
+## 4 · Memory
+
+"Remember things" is three jobs, so memory has three tiers. All of them are
+plain files under `docs/memory/` — markdown a human can read and review, plus
+three JSON indexes. No database, no embedding service, no network call on the
+read path.
+
+| Tier | Module | Holds | Written by | Read by |
+|------|--------|-------|-----------|---------|
+| Episodic | `memory/cases.py` | one case per run | harvest | the architect, before planning |
+| Semantic | `memory/lessons.py` | pitfalls that recurred | consolidation | the architect, as high-severity risks |
+| Procedural | `memory/answers.py` | prior human answers | clarify | the clarifier, instead of re-asking |
+
+**Harvest.** `MemoryHub.harvest(state)` compresses a finished run into problem /
+solution / **pitfalls**, mined from the blocking questions that had to be asked,
+the meeting that was needed, QA findings, and failed tasks. Cases are scoped to
+the repository they were learned in.
+
+**Retrieval** runs before `plan.md` is drafted and ranks on recall of the query
+(not Jaccard), field weight, prior failure, recency (90-day half-life), same-repo
+evidence, and recurrence. Matches are injected as `Plan.historical_warnings` and
+as `Risk(source="memory")` — constraints on the plan, not suggestions in a prompt.
+
+**Lessons.** One case is an anecdote. A pitfall seen in `promote_after` (default
+2) distinct cases becomes a `Lesson`, enters plans as a *high-severity* risk, and
+carries confidence that rises with evidence and halves every 120 days. Past a
+year unseen it goes dormant — kept, not deleted, so it wakes if the problem
+returns.
+
+**The answer book.** A question whose fingerprint a human has already answered
+comes back as an `Assumption` with `source="memory"` and full provenance instead
+of a blocking question. Guards: answers are scoped per repo, expire after 180
+days, and **blocking questions are always re-asked** — a safety, compliance or
+irreversibility trigger is re-confirmed however well remembered.
+
+**Consolidation** runs after every harvest: duplicate cases merge (with an
+occurrence count that then outranks singletons), pitfalls are promoted, lessons
+age out, and growth is bounded by pruning the oldest *successful*, uncited
+cases. Failures and anything a lesson cites are never pruned.
+
+**Memory is an attack surface.** Cases are built from ticket bodies and meeting
+notes and are later injected into planning prompts, so a poisoned ticket would
+otherwise persist as a "lesson" that steers every future run. Everything written
+passes the intake sanitiser, and what was removed is recorded on the case.
+
+```bash
+python scripts/spec_kit.py cases --query "nightly export"   # cases + lessons
+python scripts/spec_kit.py memory lessons                   # the active rulebook
+python scripts/spec_kit.py memory answers                   # what we would not re-ask
+python scripts/spec_kit.py memory consolidate               # merge · promote · decay · prune
+```
+
+---
+
+## 5 · Engine routing
+
+`EngineRouter` resolves **role → engine** from the rulebook, lets an **intent
+keyword** override it, and falls back when an engine is unavailable. Engines are
+`CallableEngine` (any function), `AnthropicEngine` (optional `ai` extra) or
+`NullEngine` (default; deterministic). An engine exception degrades to empty
+output and is recorded — a remote model never crashes a run.
+
+```yaml
+agents:
+  roles:
+    architect_agent: { engine: "claude-opus-5" }
+    worker_agent:    { engine: "claude-sonnet-5", fallback: "claude-opus-5" }
+  intent_routes:
+    terraform: "claude-opus-5"
+```
+
+---
+
+## 6 · CI/CD golden pattern
+
+`Constitution.diff_gate(golden, proposed)` compares a proposed pipeline against
+the approved template in `data/config/spec_kit/golden-microservice.yaml`. Removing
+a topology line (`jobs:`, `needs:`, `runs-on:`, `uses:`, `steps:`, `strategy:`)
+is a rewrite and is rejected; additive steps pass.
+
+```bash
+python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml
+```
+
+---
+
+## 7 · QA protocol
+
+- Every in-scope acceptance criterion becomes a `BehaviourCheck` with
+  Given/When/Then **and** an Arrange-Act-Assert skeleton.
+- A criterion is *verified* only when a test task covering it completed **and**
+  the code tasks for it completed.
+- Coverage is measured over MUST criteria; `required_coverage` (default 1.0)
+  decides pass or fail.
+- Out-of-scope fences (`qa.out_of_scope`) are dropped before checks are built —
+  they can never become findings.
+- Reporting is `summary_only`: a verdict line, verified behaviours, and the
+  first blocker. Logs stay out of the channel unless asked for.
+
+---
+
+## 8 · Using it
+
+```bash
+# Intake a meeting transcript and drive it as far as it can go
+python scripts/spec_kit.py run \
+  --statement "Deliver a weekly churn report for sales" \
+  --source meeting_transcript --by dana --input notes.txt
+
+# It paused with questions? Answer them (or record the meeting)
+python scripts/spec_kit.py answer --state .spec-kit/runs/run-x.json \
+  --answer q-8f2a="Snowflake, refreshed nightly at 02:00"
+python scripts/spec_kit.py meeting --state .spec-kit/runs/run-x.json \
+  --notes-file meeting.md
+
+python scripts/spec_kit.py cases --query "churn report"   # past pitfalls
+python scripts/spec_kit.py constitution                   # governance as markdown
+```
+
+```python
+from future_agents.sdd import DeliveryPipeline, Objective, SpecKitConfig
+
+pipeline = DeliveryPipeline(SpecKitConfig.load())
+state = pipeline.start(Objective(statement="…", submitted_by="dana"))
+if state.awaiting_human:
+    state = pipeline.answer(state, {q.id: "…" for q in state.pending_questions()})
+```
+
+HTTP (`uvicorn future_agents.api.main:app`):
+
+| Route | Purpose |
+|---|---|
+| `POST /api/sdd/objectives` | intake (wire a meeting-notes webhook here) |
+| `GET /api/sdd/runs/{id}/questions` | what the system needs from a human |
+| `POST /api/sdd/runs/{id}/answers` | answer and resume |
+| `POST /api/sdd/runs/{id}/meeting` | record a meeting and resume |
+| `GET /api/sdd/cases` | search cases and lessons |
+| `GET /api/sdd/runs/{id}/observability` | signals, objectives, alerts, runbook |
+| `GET /api/sdd/memory/lessons` | the active rulebook and its confidence |
+| `GET /api/sdd/memory/answers` | answers memory can stand in for |
+| `POST /api/sdd/memory/consolidate` | merge, promote, decay, prune |
+| `GET /api/sdd/constitution` | governance rules (MCP resource) |
+| `POST /api/sdd/cicd/diff-gate` | golden-pattern check |
+
+---
+
+## 9 · Wiring a real worker
+
+The default `dry_run_backend` records what *would* happen. A real backend is one
+function — shell out to a coding agent, open a PR, run the suite:
+
+```python
+def backend(task, spec):
+    result = subprocess.run([...], capture_output=True, text=True)
+    return WorkResult(
+        task_id=task.id,
+        status=TaskStatus.DONE if result.returncode == 0 else TaskStatus.FAILED,
+        criterion_ids=task.criterion_ids,      # what this task claims to cover
+        changed_files=[...],
+        error=result.stderr[:500],
+    )
+
+DeliveryPipeline(config, backend=backend)
+```
+
+Coverage claims are what QA verifies against, so a backend must only claim a
+criterion it actually exercised.
+
+---
+
+---
+
+## 9a · Personas, languages, structure, and many repos
+
+Four capabilities layered on the pipeline above. Full detail in the handbook
+(chapters 7–9 and 14).
+
+### Personas — working at 25 years of experience
+
+`packages/future_agents/sdd/personas.py`. A persona changes behaviour, not tone:
+
+| Effect | Mechanism |
+|---|---|
+| How hard intent is interrogated | `ready_threshold` / `meeting_threshold` |
+| What coverage is acceptable | `qa.required_coverage` |
+| Which reviews are mandatory | `gate_tasks()` appends REVIEW units to the DAG |
+| Which design constraints apply | `risks_for()` appends plan risks |
+| Which engine runs a role | `engine_overrides` |
+
+Built in: `principal_hybrid` (default — AI/ML + full-stack, 25y),
+`principal_ai_engineer`, `principal_fullstack`, `staff_platform`, `pragmatic`.
+An unknown id falls back to the hybrid rather than raising.
+
+```bash
+python scripts/spec_kit.py personas
+python scripts/spec_kit.py --persona principal_ai_engineer run --statement "…"
+```
+
+### Any language
+
+`languages.py` holds 19 toolchains — Python, TypeScript, JavaScript, Go, Rust,
+Java, Kotlin, C#, Ruby, PHP, Swift, C/C++, Scala, Elixir, Dart, R, SQL/dbt,
+Terraform, Shell. Each carries install/test/lint/format/typecheck/build/audit
+commands, the ecosystem's layout, its dependency-pinning policy, and a starter
+manifest. Repos are **detected** from manifests and extensions (a manifest
+outweighs 50 files), never assumed, and nothing in the pipeline hard-codes
+`pytest`.
+
+```bash
+python scripts/spec_kit.py detect --path .
+python scripts/spec_kit.py languages
+```
+
+### Repository structure
+
+`scaffold.py` computes what a repo is missing and writes only that — idempotent,
+dry-run by default, never creating a forbidden file (`.env`, key material,
+state files). Universal surface: README, .gitignore, .env.example,
+docs/architecture.md, docs/runbook.md, docs/adr/0001, a CI workflow built from
+that language's own commands, plus the language manifest and its expected
+layout. Monorepos keep `packages/`/`apps/` — the validator accepts conventional
+roots instead of littering.
+
+```bash
+python scripts/spec_kit.py scaffold --path ../new-service --language go --write
+```
+
+When a pipeline is given `repo_root`, missing structure becomes an INFRA task in
+the delivery rather than a lint failure three weeks later.
+
+### Master orchestrator
+
+`master.py` runs one objective across many repositories: profiles each, routes
+by keyword/language (an explicit list always wins), orders them into dependency
+waves, and — the part that matters to a human — **merges every repo's questions
+into one set**, so one answer sheet or one meeting unblocks the whole program.
+Each repo plans against its own toolchain and, optionally, its own persona.
+
+```bash
+python scripts/spec_kit.py program \
+  --repo checkout-api=../checkout-api --repo web-app=../web-app \
+  --depends web-app:checkout-api \
+  --source meeting_transcript --input notes.txt \
+  --statement "Add saved payment methods to checkout"
+```
+
+## 9b · Repository knowledge (RAG) — where a change may and may not go
+
+`packages/future_agents/sdd/knowledge/`. Indexed once per pipeline (under a
+second on a 600-file repo), then consulted by three stages.
+
+| Source | Taken | Used for |
+|---|---|---|
+| Python files | docstring, classes, functions, methods (AST) | reuse, duplicate risk |
+| Other code | symbols by per-language pattern | the same, in any language |
+| Directories | kind, purpose, file count, bulk-data detection | target/test paths, fences |
+| `AGENTS.md` / `CLAUDE.md` / `CONTRIBUTING.md` | "where does a new X go" tables, prohibitions | the decisive rules |
+| Toolchain | ecosystem layout + test glob | fallback |
+
+Retrieval is TF-IDF over paths, symbol names and docs with symmetric suffix
+stripping (`invoices` finds `invoice_agent.py`). A "this already exists" claim
+additionally requires **two query words in a path or symbol name** — prose
+overlap alone matches almost anything, and a false duplicate warning teaches
+people to ignore the real one. `RepoIndex.search` is the seam an embedding store
+replaces.
+
+Evidence is ranked: the repo's own written rule → the closest existing code →
+the toolchain layout → the domain word in the requirement.
+
+```bash
+python scripts/spec_kit.py index --path . --query "churn report snowflake"
+python scripts/spec_kit.py where --what "a new agent type that reviews pull requests"
+```
+
+```
+  goes in   packages/future_agents/agents/…_agent.py   [new-module, confidence 0.9]
+  because   the repo's own rule: 'A new agent type' → …/<name>_agent.py (AGENTS.md)
+  tests     tests/test_agent_type_reviews.py
+
+  read first:      packages/future_agents/agents/pdf_agent.py::PDFAgent.agent_type
+  other approaches:
+    - …/agents/pdf_agent.py [extend]     trade-off: grows an existing file
+    - packages/…_type_reviews.py [new]   trade-off: one more file to discover
+  must not go in:
+    x <root>        Never put code at the repo root [AGENTS.md]
+    x data/agents/  bulk data (10000 files across 53 directories) [repo scan]
+```
+
+What the pipeline does with it:
+
+| Stage | Effect |
+|---|---|
+| PM | requirements echoing existing code become `spec.context_notes` |
+| Architect | a `PlacementDecision` per requirement; `target_path` per component; fence violations and duplicates become plan risks |
+| Planner | tasks carry real file paths; descriptions say where it goes, what to read first, what to avoid |
+| Worker | the backend receives a task that already knows its target file |
+
+Without `repo_root` the pipeline runs exactly as before — knowledge is additive,
+never required.
+
+---
+
+## 9c · Autonomy — tickets in, work out
+
+Everything above assumes a human typed an objective. This is the part that runs
+without one.
+
+```
+GitHub / Jira / Linear / Slack / transcript / webhook
+      │  adapter → Objective (+ ExternalRef, sanitised)
+      ▼
+ WorkQueue ──claim(lease)──► TicketWorker ──► DeliveryPipeline
+      ▲                          │                 │
+      │ fail → retry → dead      │ heartbeat       ▼
+      └──────────────────────────┘           DispatchBackend
+                                                   │
+                     Dispatcher ──picks agent──► skill (shell | callable | MCP)
+                                                   │
+                                 sandbox · budget · breaker · loop detector
+                                                   ▼
+                                               Evidence ──► QA
+```
+
+### Intake
+
+Six adapters (`intake/adapters.py`) take the payload a tracker already produces —
+they never fetch it, so auth and rate limits stay with the caller. Every objective
+carries an `ExternalRef`, so the same ticket never starts two runs. Bullets under
+an *acceptance criteria* heading become requirements directly.
+
+External text is **data, never instructions**: 12 injection shapes are neutralised
+on the way in (instruction overrides, fake role markers, secret-exfiltration asks,
+"don't tell the user", "skip the tests", piped shell installs). What was removed
+is recorded; the original is kept by digest. This is a cheap layer, not the
+boundary — the boundaries are the constitution gates, the sandbox and the
+evidence rule.
+
+### Queue and durability
+
+| Property | How |
+|---|---|
+| No duplicate work | items keyed by `ExternalRef` |
+| One owner | time-bounded lease; a second worker gets nothing |
+| Crash recovery | expired leases are reclaimable; `recover()` reclaims and records |
+| Poison control | `max_attempts` failures → dead letter, with reasons |
+| Durability | atomic write (temp + rename); `cat`-readable |
+| Provenance | append-only audit log |
+
+Runs carry a `schema_version` and migrate forward on load.
+
+### Workforce — connect as many agents and skills as you like
+
+Specs are YAML (reviewable in a PR); handlers are code, bound at runtime.
+
+```python
+workforce = Workforce.load("data/config/spec_kit/workforce.yaml")
+workforce.bind("claude_coder", my_agent)      # any callable
+backend = DispatchBackend(Dispatcher(workforce, language="python"), repo_root=".")
+```
+
+Skills come in four shapes: shell command (rendered from the toolchain, run
+without a shell), Python callable, MCP tool (through a caller the host provides),
+or simulated — whose evidence can never pass QA. A shell skill whose command does
+not exist for this toolchain is *not applicable*, so the dispatcher tries the next
+one instead of failing the task.
+
+Routing is explicit and inspectable: kind match, domain overlap, language, past
+success rate, cost, concurrency headroom — and every assignment says why.
+
+```bash
+python scripts/spec_kit.py agents --task "Implement REQ-002: schema migration" --kind code
+#   2.970  claude_coder             handles code tasks
+#   2.560  claude_architect         handles code tasks; domain match 40%
+```
+
+### Guards
+
+| Guard | Stops |
+|---|---|
+| `WorkspacePolicy` | writes outside the paths placement chose, or into a fenced zone |
+| `BudgetGuard` | runaway runs: time, tasks, attempts, engine calls |
+| `CircuitBreaker` | hammering an agent or engine that keeps failing |
+| `LoopDetector` | an agent repeating the identical failing action |
+| `retry` | a transient failure reported as a real one |
+
+### Evidence, not claims
+
+A criterion is verified only when a test task carries a command that **actually
+exited zero**, and the implementation tasks for it were not simulated. A dry run
+now reports `BLOCKED [simulated]`, never `PASS`.
+
+```bash
+python scripts/spec_kit.py enqueue --payload github-webhook.json
+python scripts/spec_kit.py work --repo . --max-items 5
+python scripts/spec_kit.py queue        # waiting, held, dead, stalled
+python scripts/spec_kit.py recover      # reclaim what a dead worker held
+```
+
+HTTP: `POST /api/sdd/tickets`, `POST /api/sdd/work`, `GET /api/sdd/queue`,
+`GET /api/sdd/agents`.
+
+---
+
+## 10 · Limits (stated plainly)
+
+- Requirement extraction is heuristic (modal verbs, imperatives, transcript
+  attribution). It reads a well-run meeting well and a rambling one poorly —
+  an engine on `pm_agent` improves the prose, not the IDs.
+- Memory retrieval is keyword-based (weighted recall over stemmed tokens), not
+  embeddings. Swap in a vector store behind `CaseStore.retrieve` when the case
+  count outgrows it; the lesson book, the answer book and consolidation are
+  unaffected.
+- A lesson needs two independent cases before it is trusted, so the first
+  occurrence of a new class of problem teaches nothing until it recurs.
+- `dry_run_backend` does no work. Delivery is only as real as the backend wired
+  behind it.
+- API runs live in memory; use `save_state`/`load_state` for durability.

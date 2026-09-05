@@ -149,3 +149,45 @@ def load_agent_yaml(agent_id: str, agents_dir: Path = AGENTS_DIR) -> dict | None
     for yaml_file in agents_dir.rglob(f"{agent_id}.yaml"):
         return yaml.safe_load(yaml_file.read_text())
     return None
+
+
+# ── Spec-driven delivery ──────────────────────────────────────────
+
+
+def executing_backend(task, spec):
+    """A worker backend that produces real, passing evidence.
+
+    The default `dry_run_backend` is deliberately unable to satisfy QA — a
+    simulated run must never read as a pass. Tests that exercise the green path
+    need a backend that claims to have actually executed something.
+    """
+    from future_agents.sdd.models import Evidence, TaskKind, TaskStatus, WorkResult
+
+    del spec
+    return WorkResult(
+        task_id=task.id,
+        status=TaskStatus.DONE,
+        summary=f"[test] {task.title}",
+        engine=task.engine,
+        evidence=[
+            Evidence(
+                kind="command",
+                command="pytest -q",
+                summary="pytest -q -> exit 0",
+                exit_code=0,
+                output_digest="test",
+                criterion_ids=list(task.criterion_ids),
+                produced_by="test-backend",
+            )
+        ],
+        criterion_ids=list(task.criterion_ids) if task.kind is TaskKind.TEST else [],
+        tests_added=[f"test_{task.id.lower().replace('-', '_')}"]
+        if task.kind is TaskKind.TEST
+        else [],
+    )
+
+
+@pytest.fixture
+def sdd_backend():
+    """The executing backend, as a fixture."""
+    return executing_backend

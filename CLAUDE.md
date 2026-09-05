@@ -40,6 +40,14 @@ packages/future_agents/
   infrastructure/  # KnowledgeStore, MetricTracker, SyncEngine
   models/          # Pydantic models (knowledge, skill, feedback, etc.)
   patterns/        # Agentic patterns: PatternLibrary, ToolRegistry, ReActRunner, ReflectionRunner
+  sdd/             # Spec-driven delivery: clarify → spec → plan → tasks → work → QA → deliver
+                   #   stages/ (6 stages), repos/ (19 toolchains + scaffolding),
+                   #   knowledge/ (repo RAG: where code may/may not go),
+                   #   intake/ (any tracker), store/ (queue+runs), workforce/
+                   #   (pluggable agents+skills), execution/ (backends+guards),
+                   #   memory/ (cases + lessons + prior answers, with decay),
+                   #   observability/ (signals + SLOs + alerts + runbook),
+                   #   handbook/ (generated PDF), personas, master orchestrator
   workers/         # BaseWorker, WorkerScheduler, + 5 worker types
   system.py        # AgentSystem — top-level entry point
 scripts/workers/   # GitHub Actions entrypoints (no framework deps)
