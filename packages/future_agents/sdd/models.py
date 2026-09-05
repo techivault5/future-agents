@@ -339,11 +339,152 @@ class Plan(Hashable):
     memory_lesson_ids: list[str] = Field(default_factory=list)
     placements: list[PlacementDecision] = Field(default_factory=list)
     reuse_candidates: list[RepoMatch] = Field(default_factory=list)
+    #: How the feature will be watched in production. Planned with the code,
+    #: never after it — a feature nobody can see failing is not finished.
+    observability: Optional[ObservabilityPlan] = None
     confidence: float = 0.0
     created_at: datetime = Field(default_factory=_now)
 
     def placement_for(self, requirement_id: str) -> Optional[PlacementDecision]:
         return next((p for p in self.placements if p.requirement_id == requirement_id), None)
+
+
+# ── Observability ─────────────────────────────────────────────────────────────
+
+
+class SignalKind(str, Enum):
+    METRIC = "metric"
+    LOG = "log"
+    TRACE = "trace"
+    EVENT = "event"
+    HEALTH = "health"
+
+
+class Signal(BaseModel):
+    """One thing the feature must emit so its behaviour is visible in production.
+
+    A signal names the instrument and the labels, because "add some metrics" is
+    not a specification — it is a wish. Labels are listed so cardinality is a
+    reviewable decision rather than an outage.
+    """
+
+    id: str  # OBS-001 — stable, referenced by SLOs and alerts
+    name: str  # the metric/span/event name as it appears in the backend
+    kind: SignalKind = SignalKind.METRIC
+    instrument: str = "counter"  # counter | histogram | gauge | span | structured-log | probe
+    component: str = ""
+    requirement_ids: list[str] = Field(default_factory=list)
+    description: str = ""
+    unit: str = ""
+    labels: list[str] = Field(default_factory=list)
+    emitted_from: str = ""  # the file the instrumentation belongs in
+    query: str = ""  # how to read it back (PromQL-shaped, backend-agnostic)
+
+    def render(self) -> str:
+        labels = f"{{{', '.join(self.labels)}}}" if self.labels else ""
+        return f"{self.id} {self.name}{labels} ({self.instrument})"
+
+
+class ServiceLevelObjective(BaseModel):
+    """What "working" means, in numbers, for one requirement."""
+
+    id: str  # SLO-001
+    requirement_id: str = ""
+    kind: str = "availability"  # availability | latency | correctness | freshness | saturation
+    statement: str = ""
+    sli: str = ""  # the ratio being measured, in words
+    signal_ids: list[str] = Field(default_factory=list)
+    objective: float = 0.99  # the target, as a fraction
+    window_days: int = 30
+    threshold_ms: Optional[int] = None  # latency objectives only
+    owner: str = ""
+
+    @property
+    def error_budget(self) -> float:
+        """The share of events allowed to fail before the objective is missed."""
+        return round(1.0 - self.objective, 6)
+
+    def render(self) -> str:
+        target = f"{self.objective * 100:.2f}%".rstrip("0").rstrip(".")
+        latency = f" under {self.threshold_ms}ms" if self.threshold_ms else ""
+        return f"{self.id} [{self.kind}] {self.sli}{latency} ≥ {target} over {self.window_days}d"
+
+
+class Alert(BaseModel):
+    """A page or a ticket, tied to an objective and to the runbook that answers it.
+
+    An alert without a runbook is a pager that wakes someone with no next step,
+    so `runbook` is part of the artifact rather than an afterthought.
+    """
+
+    id: str  # ALERT-001
+    name: str
+    slo_id: str = ""
+    signal_ids: list[str] = Field(default_factory=list)
+    severity: str = "ticket"  # page | ticket | info
+    condition: str = ""
+    burn_rate: Optional[float] = None  # multiples of the error budget burn
+    window: str = ""  # the evaluation window, e.g. "1h"
+    for_minutes: int = 5
+    channel: str = ""
+    runbook: str = ""
+    auto_resolves: bool = True
+
+
+class Dashboard(BaseModel):
+    name: str
+    path: str = ""
+    audience: str = "on-call"  # on-call | product | executive
+    panels: list[str] = Field(default_factory=list)
+
+
+class ObservabilityPlan(Hashable):
+    """How a feature will be watched once it is live — planned, not bolted on.
+
+    Every feature this system builds gets one. It is derived from the same spec
+    the code is: each MUST requirement earns an objective, each objective an
+    alert, each alert a runbook entry, and each component the instrumentation
+    that makes those measurable.
+    """
+
+    id: str = Field(default_factory=lambda: _nid("obs"))
+    telemetry_stack: str = ""  # e.g. "OpenTelemetry (Python) → OTLP collector"
+    signals: list[Signal] = Field(default_factory=list)
+    slos: list[ServiceLevelObjective] = Field(default_factory=list)
+    alerts: list[Alert] = Field(default_factory=list)
+    dashboards: list[Dashboard] = Field(default_factory=list)
+    health_checks: list[str] = Field(default_factory=list)
+    log_fields: list[str] = Field(default_factory=list)
+    redactions: list[str] = Field(default_factory=list)  # fields that must never be logged
+    trace_spans: list[str] = Field(default_factory=list)
+    runbook_path: str = ""
+    gaps: list[str] = Field(default_factory=list)  # what could not be derived
+    created_at: datetime = Field(default_factory=_now)
+
+    def signals_for(self, component: str) -> list[Signal]:
+        return [s for s in self.signals if s.component == component]
+
+    def signal(self, signal_id: str) -> Optional[Signal]:
+        return next((s for s in self.signals if s.id == signal_id), None)
+
+    def slo_for(self, requirement_id: str) -> Optional[ServiceLevelObjective]:
+        return next((s for s in self.slos if s.requirement_id == requirement_id), None)
+
+    def alerts_for(self, slo_id: str) -> list[Alert]:
+        return [a for a in self.alerts if a.slo_id == slo_id]
+
+    def coverage(self, requirement_ids: list[str]) -> float:
+        """Share of the requirements that have an objective measuring them."""
+        if not requirement_ids:
+            return 0.0
+        covered = sum(1 for rid in requirement_ids if self.slo_for(rid) is not None)
+        return round(covered / len(requirement_ids), 3)
+
+    def summary(self) -> str:
+        return (
+            f"{len(self.signals)} signal(s), {len(self.slos)} SLO(s), "
+            f"{len(self.alerts)} alert(s), {len(self.dashboards)} dashboard(s)"
+        )
 
 
 # ── Tasks ─────────────────────────────────────────────────────────────────────
@@ -355,6 +496,9 @@ class TaskKind(str, Enum):
     INFRA = "infra"
     DOC = "doc"
     REVIEW = "review"
+    #: Instrumentation, alerts and dashboards. Its own kind so it can be
+    #: required, counted and routed to an agent that knows telemetry.
+    OBSERVABILITY = "observability"
 
 
 class TaskStatus(str, Enum):
@@ -597,6 +741,8 @@ class QAReport(BaseModel):
     findings: list[QAFinding] = Field(default_factory=list)
     out_of_scope_ignored: list[str] = Field(default_factory=list)
     coverage: float = 0.0
+    #: Share of components whose instrumentation task actually ran.
+    observability_coverage: float = 0.0
     environment: str = "ephemeral"
     environment_cleaned: bool = False
     created_at: datetime = Field(default_factory=_now)
@@ -625,6 +771,8 @@ class Delivery(BaseModel):
     accepted: bool = False
     coverage: float = 0.0
     artifacts: list[str] = Field(default_factory=list)
+    runbook_path: str = ""
+    slo_summary: list[str] = Field(default_factory=list)
     unconfirmed_assumptions: list[Assumption] = Field(default_factory=list)
     residual_questions: list[Question] = Field(default_factory=list)
     notes: str = ""

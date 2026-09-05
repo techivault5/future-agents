@@ -147,6 +147,40 @@ class QAConfig(BaseModel):
     communication: QACommunicationConfig = Field(default_factory=QACommunicationConfig)
 
 
+class ObservabilityConfig(BaseModel):
+    """Monitoring is scope, not garnish — these are the terms it is built to.
+
+    Defaults are the ones an on-call engineer would ask for: an objective per
+    MUST requirement, multi-window burn-rate alerts (fast page, slow ticket)
+    rather than threshold spam, and a hard ceiling on metric labels because
+    unbounded cardinality is how a metrics bill becomes an incident.
+    """
+
+    enabled: bool = True
+    require_slo_for_must: bool = True  # every MUST requirement earns an objective
+    require_signal_per_component: bool = True
+    require_runbook: bool = True  # an alert with no next step is just a siren
+    block_on_gap: bool = False  # gaps warn by default; True makes them fail the gate
+    default_availability: float = 0.995
+    default_latency_ms: int = 800
+    window_days: int = 30
+    fast_burn_rate: float = 14.4  # 2% of a 30d budget in 1h → page
+    fast_burn_window: str = "1h"
+    slow_burn_rate: float = 6.0  # 5% in 6h → ticket
+    slow_burn_window: str = "6h"
+    max_labels_per_metric: int = 6
+    forbidden_labels: list[str] = Field(
+        default_factory=lambda: ["user_id", "email", "session_id", "request_id", "order_id"]
+    )
+    redact_fields: list[str] = Field(
+        default_factory=lambda: ["password", "token", "secret", "api_key", "card", "ssn"]
+    )
+    page_channel: str = "oncall"
+    ticket_channel: str = "backlog"
+    runbook_dir: str = "docs/runbooks"
+    dashboard_dir: str = "docs/dashboards"
+
+
 class SpecKitConfig(BaseModel):
     version: str = "1.0"
     project: ProjectConfig = Field(default_factory=ProjectConfig)
@@ -156,6 +190,7 @@ class SpecKitConfig(BaseModel):
     clarification: ClarificationConfig = Field(default_factory=ClarificationConfig)
     cicd: CICDConfig = Field(default_factory=CICDConfig)
     qa: QAConfig = Field(default_factory=QAConfig)
+    observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
 
     # ── Loading ───────────────────────────────────────────────────────────────
 
@@ -194,6 +229,11 @@ class SpecKitConfig(BaseModel):
             enforce_test_parity=g.enforce_test_parity,
             enforce_spec_purity=g.enforce_spec_purity,
             anti_rewrite_rules=self.cicd.rules,
+            require_observability=self.observability.enabled,
+            require_slo_for_must=self.observability.require_slo_for_must,
+            require_signal_per_component=self.observability.require_signal_per_component,
+            require_runbook=self.observability.require_runbook,
+            observability_is_blocking=self.observability.block_on_gap,
         )
 
     def engine_for(self, role: str) -> str:

@@ -106,6 +106,89 @@ class TaskPlanner:
                 )
                 code_ids.append(impl_id)
 
+        # Instrumentation is work, not intent: it gets task ids, dependencies and
+        # evidence like everything else, so "we'll add metrics later" cannot pass
+        # as done.
+        obs = plan.observability
+        if obs is not None and self.config.observability.enabled:
+            for component in plan.components:
+                signals = obs.signals_for(component.name)
+                if not signals:
+                    continue
+                instrument_id = next_id()
+                tasks.append(
+                    TaskUnit(
+                        id=instrument_id,
+                        title=f"Instrument {component.name}",
+                        description="\n".join(
+                            [
+                                f"Emit via {obs.telemetry_stack}.",
+                                *(f"- {signal.render()}" for signal in signals),
+                                "Log fields: " + ", ".join(obs.log_fields[:6]),
+                                "Never log: " + ", ".join(obs.redactions[:6]),
+                            ]
+                        ),
+                        kind=TaskKind.OBSERVABILITY,
+                        requirement_ids=list(component.requirement_ids),
+                        depends_on=sorted(
+                            t.id
+                            for t in tasks
+                            if t.component == component.name and t.kind is TaskKind.CODE
+                        ),
+                        component=component.name,
+                        engine=self.router.decide("observability_agent", component.name).engine,
+                        artifacts=[component.target_path] if component.target_path else [],
+                    )
+                )
+                code_ids.append(instrument_id)
+
+            if obs.slos:
+                alert_id = next_id()
+                tasks.append(
+                    TaskUnit(
+                        id=alert_id,
+                        title="Wire objectives, alerts and the dashboard",
+                        description="\n".join(
+                            [
+                                *(f"- {slo.render()}" for slo in obs.slos),
+                                *(
+                                    f"- {alert.severity.upper()} {alert.name}: "
+                                    f"{alert.condition} → {alert.channel} ({alert.runbook})"
+                                    for alert in obs.alerts
+                                ),
+                                *(f"- dashboard: {d.path}" for d in obs.dashboards),
+                            ]
+                        ),
+                        kind=TaskKind.OBSERVABILITY,
+                        requirement_ids=[
+                            slo.requirement_id for slo in obs.slos if slo.requirement_id
+                        ],
+                        depends_on=sorted(t.id for t in tasks if t.kind is TaskKind.OBSERVABILITY),
+                        engine=self.router.decide("observability_agent", "alerting").engine,
+                        artifacts=[d.path for d in obs.dashboards],
+                    )
+                )
+                code_ids.append(alert_id)
+
+                runbook_id = next_id()
+                tasks.append(
+                    TaskUnit(
+                        id=runbook_id,
+                        title="Write the runbook every alert points at",
+                        description=(
+                            f"Generate {obs.runbook_path} from the observability plan: "
+                            "what fires, what to look at first, how to roll back. "
+                            "An alert with no next step is a siren."
+                        ),
+                        kind=TaskKind.OBSERVABILITY,
+                        requirement_ids=[r.id for r in spec.requirements],
+                        depends_on=[alert_id],
+                        engine=self.router.decide("observability_agent", "runbook").engine,
+                        artifacts=[obs.runbook_path],
+                    )
+                )
+                code_ids.append(runbook_id)
+
         missing = RepoScaffolder(self.persona).validate(self.repo_root) if self.repo_root else []
         if missing:
             structure_id = next_id()

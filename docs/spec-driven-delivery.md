@@ -47,6 +47,7 @@ packages/future_agents/sdd/
   pipeline.py        the stage machine
   master.py          multi-repo orchestration
   memory/            cases (episodic) · lessons (semantic) · answers (procedural)
+  observability/     signals · objectives · alerts · runbook, per feature
   router.py          role/intent → engine
   stages/            pm · architect · planner · worker · qa · delivery · _extract
   repos/             languages (19 toolchains) · scaffold (required structure)
@@ -86,6 +87,7 @@ intake → clarify → spec → plan → tasks → work → qa → deliver → h
 | `WorkResult[]` | `stages.WorkerStage` | per-task status and coverage claims |
 | `QAReport` | `stages.QAStage` | behaviour checks, findings, verdict |
 | `Delivery` | `stages.DeliveryStage` | accepted? + unconfirmed assumptions |
+| `ObservabilityPlan` | `observability/planner.py` | signals, SLOs, alerts and the runbook |
 | `MemoryCase` | `memory/cases.py` | pitfalls that constrain the next plan |
 | `Lesson` | `memory/lessons.py` | a pitfall that recurred, with a half-life |
 | `AnswerRecord` | `memory/answers.py` | what a human already answered |
@@ -158,6 +160,47 @@ objective context, answers close the questions, and the run continues:
 
 ```python
 state = pipeline.hold_meeting(state, notes, {question_id: answer})
+```
+
+---
+
+## 3b · Observability — the scope every feature carries
+
+A feature is not designed until you can say how you would know it is broken, so
+the same spec that produces the code produces the monitoring. Nothing here is a
+prompt asking a model to remember telemetry.
+
+| From the spec | Becomes | Why |
+|---|---|---|
+| every component | counter, histogram, span | is it running, is it slow, is it failing |
+| every MUST requirement | an objective (SLO) | "working" has to be a number before it can be checked |
+| every objective | a fast page + a slow ticket | burn rate separates an outage from a trend |
+| every alert | a runbook anchor | an alert with no next step is a siren |
+| the whole change | a dashboard + health checks | someone has to be able to look at it |
+
+**The objective's kind is read, not chosen.** A numeric deadline makes it
+latency, a schedule makes it freshness, a prohibition makes it correctness,
+queue language makes it saturation. A requirement promising two things earns two
+objectives — otherwise *fast and wrong* reads as green.
+
+**Instrumentation is scheduled work.** `TaskKind.OBSERVABILITY` units enter the
+DAG depending on the code they instrument, are dispatched to the
+`observability_engineer` agent, and are verified like anything else: the QA
+report carries `observability_coverage`, so "we'll add metrics later" appears as
+a finding rather than a silence.
+
+**Cardinality is a design decision.** Labels are declared per signal, screened
+against a forbidden list (`user_id`, `email`, …) and capped — unbounded
+cardinality is how an observability bill becomes its own incident.
+
+**Gates.** `observability-required`, `-signal-per-component`, `-slo-for-must`,
+`-alert-per-slo`, `-runbook-required`, `-task-required`. They warn by default so
+a team can adopt this without a flag day; `observability.block_on_gap: true`
+makes an unwatched feature fail the gate.
+
+```bash
+python scripts/spec_kit.py observability --state .spec-kit/runs/run-x.json
+python scripts/spec_kit.py observability --state … --runbook docs/runbooks/feature.md
 ```
 
 ---
@@ -299,6 +342,7 @@ HTTP (`uvicorn future_agents.api.main:app`):
 | `POST /api/sdd/runs/{id}/answers` | answer and resume |
 | `POST /api/sdd/runs/{id}/meeting` | record a meeting and resume |
 | `GET /api/sdd/cases` | search cases and lessons |
+| `GET /api/sdd/runs/{id}/observability` | signals, objectives, alerts, runbook |
 | `GET /api/sdd/memory/lessons` | the active rulebook and its confidence |
 | `GET /api/sdd/memory/answers` | answers memory can stand in for |
 | `POST /api/sdd/memory/consolidate` | merge, promote, decay, prune |

@@ -64,6 +64,32 @@ skills:
     writes: true
     timeout_seconds: 600
 
+  - id: instrument_code
+    name: Emit the signals the plan asks for
+    description: >
+      Adds the metrics, spans and structured log fields named in the
+      observability plan, in the language the repository already uses.
+    kinds: [observability]
+    writes: true
+    timeout_seconds: 1200
+
+  - id: wire_alerts
+    name: Wire objectives, alerts and the dashboard
+    description: >
+      Turns each objective into multi-window burn-rate alerts and a dashboard
+      panel, as code in the repository — never clicked into a UI.
+    kinds: [observability]
+    triggers: [alert, slo, dashboard, objective]
+    writes: true
+    timeout_seconds: 900
+
+  - id: write_runbook
+    name: Write the runbook every alert points at
+    kinds: [observability, doc]
+    triggers: [runbook, oncall, incident]
+    writes: true
+    timeout_seconds: 600
+
 agents:
   - id: toolchain_runner
     name: Toolchain runner
@@ -105,6 +131,20 @@ agents:
     max_concurrency: 2
     cost_hint: 0.3
     priority: 2
+
+  - id: observability_engineer
+    name: Observability engineer
+    description: >
+      Owns how a change is seen in production: instruments the code, wires the
+      objectives and alerts, writes the runbook the page links to.
+    kinds: [observability]
+    domains: [observability, reliability, monitoring, alerting, telemetry]
+    engine: claude-sonnet-5
+    persona_id: principal_hybrid
+    skills: [instrument_code, wire_alerts, write_runbook]
+    max_concurrency: 2
+    cost_hint: 0.8
+    priority: 3
 
   - id: reviewer
     name: Review agent

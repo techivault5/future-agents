@@ -46,6 +46,7 @@ packages/future_agents/
                    #   intake/ (any tracker), store/ (queue+runs), workforce/
                    #   (pluggable agents+skills), execution/ (backends+guards),
                    #   memory/ (cases + lessons + prior answers, with decay),
+                   #   observability/ (signals + SLOs + alerts + runbook),
                    #   handbook/ (generated PDF), personas, master orchestrator
   workers/         # BaseWorker, WorkerScheduler, + 5 worker types
   system.py        # AgentSystem — top-level entry point

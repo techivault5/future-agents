@@ -44,9 +44,11 @@ from future_agents.sdd.handbook.figures import (
     deployment_topology,
     memory_tiers,
     multi_repo_program,
+    observability_scope,
     traceability_chain,
 )
 from future_agents.sdd.handbook.fonts import FONTS, sanitize
+from future_agents.sdd.observability import OTEL_ENVIRONMENT, telemetry_for
 from future_agents.sdd.repos import languages
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
@@ -1798,9 +1800,200 @@ def ch_qa() -> list[Any]:
     ]
 
 
+def ch_observability() -> list[Any]:
+    config = SpecKitConfig.load(root=REPO_ROOT).observability
+    return [
+        h1("14 · Observability"),
+        p(
+            "A feature is not designed until you can say how you would know it is broken. So "
+            "monitoring is not a follow-up ticket here: the same spec that produces the code "
+            "produces the signals, the objectives, the alerts and the runbook, and the "
+            "instrumentation becomes real units in the task DAG with real evidence attached. "
+            "Nothing in this chapter is a prompt asking a model to remember telemetry."
+        ),
+        *figure(
+            observability_scope,
+            "Figure 14.1 — one spec, two derivations. The right-hand branch is the one teams "
+            "usually postpone; here it is planned, scheduled and gated with the left.",
+        ),
+        h2("14.1 What each requirement earns"),
+        table(
+            [
+                ["From the spec", "Becomes", "Because"],
+                [
+                    "every component",
+                    "counter, histogram, span",
+                    "is it running, is it slow, is it failing",
+                ],
+                [
+                    "every MUST requirement",
+                    "an objective (SLO)",
+                    "'working' has to be a number before it can be checked",
+                ],
+                [
+                    "every objective",
+                    "a fast page + a slow ticket",
+                    "burn rate distinguishes an outage from a trend",
+                ],
+                [
+                    "every alert",
+                    "a runbook anchor",
+                    "an alert with no next step is a siren",
+                ],
+                [
+                    "the whole change",
+                    "a dashboard and health checks",
+                    "someone has to be able to look at it",
+                ],
+            ],
+            widths=[1.4, 1.5, 1.8],
+        ),
+        h2("14.2 The objective's kind is read, not chosen"),
+        p(
+            "A latency objective on a feature whose real risk is double-counting is worse than "
+            "no objective, because it reads green while the ledger drifts. So the kind comes "
+            "from what the requirement actually promised: a numeric deadline makes it latency, "
+            "a schedule makes it freshness, a prohibition makes it correctness, queue language "
+            "makes it saturation. A requirement that promises two things earns two objectives — "
+            "fast and wrong must not be able to pass."
+        ),
+        *listing("observability/planner", "ObservabilityPlanner._classify"),
+        table(
+            [
+                ["Phrasing in the requirement", "Objective kind"],
+                ['"within 2 seconds", "must not take more than 30s"', "latency"],
+                ['"nightly", "refreshed", "stale"', "freshness"],
+                ['"must never", "exactly once", "reconcile"', "correctness"],
+                ['"queue", "backlog", "rate limit"', "saturation"],
+                ["anything else", "availability"],
+            ],
+            widths=[2.8, 1.9],
+        ),
+        PageBreak(),
+        h2("14.3 Alerts that page for a reason"),
+        p(
+            "Threshold alerts train people to ignore them. These are multi-window burn rate: "
+            f"a burn of {config.fast_burn_rate}× over {config.fast_burn_window} means the "
+            f"{config.window_days}-day error budget dies today, so it pages; "
+            f"{config.slow_burn_rate}× over {config.slow_burn_window} is a trend, so it opens a "
+            "ticket. Both carry the objective id and the runbook anchor, and neither is created "
+            "without the other."
+        ),
+        *listing("observability/planner", "ObservabilityPlanner._alerts"),
+        h2("14.4 Cardinality is a design decision"),
+        p(
+            "Unbounded labels are how an observability bill becomes an incident of its own, and "
+            "how a metrics backend falls over during the outage you needed it for. Labels are "
+            "declared per signal, screened against a forbidden list "
+            f"({', '.join(config.forbidden_labels[:4])}…) and capped at "
+            f"{config.max_labels_per_metric}. Anything rejected is recorded as a gap rather "
+            "than silently dropped."
+        ),
+        h2("14.5 The runbook is generated, not promised"),
+        p(
+            "Every alert links to a section that has to exist, so the runbook is rendered from "
+            "the same plan the alerts come from: rename an objective and its section moves with "
+            "it. It opens with the five minutes that matter and gives each objective kind its "
+            "own first check — latency burns start at the dependency, correctness burns start "
+            "by stopping the writer."
+        ),
+        *listing("observability/runbook", "_diagnosis_for", "the first thing worth checking"),
+        PageBreak(),
+        h2("14.6 The gates that make it stick"),
+        table(
+            [
+                ["Rule", "Fires when", "Severity"],
+                [
+                    "observability-required",
+                    "a plan says nothing about how it is watched",
+                    "warn / error",
+                ],
+                [
+                    "observability-signal-per-component",
+                    "a component would fail invisibly",
+                    "warn / error",
+                ],
+                [
+                    "observability-slo-for-must",
+                    "a MUST requirement has no objective",
+                    "warn / error",
+                ],
+                [
+                    "observability-alert-per-slo",
+                    "an objective can be missed silently",
+                    "warn / error",
+                ],
+                ["observability-runbook-required", "an alert has no next step", "warn / error"],
+                [
+                    "observability-task-required",
+                    "a component is built but never instrumented",
+                    "warn / error",
+                ],
+            ],
+            widths=[1.9, 2.0, 0.8],
+            mono_columns=(0,),
+        ),
+        caption(
+            "Warnings by default, so a team can adopt this without a flag day. "
+            "<font face='Courier'>observability.block_on_gap: true</font> makes an unwatched "
+            "feature fail the gate outright."
+        ),
+        p(
+            "<b>QA closes the loop.</b> Planning telemetry and shipping it are different things, "
+            "so the QA report carries "
+            "<font face='Courier'>observability_coverage</font>: the share of instrumentation "
+            "tasks that actually ran, with the same evidence rule as everything else. "
+            '"We\'ll add metrics later" shows up as a finding, on the record.'
+        ),
+        *listing("stages/qa", "QAStage._observability"),
+        h2("14.7 Per-language instrumentation"),
+        p(
+            "OpenTelemetry is the one instrumentation API all nineteen supported ecosystems "
+            "share, and OTLP is accepted by every backend a team is likely to already run — so "
+            "the pipeline can name the exact package and switches without knowing the vendor. "
+            "A language with no first-party SDK says so instead of inventing one."
+        ),
+        table(
+            [
+                ["Language", "Emits with"],
+                *[
+                    [name, telemetry_for(key).render()]
+                    for name, key in (
+                        ("Python", "python"),
+                        ("TypeScript", "typescript"),
+                        ("Go", "go"),
+                        ("Java", "java"),
+                        ("Rust", "rust"),
+                        ("Terraform", "terraform"),
+                        ("SQL", "sql"),
+                    )
+                ],
+            ],
+            widths=[0.9, 3.8],
+        ),
+        caption(
+            "Environment every instrumented service reads: "
+            + ", ".join(f"<font face='Courier'>{name}</font>" for name, _ in OTEL_ENVIRONMENT)
+            + ". Values are deployment concerns and never appear in code."
+        ),
+        h2("14.8 Operating it"),
+        table(
+            [
+                ["Command", "Does"],
+                ["spec_kit.py observability --state …", "signals, objectives, alerts, gaps"],
+                ["spec_kit.py observability --state … --runbook out.md", "write the runbook"],
+                ["GET /api/sdd/runs/{id}/observability", "the same, over HTTP"],
+            ],
+            widths=[2.6, 2.1],
+            mono_columns=(0,),
+        ),
+        PageBreak(),
+    ]
+
+
 def ch_memory() -> list[Any]:
     return [
-        h1("14 · Memory"),
+        h1("15 · Memory"),
         p(
             "A team that forgets is a team that re-learns. This system carries three different "
             'kinds of knowledge between deliveries, because "remember things" is really three '
@@ -1812,10 +2005,10 @@ def ch_memory() -> list[Any]:
         ),
         *figure(
             memory_tiers,
-            "Figure 14.1 — the three tiers, what writes each of them, and where each one "
+            "Figure 15.1 — the three tiers, what writes each of them, and where each one "
             "re-enters the next run.",
         ),
-        h2("14.1 Three tiers"),
+        h2("15.1 Three tiers"),
         table(
             [
                 ["Tier", "Holds", "Answers", "Written by", "Module"],
@@ -1849,7 +2042,7 @@ def ch_memory() -> list[Any]:
             "is switched off: every method degrades to an empty answer rather than an exception, "
             "so a run never fails because the memory store is missing, empty or corrupt."
         ),
-        h2("14.2 Where pitfalls come from"),
+        h2("15.2 Where pitfalls come from"),
         table(
             [
                 ["Source", "Becomes"],
@@ -1865,7 +2058,7 @@ def ch_memory() -> list[Any]:
         ),
         *listing("memory/cases", "pitfalls_from_run"),
         PageBreak(),
-        h2("14.3 Retrieval, and why it ranks the way it does"),
+        h2("15.3 Retrieval, and why it ranks the way it does"),
         table(
             [
                 ["Rule", "Why"],
@@ -1893,7 +2086,7 @@ def ch_memory() -> list[Any]:
         *listing("memory/cases", "CaseStore.retrieve"),
         *listing("memory/cases", "CaseStore._score", "weighted recall across the case's fields"),
         PageBreak(),
-        h2("14.4 From anecdote to lesson"),
+        h2("15.4 From anecdote to lesson"),
         p(
             "One case is an anecdote. The same pitfall in two independent cases is a property of "
             "the codebase — and that is what the planner deserves to be told. Promotion enforces "
@@ -1907,7 +2100,7 @@ def ch_memory() -> list[Any]:
             "history intact. This is the part that keeps memory from becoming a nag."
         ),
         *listing("models", "Lesson.confidence"),
-        h2("14.5 The answer book — not asking twice"),
+        h2("15.5 The answer book — not asking twice"),
         p(
             "The clarifier's job is to ask what it cannot know. Asking the <i>same</i> question "
             "every quarter is not diligence, it is amnesia, and it is the fastest way to make "
@@ -1935,7 +2128,7 @@ def ch_memory() -> list[Any]:
         ),
         *listing("memory/answers", "AnswerBook.recall"),
         PageBreak(),
-        h2("14.6 Consolidation — the maintenance pass"),
+        h2("15.6 Consolidation — the maintenance pass"),
         p(
             "An append-only memory rots in three predictable ways, and consolidation answers each "
             "one: duplicates merge into a single case with an occurrence count (which then "
@@ -1947,7 +2140,7 @@ def ch_memory() -> list[Any]:
         *listing("memory/consolidate", "consolidate"),
         *listing("memory/consolidate", "_merge_duplicates", "the survivor keeps the worst outcome"),
         PageBreak(),
-        h2("14.7 The case format"),
+        h2("15.7 The case format"),
         *code(
             "# Weekly churn report for sales\n"
             "\n"
@@ -1970,7 +2163,7 @@ def ch_memory() -> list[Any]:
             "  answer: Snowflake, refreshed nightly at 02:00\n"
             "- QA blocker: REQ-003-AC-001 not verified — no passing test task"
         ),
-        h2("14.8 Memory is an attack surface"),
+        h2("15.8 Memory is an attack surface"),
         p(
             "Cases are built from ticket bodies, meeting notes and QA output, and are later "
             "injected into planning prompts. Without a filter, one poisoned ticket writes a "
@@ -1980,7 +2173,7 @@ def ch_memory() -> list[Any]:
             "can see that the source text tried something."
         ),
         *listing("memory/__init__", "MemoryHub._clean"),
-        h2("14.9 Operating it"),
+        h2("15.9 Operating it"),
         table(
             [
                 ["Command", "Does"],
@@ -1998,7 +2191,7 @@ def ch_memory() -> list[Any]:
             "The same surface over HTTP: GET /api/sdd/cases, /api/sdd/memory/lessons, "
             "/api/sdd/memory/answers, POST /api/sdd/memory/consolidate."
         ),
-        h2("14.10 Swapping in a vector store"),
+        h2("15.10 Swapping in a vector store"),
         p(
             "Retrieval sits behind one method. A semantic store (Chroma, pgvector, a hosted "
             "index) replaces <font face='Courier'>CaseStore.retrieve</font> without any other "
@@ -2019,20 +2212,20 @@ def ch_routing() -> list[Any]:
             [name, role.engine, role.fallback or config.agents.default_engine, role.purpose]
         )
     return [
-        h1("15 · Engine routing and MCP"),
+        h1("16 · Engine routing and MCP"),
         p(
             "The pipeline never names a model inline. It asks the router, which resolves role → "
             "engine from the rulebook, lets an intent keyword override it, and falls back when an "
             "engine is unavailable. Changing vendor or model is a configuration edit, and a "
             "failing engine degrades to deterministic behaviour instead of taking the run down."
         ),
-        h2("15.1 Current role map"),
+        h2("16.1 Current role map"),
         table(rows, widths=[0.95, 1.15, 1.15, 2.2], mono_columns=(0, 1, 2)),
         caption(
             "Read live from the rulebook. Intent routes: "
             + (", ".join(f"{k} → {v}" for k, v in config.agents.intent_routes.items()) or "none")
         ),
-        h2("15.2 Resolution order"),
+        h2("16.2 Resolution order"),
         flow(
             "1. intent keyword match ....... 'terraform' in the task intent → claude-opus-5\n"
             "2. role default ............... agents.roles[role].engine\n"
@@ -2041,7 +2234,7 @@ def ch_routing() -> list[Any]:
             "5. NullEngine ................. deterministic; the stage's own rules stand"
         ),
         *listing("router", "EngineRouter.run"),
-        h2("15.3 Engines"),
+        h2("16.3 Engines"),
         p(
             "An engine is anything with a <font face='Courier'>name</font> and a "
             "<font face='Courier'>complete(call)</font>. Three ship: NullEngine (the default, "
@@ -2057,7 +2250,7 @@ def ch_routing() -> list[Any]:
             "upgraded model is an unversioned dependency, which is exactly what the principal AI "
             "persona's heuristics say.",
         ),
-        h2("15.4 MCP exposure"),
+        h2("16.4 MCP exposure"),
         p(
             "The gateway URI lives in the rulebook, and the resources an agent needs are already "
             "addressable: the constitution as markdown, the golden CI template, the language "
@@ -2086,7 +2279,7 @@ def ch_routing() -> list[Any]:
 
 def ch_master() -> list[Any]:
     return [
-        h1("16 · The master orchestrator"),
+        h1("17 · The master orchestrator"),
         p(
             "Real work rarely lands in one repository: an API change needs a client change needs "
             "a pipeline change. The master orchestrator profiles every registered repository, "
@@ -2094,7 +2287,7 @@ def ch_master() -> list[Any]:
             "declared dependencies, and runs a full delivery pipeline in each — each with its own "
             "language, its own toolchain and, if you want, its own persona."
         ),
-        h2("16.1 The part that matters to a human"),
+        h2("17.1 The part that matters to a human"),
         callout(
             "One question set for the whole program",
             "Five repositories each raise 'which system of record supplies this data?'. The "
@@ -2109,7 +2302,7 @@ def ch_master() -> list[Any]:
             "Questions are merged across repositories so a human answers once for the whole "
             "program.",
         ),
-        h2("16.2 Registration and inventory"),
+        h2("17.2 Registration and inventory"),
         *listing("master", "MasterOrchestrator.register"),
         flow(
             "orchestrator.register('checkout-api',   '../checkout-api',\n"
@@ -2125,7 +2318,7 @@ def ch_master() -> list[Any]:
             "web-app         typescript  missing: none\n"
             "platform-infra  terraform   missing: ['docs/runbook.md']"
         ),
-        h2("16.3 Routing and waves"),
+        h2("17.3 Routing and waves"),
         p(
             "An explicit repo list always wins. Otherwise the objective is scored against each "
             "repo's name, keywords and language; if nothing matches, every repo is in scope "
@@ -2133,7 +2326,7 @@ def ch_master() -> list[Any]:
             "cycle raises instead of deadlocking."
         ),
         *listing("master", "MasterOrchestrator.waves"),
-        h2("16.4 Dependency behaviour"),
+        h2("17.4 Dependency behaviour"),
         p(
             "A repo whose dependency is still clarifying or blocked is skipped with the reason "
             "recorded, and picked up automatically once the dependency reaches a usable state — "
@@ -2141,7 +2334,7 @@ def ch_master() -> list[Any]:
             "restarted."
         ),
         *listing("master", "MasterOrchestrator._resume_blocked_waves"),
-        h2("16.5 Per-repo context"),
+        h2("17.5 Per-repo context"),
         p(
             "Each repository receives its own copy of the objective, carrying that repo's "
             "language, test command and dependency policy as constraints — which is why the Go "
@@ -2149,7 +2342,7 @@ def ch_master() -> list[Any]:
             "says <font face='Courier'>npm test</font> from the same human sentence."
         ),
         *listing("master", "MasterOrchestrator._repo_objective"),
-        h2("16.6 A program run"),
+        h2("17.6 A program run"),
         flow(
             "$ python scripts/spec_kit.py program \\\n"
             "    --repo checkout-api=../checkout-api \\\n"
@@ -2170,7 +2363,7 @@ def ch_master() -> list[Any]:
             "  checkout-api  done  3 requirements  13 tasks  QA pass  accepted\n"
             "  web-app       done  3 requirements  13 tasks  QA pass  accepted"
         ),
-        h2("16.7 The program report"),
+        h2("17.7 The program report"),
         *listing("master", "ProgramRun.report"),
         PageBreak(),
     ]
@@ -2213,7 +2406,7 @@ def ch_configuration() -> list[Any]:
         ["qa", "communication.verbosity", "summary_only keeps logs out of the channel"],
     ]
     return [
-        h1("17 · Configuration reference"),
+        h1("18 · Configuration reference"),
         p(
             "One rulebook, loaded by every surface — pipeline, CLI, API and CI. "
             "<font face='Courier'>${VAR}</font> and <font face='Courier'>${VAR:-default}</font> "
@@ -2221,11 +2414,11 @@ def ch_configuration() -> list[Any]:
             "looks like a secret is rejected with a ConfigError rather than being caught later by "
             "a scanner."
         ),
-        h2("17.1 Every key"),
+        h2("18.1 Every key"),
         table(sections, widths=[0.85, 1.6, 2.6], mono_columns=(1,)),
-        h2("17.2 Secret handling"),
+        h2("18.2 Secret handling"),
         *listing("config", "_resolve"),
-        h2("17.3 The rulebook in full"),
+        h2("18.3 The rulebook in full"),
         caption("data/config/spec_kit/spec-kit-enterprise.yaml"),
         *code(text),
         PageBreak(),
@@ -2266,13 +2459,13 @@ def ch_operations() -> list[Any]:
         ["POST /api/sdd/cicd/diff-gate", "golden-pattern check"],
     ]
     return [
-        h1("18 · Operating the system"),
-        h2("18.1 Command line"),
+        h1("19 · Operating the system"),
+        h2("19.1 Command line"),
         table(cli_rows, widths=[1.9, 3.0], mono_columns=(0,)),
-        h2("18.2 HTTP"),
+        h2("19.2 HTTP"),
         p("Served by <font face='Courier'>uvicorn future_agents.api.main:app</font>."),
         table(api_rows, widths=[1.7, 3.0], mono_columns=(0,)),
-        h2("18.3 Python"),
+        h2("19.3 Python"),
         *code(
             "from future_agents.sdd import (\n"
             "    DeliveryPipeline, MasterOrchestrator, Objective, SpecKitConfig, get_persona,\n"
@@ -2304,7 +2497,7 @@ def ch_operations() -> list[Any]:
             "print(state.delivery.accepted, state.delivery.unconfirmed_assumptions)\n"
             "save_state(state, '.spec-kit/runs')"
         ),
-        h2("18.4 Deployment topology"),
+        h2("19.4 Deployment topology"),
         p(
             "Nothing here needs a database or a broker to start: the queue, the run store and the "
             "audit log are files written atomically, and the control plane and workers hold no "
@@ -2316,7 +2509,7 @@ def ch_operations() -> list[Any]:
             "Swap the file-backed queue and store for a managed service when you outgrow them; "
             "nothing above the store changes.",
         ),
-        h2("18.5 In CI"),
+        h2("19.5 In CI"),
         *code(
             "# .github/workflows/spec-kit.yml\n"
             "name: spec-kit\n"
@@ -2332,7 +2525,7 @@ def ch_operations() -> list[Any]:
             "      - run: python scripts/spec_kit.py detect --path .\n"
             "      - run: python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml"
         ),
-        h2("18.6 Intake from a meeting tool"),
+        h2("19.6 Intake from a meeting tool"),
         p(
             "The API is the integration point: post the transcript as "
             "<font face='Courier'>raw_inputs</font> with "
@@ -2516,7 +2709,7 @@ PATTERNS = [
 
 def ch_patterns() -> list[Any]:
     out: list[Any] = [
-        h1("19 · Pattern catalog"),
+        h1("20 · Pattern catalog"),
         p(
             "The design patterns this system is built from, each with the failure it prevents and "
             "the price it charges. They are reusable outside this codebase — most of them are "
@@ -2548,10 +2741,10 @@ def ch_patterns() -> list[Any]:
 
 def ch_extending() -> list[Any]:
     return [
-        h1("20 · Extending the system"),
-        h2("20.1 Add a language"),
+        h1("21 · Extending the system"),
+        h2("21.1 Add a language"),
         p("One entry in <font face='Courier'>TOOLCHAINS</font> — see §8.5. Nothing else changes."),
-        h2("20.2 Add a persona"),
+        h2("21.2 Add a persona"),
         *code(
             "from future_agents.sdd.personas import Heuristic, Persona, ReviewGate, PERSONAS\n"
             "\n"
@@ -2578,7 +2771,7 @@ def ch_extending() -> list[Any]:
             ")\n"
             "PERSONAS[EMBEDDED.id] = EMBEDDED"
         ),
-        h2("20.3 Add a clarification detector"),
+        h2("21.3 Add a clarification detector"),
         p(
             "A detector is a function from an objective and its context to signals. Register it on "
             "the clarifier and it participates in scoring immediately."
@@ -2605,14 +2798,14 @@ def ch_extending() -> list[Any]:
             "clarifier = IntentClarifier(config)\n"
             "clarifier._detectors.append(detect_missing_retention)"
         ),
-        h2("20.4 Add a governance rule"),
+        h2("21.4 Add a governance rule"),
         p(
             "Add a method to <font face='Courier'>Constitution</font> returning "
             "<font face='Courier'>Violation</font> objects, and call it from the matching stage "
             "transition in <font face='Courier'>DeliveryPipeline._build</font>. Error severity "
             "stops the run; warn severity is recorded."
         ),
-        h2("20.5 Add a stage"),
+        h2("21.5 Add a stage"),
         p(
             "Stages are plain classes with one method that takes upstream artifacts and returns "
             "the next one. Add the artifact to <font face='Courier'>RunState</font>, add the enum "
@@ -2620,10 +2813,10 @@ def ch_extending() -> list[Any]:
             "two stages it belongs between. Keep it deterministic; let the engine enrich only free "
             "text."
         ),
-        h2("20.6 Replace the memory backend"),
+        h2("21.6 Replace the memory backend"),
         p(
             "Implement <font face='Courier'>retrieve()</font> against a vector store and keep the "
-            "markdown cases as the durable record — see §14.5."
+            "markdown cases as the durable record — see §15.5."
         ),
         PageBreak(),
     ]
@@ -2631,7 +2824,7 @@ def ch_extending() -> list[Any]:
 
 def ch_testing() -> list[Any]:
     return [
-        h1("21 · Testing"),
+        h1("22 · Testing"),
         p(
             "The whole pipeline runs offline and deterministically, which is what makes it "
             "testable at all. Two suites cover it: "
@@ -2681,7 +2874,7 @@ def ch_testing() -> list[Any]:
             ],
             widths=[0.9, 4.1],
         ),
-        h2("21.1 Running them"),
+        h2("22.1 Running them"),
         *code(
             "pytest -q                                    # whole repo\n"
             "pytest -q tests/test_sdd.py                  # core pipeline\n"
@@ -2690,7 +2883,7 @@ def ch_testing() -> list[Any]:
             "ruff format --check packages/future_agents/ apps/ scripts/\n"
             "python packages/guardrails/guardrails_engine.py . --mode block"
         ),
-        h2("21.2 Testing your own backend"),
+        h2("22.2 Testing your own backend"),
         p(
             "Use <font face='Courier'>CallableEngine</font> for the model seam and a fake backend "
             "for the work seam; both are single functions, so a full delivery run in a test is "
@@ -2711,7 +2904,7 @@ def ch_testing() -> list[Any]:
 
 def ch_limits() -> list[Any]:
     return [
-        h1("22 · Limits, and what to build next"),
+        h1("23 · Limits, and what to build next"),
         p(
             "Stated plainly, because a system that oversells itself gets switched off the first "
             "time it is believed."
@@ -2737,7 +2930,7 @@ def ch_limits() -> list[Any]:
                 [
                     "Detectors are keyword-driven",
                     "an unusual phrasing can slip past a gate",
-                    "add a detector (§20.3); gates still catch the artifact",
+                    "add a detector (§21.3); gates still catch the artifact",
                 ],
                 [
                     "API runs live in memory",
@@ -2757,7 +2950,7 @@ def ch_limits() -> list[Any]:
             ],
             widths=[1.2, 1.7, 2.1],
         ),
-        h2("22.1 The next things worth building"),
+        h2("23.1 The next things worth building"),
         *bullets(
             [
                 "<b>A real worker backend</b> in this repo: shell out per task kind, run the "
@@ -2772,7 +2965,7 @@ def ch_limits() -> list[Any]:
                 "and cases directly — the API already serves each of them.",
             ]
         ),
-        h2("22.2 Where to start reading the code"),
+        h2("23.2 Where to start reading the code"),
         table(
             [
                 ["If you want to understand…", "Read"],
@@ -2812,6 +3005,7 @@ CHAPTERS = (
     ch_execution,
     ch_autonomy,
     ch_qa,
+    ch_observability,
     ch_memory,
     ch_routing,
     ch_master,

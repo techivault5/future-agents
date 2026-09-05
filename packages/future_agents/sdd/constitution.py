@@ -47,6 +47,13 @@ class Constitution(BaseModel):
     escalation_triggers: list[str] = Field(default_factory=list)
     anti_rewrite_rules: list[str] = Field(default_factory=list)
     max_component_fanout: int = 12
+    # Observability: a feature nobody can see failing is not finished. The gate
+    # warns by default and can be made blocking per project.
+    require_observability: bool = True
+    require_slo_for_must: bool = True
+    require_signal_per_component: bool = True
+    require_runbook: bool = True
+    observability_is_blocking: bool = False
 
     # ── Gates ─────────────────────────────────────────────────────────────────
 
@@ -116,6 +123,76 @@ class Constitution(BaseModel):
             )
         if not plan.test_strategy:
             out.append(Violation(rule="test-strategy-required", subject=plan.id))
+        out.extend(self._check_observability(plan, spec))
+        return out
+
+    def _check_observability(self, plan: Plan, spec: Optional[Spec]) -> list[Violation]:
+        """Monitoring is part of the design, so a plan without it is incomplete.
+
+        Severity is configurable because teams adopt this at different speeds:
+        a warning still reaches the delivery record and the risk register, while
+        `observability_is_blocking` makes an unwatched feature fail the gate.
+        """
+        if not self.require_observability:
+            return []
+        level = Severity.ERROR if self.observability_is_blocking else Severity.WARN
+        out: list[Violation] = []
+        obs = plan.observability
+        if obs is None:
+            return [
+                Violation(
+                    rule="observability-required",
+                    severity=level,
+                    detail="the plan says nothing about how this is watched in production",
+                    subject=plan.id,
+                )
+            ]
+
+        if self.require_signal_per_component:
+            for component in plan.components:
+                if not obs.signals_for(component.name):
+                    out.append(
+                        Violation(
+                            rule="observability-signal-per-component",
+                            severity=level,
+                            detail=f"{component.name} emits nothing — it would fail invisibly",
+                            subject=component.name,
+                        )
+                    )
+        if self.require_slo_for_must and spec is not None:
+            for req in spec.requirements:
+                if req.priority.value != "must":
+                    continue
+                if obs.slo_for(req.id) is None:
+                    out.append(
+                        Violation(
+                            rule="observability-slo-for-must",
+                            severity=level,
+                            detail=f"{req.id} has no objective — 'working' is undefined for it",
+                            subject=req.id,
+                        )
+                    )
+        for slo in obs.slos:
+            if not obs.alerts_for(slo.id):
+                out.append(
+                    Violation(
+                        rule="observability-alert-per-slo",
+                        severity=level,
+                        detail=f"{slo.id} can be missed without anyone being told",
+                        subject=slo.id,
+                    )
+                )
+        if self.require_runbook:
+            unlinked = [a.id for a in obs.alerts if not a.runbook]
+            if unlinked:
+                out.append(
+                    Violation(
+                        rule="observability-runbook-required",
+                        severity=level,
+                        detail=(f"{', '.join(unlinked[:3])} would page someone with no next step"),
+                        subject=obs.id,
+                    )
+                )
         return out
 
     def check_tasks(self, graph: TaskGraph, spec: Spec) -> list[Violation]:
@@ -135,6 +212,28 @@ class Constitution(BaseModel):
                         rule="test-parity",
                         detail=f"{req.id} has no test task",
                         subject=req.id,
+                    )
+                )
+        if self.require_observability and self.require_signal_per_component:
+            instrumented = {
+                task.component
+                for task in graph.tasks
+                if task.kind is TaskKind.OBSERVABILITY and task.component
+            }
+            coded = {
+                task.component
+                for task in graph.tasks
+                if task.kind is TaskKind.CODE and task.component
+            }
+            for component in sorted(coded - instrumented):
+                out.append(
+                    Violation(
+                        rule="observability-task-required",
+                        severity=(
+                            Severity.ERROR if self.observability_is_blocking else Severity.WARN
+                        ),
+                        detail=f"{component} is built but never instrumented",
+                        subject=component,
                     )
                 )
         for task in graph.tasks:
@@ -221,6 +320,11 @@ class Constitution(BaseModel):
                 "## Gates",
                 f"- Test parity enforced: {self.enforce_test_parity}",
                 f"- Spec purity enforced: {self.enforce_spec_purity}",
+                f"- Observability required: {self.require_observability}"
+                + (" (blocking)" if self.observability_is_blocking else " (warns)"),
+                f"- Objective per MUST requirement: {self.require_slo_for_must}",
+                f"- Signal per component: {self.require_signal_per_component}",
+                f"- Runbook per alert: {self.require_runbook}",
                 "",
             ]
         )

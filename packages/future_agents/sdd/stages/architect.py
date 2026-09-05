@@ -15,6 +15,7 @@ from future_agents.sdd.models import (
     Risk,
     Spec,
 )
+from future_agents.sdd.observability import ObservabilityPlanner
 from future_agents.sdd.personas import DEFAULT_PERSONA, Persona
 from future_agents.sdd.repos.languages import Toolchain
 from future_agents.sdd.router import EngineCall, EngineRouter
@@ -86,6 +87,27 @@ class ArchitectStage:
         placements, reuse = self._placements(spec, components)
         risks.extend(self._placement_risks(placements, spec))
 
+        # Monitoring is designed with the feature, not after it: a change nobody
+        # can see failing is not finished, whatever the tests say.
+        observability = None
+        if self.config.observability.enabled:
+            for component in components:
+                placement = _placement_path(placements, component)
+                if placement and not component.target_path:
+                    component.target_path = placement
+            observability = ObservabilityPlanner(self.config.observability, self.toolchain).build(
+                spec, components
+            )
+            risks.extend(
+                Risk(
+                    description=f"observability gap: {gap}",
+                    severity="medium",
+                    mitigation="add the missing signal or make the criterion measurable",
+                    source="observability",
+                )
+                for gap in observability.gaps
+            )
+
         high = sum(1 for r in risks if r.severity == "high")
         architecture = self._architecture(spec, components)
         return Plan(
@@ -107,6 +129,7 @@ class ArchitectStage:
             memory_lesson_ids=[ln.id for ln in memory.lessons] if memory else [],
             placements=placements,
             reuse_candidates=reuse,
+            observability=observability,
             confidence=round(max(0.0, spec.confidence - 0.05 * high), 3),
         )
 
@@ -207,3 +230,11 @@ def _common_root(paths: list[str]) -> str:
             break
         shared.append(segments[0])
     return "/".join(shared)
+
+
+def _placement_path(placements: list[PlacementDecision], component: Component) -> str:
+    """The file a component's instrumentation belongs in, if one was decided."""
+    for placement in placements:
+        if placement.requirement_id in component.requirement_ids and placement.target_path:
+            return placement.target_path
+    return ""

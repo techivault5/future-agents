@@ -124,6 +124,9 @@ class QAStage:
                     )
 
         report.out_of_scope_ignored = fenced
+        report.observability_coverage = self._observability(
+            report, graph, by_task, require_evidence
+        )
         must_checks = [
             c
             for c in report.checks
@@ -152,6 +155,43 @@ class QAStage:
         else:
             report.verdict = QAVerdict.PASS
         return report
+
+    def _observability(
+        self,
+        report: QAReport,
+        graph: TaskGraph,
+        by_task: dict[str, WorkResult],
+        require_evidence: bool,
+    ) -> float:
+        """Did the telemetry actually get built, or only planned?
+
+        A feature that ships without its instrumentation is a feature nobody can
+        see fail, so the gap is a finding — major rather than blocker, because
+        the behaviour itself may still be correct and the fix is additive.
+        """
+        obs_tasks = [t for t in graph.tasks if t.kind is TaskKind.OBSERVABILITY]
+        if not obs_tasks:
+            return 0.0
+        done = 0
+        for task in obs_tasks:
+            result = by_task.get(task.id)
+            executed = (
+                result is not None
+                and result.status is TaskStatus.DONE
+                and not (require_evidence and result.simulated)
+            )
+            if executed:
+                done += 1
+                continue
+            report.findings.append(
+                QAFinding(
+                    requirement_id=task.requirement_ids[0] if task.requirement_ids else "",
+                    severity="major",
+                    summary=f"{task.id} did not run — {task.title.lower()}",
+                    evidence=("no result" if result is None else f"status {result.status.value}"),
+                )
+            )
+        return round(done / len(obs_tasks), 3)
 
     def _out_of_scope(self, statement: str, criterion: AcceptanceCriterion) -> bool:
         blob = f"{statement} {criterion.render()}".lower()

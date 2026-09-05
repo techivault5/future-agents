@@ -93,7 +93,7 @@ class DeliveryPipeline:
         )
         self.worker = WorkerStage(backend)
         self.qa = QAStage(self.config)
-        self.delivery = DeliveryStage()
+        self.delivery = DeliveryStage(repo_root=self.repo_root)
 
     def _recall(self, question: str, topic: str, blocking: bool) -> Optional[tuple[str, str]]:
         """Adapt the memory hub to the clarifier's plain-callable recall hook."""
@@ -221,6 +221,7 @@ class DeliveryPipeline:
             f"{len(plan.components)} component(s), {len(plan.historical_warnings)} warning(s)",
             cases=plan.memory_case_ids,
             lessons=[lesson.id for lesson in memory_report.lessons],
+            observability=plan.observability.summary() if plan.observability else "none",
             placements=[p.summary() for p in plan.placements[:5]],
         )
 
@@ -256,6 +257,7 @@ class DeliveryPipeline:
             Stage.QA,
             f"{state.qa.verdict.value} — coverage {state.qa.coverage}",
             summary=state.qa.summary_lines(),
+            observability_coverage=state.qa.observability_coverage,
         )
 
         state.stage = Stage.DELIVER
@@ -265,6 +267,8 @@ class DeliveryPipeline:
             Stage.DELIVER,
             "accepted" if state.delivery.accepted else "not accepted",
             coverage=state.delivery.coverage,
+            runbook=state.delivery.runbook_path,
+            slos=state.delivery.slo_summary,
         )
 
         state.stage = Stage.HARVEST

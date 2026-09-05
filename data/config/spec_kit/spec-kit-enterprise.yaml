@@ -72,11 +72,40 @@ agents:
     harvester_agent:
       engine: "claude-haiku-4-5-20251001"
       purpose: "Compress a finished run into a memory case"
+    observability_agent:
+      engine: "claude-sonnet-5"
+      purpose: "Instrument the change, wire objectives and alerts, write the runbook"
+      fallback: "claude-opus-5"
   # Keyword in the task intent → engine override, checked before the role default.
   intent_routes:
     pipeline: "claude-opus-5"
+    alerting: "claude-sonnet-5"
     terraform: "claude-opus-5"
     migration: "claude-opus-5"
+
+observability:
+  enabled: true
+  # Every MUST requirement earns an objective; every objective earns an alert;
+  # every alert names a runbook section. Warnings by default — set block_on_gap
+  # to make an unwatched feature fail the gate outright.
+  require_slo_for_must: true
+  require_signal_per_component: true
+  require_runbook: true
+  block_on_gap: false
+  default_availability: 0.995
+  default_latency_ms: 800
+  window_days: 30
+  # Multi-window burn rate: page on a fast burn, ticket on a slow one.
+  fast_burn_rate: 14.4
+  fast_burn_window: "1h"
+  slow_burn_rate: 6.0
+  slow_burn_window: "6h"
+  # Cardinality is a design decision, not an accident discovered on the bill.
+  max_labels_per_metric: 6
+  forbidden_labels: ["user_id", "email", "session_id", "request_id", "order_id"]
+  redact_fields: ["password", "token", "secret", "api_key", "card", "ssn"]
+  runbook_dir: "docs/runbooks"
+  dashboard_dir: "docs/dashboards"
 
 memory_hub:
   enabled: true

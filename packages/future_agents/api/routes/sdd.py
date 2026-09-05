@@ -60,6 +60,7 @@ from future_agents.sdd import (
     language_matrix,
     objective_from_payload,
     persona_catalog,
+    render_runbook,
 )
 
 logger = logging.getLogger(__name__)
@@ -232,6 +233,26 @@ def get_cases(q: Optional[str] = Query(None), limit: int = Query(20, ge=1, le=10
         "stats": _memory.stats(),
         "cases": [c.model_dump(mode="json") for c in _memory.all_cases()[:limit]],
     }
+
+
+@router.get(
+    "/api/sdd/runs/{run_id}/observability",
+    summary="Signals, objectives, alerts and the runbook for a run",
+)
+def get_observability(run_id: str, runbook: bool = Query(False)) -> dict:
+    state = _get(run_id)
+    obs = state.plan.observability if state.plan else None
+    if obs is None:
+        raise HTTPException(status_code=404, detail="this run has no observability plan")
+    payload = {
+        "summary": obs.summary(),
+        "telemetry_stack": obs.telemetry_stack,
+        "plan": obs.model_dump(mode="json"),
+        "instrumentation_executed": state.qa.observability_coverage if state.qa else 0.0,
+    }
+    if runbook:
+        payload["runbook"] = render_runbook(obs, state.spec)
+    return payload
 
 
 @router.get("/api/sdd/memory/lessons", summary="Recurring lessons and their confidence")

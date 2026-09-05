@@ -554,6 +554,91 @@ def memory_tiers() -> Diagram:
     return figure
 
 
+def observability_scope() -> Diagram:
+    """One spec, two derivations: the code, and how anyone sees it working."""
+    figure = Diagram(172, 104)
+    figure.band(6, 24, "Spec", BAND_UNDERSTAND)
+    figure.band(32, 40, "Derive", BAND_DESIGN)
+    figure.band(74, 26, "Gate", BAND_VERIFY)
+
+    spec = figure.node(
+        52, 12, 68, 14, "Spec", "MUST requirements + acceptance criteria", badge="1", accent=ACCENT
+    )
+
+    build = figure.node(
+        6,
+        40,
+        74,
+        14,
+        "Build it",
+        "components · test-first tasks · placement",
+        badge="2",
+        accent=ACCENT,
+        font_size=6.2,
+    )
+    watch = figure.node(
+        92,
+        40,
+        74,
+        14,
+        "Watch it",
+        "signals · objectives · alerts · runbook",
+        badge="3",
+        accent=GREEN,
+        font_size=6.2,
+    )
+    figure.connect(spec, build, from_side="bottom", to_side="top")
+    figure.connect(spec, watch, from_side="bottom", to_side="top")
+
+    detail = figure.node(
+        92,
+        58,
+        74,
+        10,
+        "counter · histogram · span → SLO → burn-rate page + ticket",
+        "",
+        fill=BOX_ALT,
+        accent=MUTED,
+        font_size=5.8,
+    )
+    figure.connect(watch, detail, from_side="bottom", to_side="top")
+
+    gate = figure.node(
+        6,
+        80,
+        74,
+        16,
+        "Constitution",
+        "no objective for a MUST → the plan is incomplete",
+        badge="4",
+        fill=BOX_WARN,
+        accent=AMBER,
+        font_size=6.2,
+    )
+    qa = figure.node(
+        92,
+        80,
+        74,
+        16,
+        "QA",
+        "instrumentation that never ran is a finding",
+        badge="5",
+        fill=BOX_WARN,
+        accent=AMBER,
+        font_size=6.2,
+    )
+    figure.connect(build, gate, from_side="bottom", to_side="top")
+    figure.connect(detail, qa, from_side="bottom", to_side="top")
+
+    figure.caption(
+        4,
+        101,
+        "Monitoring is derived from the same requirements as the code, scheduled as tasks, and "
+        "checked by the same gates — not left to whoever remembers.",
+    )
+    return figure
+
+
 FIGURES = {
     "delivery-pipeline": delivery_pipeline,
     "deployment-topology": deployment_topology,
@@ -561,6 +646,7 @@ FIGURES = {
     "traceability-chain": traceability_chain,
     "multi-repo-program": multi_repo_program,
     "memory-tiers": memory_tiers,
+    "observability-scope": observability_scope,
 }
 
 

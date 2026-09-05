@@ -9,6 +9,7 @@
     python scripts/spec_kit.py status --state …
     python scripts/spec_kit.py cases --query "churn report"
     python scripts/spec_kit.py memory lessons
+    python scripts/spec_kit.py observability --state .spec-kit/runs/run-x.json
     python scripts/spec_kit.py memory consolidate
     python scripts/spec_kit.py constitution
     python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml
@@ -48,6 +49,7 @@ from future_agents.sdd import (  # noqa: E402
     load_state,
     objective_from_payload,
     persona_catalog,
+    render_runbook,
     save_state,
 )
 
@@ -240,6 +242,44 @@ def cmd_memory(args: argparse.Namespace) -> int:
 
     print(f"unknown memory action: {action}", file=sys.stderr)
     return 2
+
+
+def cmd_observability(args: argparse.Namespace) -> int:
+    """What will be watched once this run ships — and the runbook for it."""
+    state = load_state(args.state)
+    plan = state.plan
+    obs = plan.observability if plan else None
+    if obs is None:
+        print("this run has no observability plan (disabled, or it never reached PLAN)")
+        return 1
+
+    if args.runbook:
+        target = Path(args.runbook)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(render_runbook(obs, state.spec))
+        print(f"wrote {target}")
+        return 0
+
+    print(f"{obs.summary()}  |  {obs.telemetry_stack}")
+    print(f"runbook: {obs.runbook_path}")
+    print("\nSignals")
+    for signal in obs.signals:
+        where = f"  → {signal.emitted_from}" if signal.emitted_from else ""
+        print(f"  {signal.render()}{where}")
+    print("\nObjectives")
+    for slo in obs.slos:
+        print(f"  {slo.render()}  [{slo.requirement_id}]")
+    print("\nAlerts")
+    for alert in obs.alerts:
+        print(f"  {alert.severity.upper():<6} {alert.name}: {alert.condition}")
+        print(f"         → {alert.channel}, runbook {alert.runbook}")
+    if obs.gaps:
+        print("\nGaps")
+        for gap in obs.gaps:
+            print(f"  ! {gap}")
+    if state.qa:
+        print(f"\ninstrumentation executed: {state.qa.observability_coverage:.0%}")
+    return 0
 
 
 def cmd_constitution(args: argparse.Namespace) -> int:
@@ -667,6 +707,13 @@ def build_parser() -> argparse.ArgumentParser:
     memory.add_argument("--id", action="append", default=[], help="case or lesson id to forget")
     memory.add_argument("--yes", action="store_true", help="confirm a destructive forget")
     memory.set_defaults(func=cmd_memory)
+
+    observability = sub.add_parser(
+        "observability", help="signals, objectives, alerts and the runbook for a run"
+    )
+    observability.add_argument("--state", required=True)
+    observability.add_argument("--runbook", help="write the runbook to this path instead")
+    observability.set_defaults(func=cmd_observability)
 
     constitution = sub.add_parser("constitution", help="render the constitution as markdown")
     constitution.set_defaults(func=cmd_constitution)
