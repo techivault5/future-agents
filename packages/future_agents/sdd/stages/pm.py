@@ -64,7 +64,8 @@ class PMStage:
                 out_of_scope.append(_clean(line))
 
         for idx, statement in enumerate(_dedupe_lines(statements), start=1):
-            if _OUT_OF_SCOPE.search(statement):
+            # The objective itself is never out of scope, whatever words it uses.
+            if idx > 1 and _OUT_OF_SCOPE.search(statement):
                 continue
             req_id = f"REQ-{idx:03d}"
             requirements.append(

@@ -12,7 +12,7 @@ Implementation: `packages/future_agents/sdd/`. Rulebook:
 `data/config/spec_kit/spec-kit-enterprise.yaml`. CLI: `scripts/spec_kit.py`.
 API: `/api/sdd/*`.
 
-**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 59 pages
+**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 64 pages
 covering every stage, pattern and code path, generated from the source itself
 (`python scripts/generate_handbook.py`). This page is the summary.
 
@@ -33,7 +33,12 @@ packages/future_agents/sdd/
   router.py          role/intent → engine
   stages/            pm · architect · planner · worker · qa · delivery · _extract
   repos/             languages (19 toolchains) · scaffold (required structure)
-  knowledge/         index · conventions · placement  ← repo RAG
+  knowledge/         index · conventions · placement  (repo RAG)
+  intake/            adapters (github/jira/linear/slack/transcript) · sanitize
+  store/             run_store (durable, leased) · queue · audit
+  workforce/         registry · dispatch · skills   (pluggable agents)
+  execution/         backends · sandbox · resilience
+  runner.py          TicketWorker — the loop over the queue
   handbook/          the generated PDF
 ```
 
@@ -393,6 +398,107 @@ What the pipeline does with it:
 
 Without `repo_root` the pipeline runs exactly as before — knowledge is additive,
 never required.
+
+---
+
+## 9c · Autonomy — tickets in, work out
+
+Everything above assumes a human typed an objective. This is the part that runs
+without one.
+
+```
+GitHub / Jira / Linear / Slack / transcript / webhook
+      │  adapter → Objective (+ ExternalRef, sanitised)
+      ▼
+ WorkQueue ──claim(lease)──► TicketWorker ──► DeliveryPipeline
+      ▲                          │                 │
+      │ fail → retry → dead      │ heartbeat       ▼
+      └──────────────────────────┘           DispatchBackend
+                                                   │
+                     Dispatcher ──picks agent──► skill (shell | callable | MCP)
+                                                   │
+                                 sandbox · budget · breaker · loop detector
+                                                   ▼
+                                               Evidence ──► QA
+```
+
+### Intake
+
+Six adapters (`intake/adapters.py`) take the payload a tracker already produces —
+they never fetch it, so auth and rate limits stay with the caller. Every objective
+carries an `ExternalRef`, so the same ticket never starts two runs. Bullets under
+an *acceptance criteria* heading become requirements directly.
+
+External text is **data, never instructions**: 12 injection shapes are neutralised
+on the way in (instruction overrides, fake role markers, secret-exfiltration asks,
+"don't tell the user", "skip the tests", piped shell installs). What was removed
+is recorded; the original is kept by digest. This is a cheap layer, not the
+boundary — the boundaries are the constitution gates, the sandbox and the
+evidence rule.
+
+### Queue and durability
+
+| Property | How |
+|---|---|
+| No duplicate work | items keyed by `ExternalRef` |
+| One owner | time-bounded lease; a second worker gets nothing |
+| Crash recovery | expired leases are reclaimable; `recover()` reclaims and records |
+| Poison control | `max_attempts` failures → dead letter, with reasons |
+| Durability | atomic write (temp + rename); `cat`-readable |
+| Provenance | append-only audit log |
+
+Runs carry a `schema_version` and migrate forward on load.
+
+### Workforce — connect as many agents and skills as you like
+
+Specs are YAML (reviewable in a PR); handlers are code, bound at runtime.
+
+```python
+workforce = Workforce.load("data/config/spec_kit/workforce.yaml")
+workforce.bind("claude_coder", my_agent)      # any callable
+backend = DispatchBackend(Dispatcher(workforce, language="python"), repo_root=".")
+```
+
+Skills come in four shapes: shell command (rendered from the toolchain, run
+without a shell), Python callable, MCP tool (through a caller the host provides),
+or simulated — whose evidence can never pass QA. A shell skill whose command does
+not exist for this toolchain is *not applicable*, so the dispatcher tries the next
+one instead of failing the task.
+
+Routing is explicit and inspectable: kind match, domain overlap, language, past
+success rate, cost, concurrency headroom — and every assignment says why.
+
+```bash
+python scripts/spec_kit.py agents --task "Implement REQ-002: schema migration" --kind code
+#   2.970  claude_coder             handles code tasks
+#   2.560  claude_architect         handles code tasks; domain match 40%
+```
+
+### Guards
+
+| Guard | Stops |
+|---|---|
+| `WorkspacePolicy` | writes outside the paths placement chose, or into a fenced zone |
+| `BudgetGuard` | runaway runs: time, tasks, attempts, engine calls |
+| `CircuitBreaker` | hammering an agent or engine that keeps failing |
+| `LoopDetector` | an agent repeating the identical failing action |
+| `retry` | a transient failure reported as a real one |
+
+### Evidence, not claims
+
+A criterion is verified only when a test task carries a command that **actually
+exited zero**, and the implementation tasks for it were not simulated. A dry run
+now reports `BLOCKED [simulated]`, never `PASS`.
+
+```bash
+python scripts/spec_kit.py enqueue --payload github-webhook.json
+python scripts/spec_kit.py work --repo . --max-items 5
+python scripts/spec_kit.py queue        # waiting, held, dead, stalled
+python scripts/spec_kit.py recover      # reclaim what a dead worker held
+```
+
+HTTP: `POST /api/sdd/tickets`, `POST /api/sdd/work`, `GET /api/sdd/queue`,
+`GET /api/sdd/agents`.
 
 ---
 

@@ -1,0 +1,118 @@
+# The workforce — who can do the work, and with what.
+# Specs are data so an agent can be added in a pull request; the handler is bound
+# in code (`workforce.bind("id", handler)`), or the skill's command runs as-is.
+#
+# Loaded by: Workforce.load("data/config/spec_kit/workforce.yaml")
+
+skills:
+  - id: run_tests
+    name: Run the repository's tests
+    description: Executes the detected toolchain's test command and captures the exit code.
+    kinds: [test]
+    command: "{test}"
+    timeout_seconds: 1800
+
+  - id: run_lint
+    name: Lint and format check
+    kinds: [review]
+    command: "{lint}"
+    timeout_seconds: 600
+
+  - id: type_check
+    name: Static type check
+    kinds: [review, code]
+    triggers: [type, schema, contract]
+    command: "{typecheck}"
+    timeout_seconds: 900
+
+  - id: build
+    name: Build the project
+    kinds: [code, infra]
+    command: "{build}"
+    timeout_seconds: 1800
+
+  - id: dependency_audit
+    name: Dependency vulnerability audit
+    kinds: [review]
+    triggers: [dependency, package, upgrade, vulnerab, security]
+    command: "{audit}"
+    timeout_seconds: 900
+
+  - id: guardrails_check
+    name: Guardrails engine
+    description: Secrets, package policy and folder structure, in block mode.
+    kinds: [review]
+    command: "python packages/guardrails/guardrails_engine.py {repo_root} --mode check"
+    timeout_seconds: 600
+
+  # Bind a handler for these: they need a model or an external agent.
+  - id: write_code
+    name: Implement a change
+    kinds: [code]
+    writes: true
+    timeout_seconds: 1800
+
+  - id: write_tests
+    name: Write a failing test first
+    kinds: [test]
+    writes: true
+    timeout_seconds: 1200
+
+  - id: write_docs
+    name: Update docs and the runbook
+    kinds: [doc]
+    writes: true
+    timeout_seconds: 600
+
+agents:
+  - id: toolchain_runner
+    name: Toolchain runner
+    description: No model involved — runs the repository's own commands.
+    kinds: [test, review, infra]
+    skills: [run_tests, run_lint, type_check, build, dependency_audit, guardrails_check]
+    max_concurrency: 4
+    cost_hint: 0.1
+    priority: 1
+
+  - id: claude_coder
+    name: Claude coding agent
+    description: Writes code and tests against a placement decision.
+    kinds: [code, test]
+    engine: claude-sonnet-5
+    persona_id: principal_hybrid
+    skills: [write_code, write_tests]
+    max_concurrency: 2
+    cost_hint: 1.0
+    priority: 3
+
+  - id: claude_architect
+    name: Claude architect
+    description: Harder design work; slower and dearer, so only when it earns it.
+    kinds: [code, review]
+    domains: [architecture, migration, schema, security, performance]
+    engine: claude-opus-5
+    persona_id: principal_hybrid
+    skills: [write_code]
+    max_concurrency: 1
+    cost_hint: 3.0
+    priority: 4
+
+  - id: doc_writer
+    name: Documentation agent
+    kinds: [doc]
+    engine: claude-haiku-4-5-20251001
+    skills: [write_docs]
+    max_concurrency: 2
+    cost_hint: 0.3
+    priority: 2
+
+  - id: reviewer
+    name: Review agent
+    description: Guardrails, constitution gates and the persona's mandatory reviews.
+    kinds: [review]
+    domains: [security, auth, payment, migration, rollback, observability, adr]
+    engine: claude-opus-5
+    skills: [guardrails_check, run_lint, dependency_audit]
+    max_concurrency: 2
+    cost_hint: 1.5
+    priority: 3

@@ -62,6 +62,15 @@ def hub(config: SpecKitConfig) -> MemoryHub:
 
 @pytest.fixture
 def pipeline(config: SpecKitConfig, hub: MemoryHub) -> DeliveryPipeline:
+    """A pipeline whose backend produces real evidence — the green path."""
+    from tests.conftest import executing_backend
+
+    return DeliveryPipeline(config, memory=hub, backend=executing_backend)
+
+
+@pytest.fixture
+def dry_pipeline(config: SpecKitConfig, hub: MemoryHub) -> DeliveryPipeline:
+    """The default pipeline: nothing executes, so nothing may pass."""
     return DeliveryPipeline(config, memory=hub)
 
 
@@ -362,10 +371,12 @@ def test_qa_fences_out_of_scope_criteria(config: SpecKitConfig) -> None:
 
 
 def test_qa_summary_stays_short_and_hides_logs(config: SpecKitConfig) -> None:
+    from tests.conftest import executing_backend
+
     spec = PMStage(config).draft(meeting_objective())
     plan = ArchitectStage(config).draft(spec)
     graph = TaskPlanner(config).build(plan, spec)
-    results = WorkerStage().execute(graph, spec)
+    results = WorkerStage(executing_backend).execute(graph, spec)
 
     report = QAStage(config).verify(spec, graph, results)
 
@@ -373,6 +384,52 @@ def test_qa_summary_stays_short_and_hides_logs(config: SpecKitConfig) -> None:
     assert report.coverage == 1.0
     assert len(report.summary_lines()) <= config.qa.communication.max_summary_lines
     assert report.environment_cleaned
+
+
+def test_a_simulated_run_never_reports_a_pass(config: SpecKitConfig) -> None:
+    """The most dangerous output this system could produce is a green dry run."""
+    spec = PMStage(config).draft(meeting_objective())
+    plan = ArchitectStage(config).draft(spec)
+    graph = TaskPlanner(config).build(plan, spec)
+    results = WorkerStage().execute(graph, spec)  # the default dry-run backend
+
+    report = QAStage(config).verify(spec, graph, results)
+
+    assert report.simulated
+    assert report.verdict is QAVerdict.BLOCKED
+    assert any("simulated" in f.summary for f in report.findings)
+    assert "[simulated]" in report.summary_lines()[0]
+
+
+def test_evidence_is_required_once_anything_really_ran(config: SpecKitConfig) -> None:
+    """A task that claims a criterion without passing evidence does not count."""
+    from future_agents.sdd.models import Evidence
+
+    spec = PMStage(config).draft(meeting_objective())
+    plan = ArchitectStage(config).draft(spec)
+    graph = TaskPlanner(config).build(plan, spec)
+
+    def lying_backend(task: TaskUnit, _spec: Spec) -> WorkResult:
+        """Claims coverage; its evidence says the command failed."""
+        return WorkResult(
+            task_id=task.id,
+            status=TaskStatus.DONE,
+            criterion_ids=list(task.criterion_ids),
+            evidence=[
+                Evidence(
+                    kind="command",
+                    command="pytest -q",
+                    exit_code=1,
+                    criterion_ids=list(task.criterion_ids),
+                )
+            ],
+        )
+
+    report = QAStage(config).verify(spec, graph, WorkerStage(lying_backend).execute(graph, spec))
+
+    assert report.evidence_required
+    assert report.verdict is QAVerdict.FAIL
+    assert not any(check.verified for check in report.checks)
 
 
 def test_qa_fails_when_a_must_criterion_is_unverified(config: SpecKitConfig) -> None:
@@ -402,6 +459,14 @@ def test_hub_writes_markdown_and_prefers_failures(hub: MemoryHub) -> None:
     assert report.matches[0].case.outcome == "failure"
     assert any("lags by a day" in w for w in report.warnings())
     assert list(Path(hub.path).glob("*.md"))
+
+
+def test_dry_run_pipeline_delivers_but_is_not_accepted(dry_pipeline: DeliveryPipeline) -> None:
+    state = dry_pipeline.start(meeting_objective())
+
+    assert state.stage is Stage.DONE
+    assert state.qa is not None and state.qa.simulated
+    assert state.delivery is not None and not state.delivery.accepted
 
 
 def test_harvest_records_a_case_from_a_run(pipeline: DeliveryPipeline, hub: MemoryHub) -> None:

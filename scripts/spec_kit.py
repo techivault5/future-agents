@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -22,7 +23,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "packages"))
 
 from future_agents.sdd import (  # noqa: E402
+    AuditLog,
     DeliveryPipeline,
+    DispatchBackend,
+    Dispatcher,
     IntakeSource,
     MasterOrchestrator,
     MemoryHub,
@@ -30,16 +34,24 @@ from future_agents.sdd import (  # noqa: E402
     RepoKnowledge,
     RepoScaffolder,
     RunState,
+    RunStore,
     SpecKitConfig,
+    TicketWorker,
+    ToolchainBackend,
+    Workforce,
+    WorkQueue,
     detect_repo,
     get_persona,
     language_matrix,
     load_state,
+    objective_from_payload,
     persona_catalog,
     save_state,
 )
 
 DEFAULT_STATE_DIR = ".spec-kit/runs"
+DEFAULT_QUEUE_DIR = REPO_ROOT / ".spec-kit/state"
+DEFAULT_WORKFORCE = REPO_ROOT / "data/config/spec_kit/workforce.yaml"
 
 
 def _pipeline(args: argparse.Namespace) -> DeliveryPipeline:
@@ -263,6 +275,128 @@ def cmd_program(args: argparse.Namespace) -> int:
     return 0
 
 
+def _workforce(args: argparse.Namespace) -> Workforce:
+    path = Path(getattr(args, "workforce", "") or DEFAULT_WORKFORCE)
+    return Workforce.load(path) if path.is_file() else Workforce()
+
+
+def _worker(args: argparse.Namespace) -> TicketWorker:
+    """A worker whose pipeline dispatches to the declared workforce."""
+    config = SpecKitConfig.load(args.config, root=REPO_ROOT)
+    memory = MemoryHub(config.memory_hub, root=REPO_ROOT)
+    workforce = _workforce(args)
+    repo_root = getattr(args, "repo", None) or str(REPO_ROOT)
+    profile = detect_repo(repo_root)
+    toolchain = profile.toolchain()
+
+    def factory(_objective):
+        dispatcher = Dispatcher(workforce, language=profile.primary_language)
+        backend = DispatchBackend(
+            dispatcher,
+            repo_root=repo_root,
+            toolchain=toolchain,
+            fallback=ToolchainBackend(repo_root, toolchain),
+        )
+        return DeliveryPipeline(
+            config,
+            memory=memory,
+            backend=backend,
+            persona=get_persona(args.persona),
+            repo_root=repo_root,
+            profile=profile,
+        )
+
+    state_dir = Path(getattr(args, "queue_dir", "") or DEFAULT_QUEUE_DIR)
+    return TicketWorker(factory, RunStore(state_dir), WorkQueue(state_dir), AuditLog(state_dir))
+
+
+def cmd_enqueue(args: argparse.Namespace) -> int:
+    payload = (
+        json.loads(Path(args.payload).read_text())
+        if args.payload
+        else {
+            "title": args.statement or "",
+            "description": args.context or "",
+            "system": args.system or "cli",
+            "id": args.id or "",
+            "author": args.by,
+        }
+    )
+    objective = objective_from_payload(payload, system=args.system or "")
+    queue = WorkQueue(Path(getattr(args, "queue_dir", "") or DEFAULT_QUEUE_DIR))
+    item = queue.enqueue(objective, priority=args.priority)
+    removed = objective.metadata.get("removed_by_sanitizer") or []
+    print(f"{item.id}  {objective.external.key or '(no external id)'}  {objective.statement[:70]}")
+    if removed:
+        print(f"  sanitiser removed: {', '.join(removed)}")
+    print(f"  queue: {queue.stats()}")
+    return 0
+
+
+def cmd_work(args: argparse.Namespace) -> int:
+    worker = _worker(args)
+    outcomes = worker.work(worker_id=args.worker or "", max_items=args.max_items)
+    if not outcomes:
+        print("nothing to do")
+        return 0
+    for outcome in outcomes:
+        state = "awaiting human" if outcome.awaiting_human else outcome.stage
+        mark = "ok" if outcome.accepted else ("dead" if outcome.dead else state)
+        print(f"{outcome.item_id}  run={outcome.run_id or '-'}  {mark}  {outcome.seconds:.1f}s")
+        if outcome.error:
+            print(f"  error: {outcome.error[:160]}")
+    return 0
+
+
+def cmd_queue(args: argparse.Namespace) -> int:
+    root = Path(getattr(args, "queue_dir", "") or DEFAULT_QUEUE_DIR)
+    queue, store = WorkQueue(root), RunStore(root)
+    print(f"queue: {queue.stats()}")
+    for item in queue.pending():
+        owner = f" held by {item.owner}" if item.owner else ""
+        print(f"  {item.id}  p{item.priority}  try {item.attempts}/{item.max_attempts}{owner}")
+        print(f"      {item.objective.statement[:88]}")
+    dead = queue.dead_letter()
+    if dead:
+        print("\ndead letter:")
+        for item in dead:
+            print(f"  {item.id}  {item.objective.statement[:70]}")
+            for reason in item.reasons[-2:]:
+                print(f"      {reason[:100]}")
+    stuck = store.stuck()
+    if stuck:
+        print("\nstalled runs:")
+        for record in stuck:
+            print(f"  {record.run_id}  stage {record.stage}  since {record.updated_at.isoformat()}")
+    return 0
+
+
+def cmd_agents(args: argparse.Namespace) -> int:
+    workforce = _workforce(args)
+    print(f"{len(workforce.agents)} agents, {len(workforce.skills)} skills")
+    for spec in workforce.agents.values():
+        health = workforce.health.get(spec.id)
+        bound = "bound" if workforce.bound(spec.id) else "declared"
+        print(f"  {spec.id:20s} {bound:9s} kinds={','.join(spec.kinds) or 'any':22s} {spec.engine}")
+        print(f"      skills: {', '.join(spec.skills) or '—'}")
+        if health and health.attempts:
+            print(f"      {health.successes}/{health.attempts} successes")
+    if args.task:
+        from future_agents.sdd.models import TaskKind, TaskUnit
+
+        task = TaskUnit(id="T-000", title=args.task, kind=TaskKind(args.kind))
+        print(f"\nfor '{args.task}' ({args.kind}):")
+        for line in Dispatcher(workforce, language=args.language).explain(task):
+            print(f"  {line}")
+    return 0
+
+
+def cmd_recover(args: argparse.Namespace) -> int:
+    recovered = _worker(args).recover()
+    print(f"reclaimed {len(recovered)}: {', '.join(recovered) or 'nothing'}")
+    return 0
+
+
 def cmd_index(args: argparse.Namespace) -> int:
     knowledge = RepoKnowledge.build(args.path)
     stats = knowledge.stats()
@@ -388,6 +522,44 @@ def build_parser() -> argparse.ArgumentParser:
     where.add_argument("--what", required=True, help="the change, in a sentence")
     where.add_argument("--path", default=".")
     where.set_defaults(func=cmd_where)
+
+    enqueue = sub.add_parser("enqueue", help="put a ticket on the queue")
+    enqueue.add_argument("--payload", help="JSON file: a GitHub/Jira/Linear/Slack payload")
+    enqueue.add_argument("--statement", help="or state the work directly")
+    enqueue.add_argument("--context", default="")
+    enqueue.add_argument("--system", help="github | jira | linear | slack | transcript")
+    enqueue.add_argument("--id", help="external ticket id, for de-duplication")
+    enqueue.add_argument("--by", default="unknown")
+    enqueue.add_argument("--priority", type=int, default=5)
+    enqueue.add_argument("--queue-dir")
+    enqueue.set_defaults(func=cmd_enqueue)
+
+    work = sub.add_parser("work", help="claim tickets and run them")
+    work.add_argument("--worker", help="worker id (default: host:pid)")
+    work.add_argument("--max-items", type=int, default=1)
+    work.add_argument("--repo", help="repository the work happens in")
+    work.add_argument("--workforce", help="workforce.yaml (default: data/config/spec_kit)")
+    work.add_argument("--queue-dir")
+    work.set_defaults(func=cmd_work)
+
+    queue_cmd = sub.add_parser("queue", help="what is waiting, held, dead or stalled")
+    queue_cmd.add_argument("--queue-dir")
+    queue_cmd.set_defaults(func=cmd_queue)
+
+    agents = sub.add_parser("agents", help="the workforce, and who would take a task")
+    agents.add_argument("--workforce")
+    agents.add_argument("--task", help="explain routing for this task title")
+    agents.add_argument(
+        "--kind", default="code", choices=["code", "test", "review", "doc", "infra"]
+    )
+    agents.add_argument("--language", default="python")
+    agents.set_defaults(func=cmd_agents)
+
+    recover = sub.add_parser("recover", help="reclaim work a dead worker was holding")
+    recover.add_argument("--queue-dir")
+    recover.add_argument("--repo")
+    recover.add_argument("--workforce")
+    recover.set_defaults(func=cmd_recover)
 
     personas = sub.add_parser("personas", help="list the seniority profiles")
     personas.set_defaults(func=cmd_personas)

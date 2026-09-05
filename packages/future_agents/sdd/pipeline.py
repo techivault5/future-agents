@@ -16,9 +16,11 @@ from typing import Callable, Optional
 from future_agents.sdd.clarify import IntentClarifier
 from future_agents.sdd.config import SpecKitConfig
 from future_agents.sdd.constitution import Severity, Violation
+from future_agents.sdd.execution.resilience import BudgetExceeded, BudgetGuard
 from future_agents.sdd.knowledge import RepoKnowledge
 from future_agents.sdd.memory_hub import MemoryHub
 from future_agents.sdd.models import (
+    Budget,
     ClarificationOutcome,
     Objective,
     PipelineEvent,
@@ -55,6 +57,7 @@ class DeliveryPipeline:
         repo_root: Optional[str] = None,
         profile: Optional[RepoProfile] = None,
         knowledge: Optional[RepoKnowledge] = None,
+        budget: Optional[Budget] = None,
     ) -> None:
         base = config or SpecKitConfig()
         self.persona = persona or DEFAULT_PERSONA
@@ -73,6 +76,9 @@ class DeliveryPipeline:
             RepoKnowledge.build(repo_root, profile=self.profile) if repo_root else None
         )
 
+        # A run that cannot exceed its ceilings cannot become a cost incident.
+        self.budget = budget or Budget()
+
         self.clarifier = IntentClarifier(self.config)
         self.pm = PMStage(self.config, self.router, self.knowledge)
         self.architect = ArchitectStage(
@@ -88,7 +94,7 @@ class DeliveryPipeline:
     # ── Entry points ──────────────────────────────────────────────────────────
 
     def start(self, objective: Objective) -> RunState:
-        state = RunState(objective=objective)
+        state = RunState(objective=objective, budget=self.budget.model_copy(deep=True))
         self._log(
             state,
             Stage.INTAKE,
@@ -198,9 +204,21 @@ class DeliveryPipeline:
         self._log(state, Stage.TASKS, f"{len(graph.tasks)} task(s) in the DAG")
 
         state.stage = Stage.WORK
-        state.work_results = self.worker.execute(graph, spec)
+        guard = BudgetGuard(state.budget)
+        try:
+            state.work_results = self.worker.execute(graph, spec, guard=guard)
+        except BudgetExceeded as exc:
+            state.stage = Stage.BLOCKED
+            self._log(state, Stage.WORK, f"stopped: {exc}", budget=state.budget.model_dump())
+            return state
         done = sum(1 for r in state.work_results if r.status.value == "done")
-        self._log(state, Stage.WORK, f"{done}/{len(state.work_results)} task(s) completed")
+        state.assignments = list(getattr(self.worker.backend, "assignments", []))
+        self._log(
+            state,
+            Stage.WORK,
+            f"{done}/{len(state.work_results)} task(s) completed",
+            agents=sorted({r.agent_id for r in state.work_results if r.agent_id}),
+        )
 
         state.stage = Stage.QA
         state.qa = self.qa.verify(spec, graph, state.work_results)

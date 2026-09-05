@@ -11,6 +11,10 @@ POST   /api/sdd/runs/{run_id}/meeting      Record a clarification meeting and re
 GET    /api/sdd/cases                      Browse / search the memory hub
 GET    /api/sdd/constitution               The constitution as markdown (MCP resource)
 POST   /api/sdd/cicd/diff-gate             Check a pipeline change against the golden template
+POST   /api/sdd/tickets                    Ingest a ticket (GitHub/Jira/Linear/Slack) onto the queue
+GET    /api/sdd/queue                      What is waiting, held, dead or stalled
+POST   /api/sdd/work                       Claim the next ticket and run it
+GET    /api/sdd/agents                     The workforce, and who would take a task
 GET    /api/sdd/personas                   Seniority profiles the pipeline can run as
 GET    /api/sdd/languages                  Supported toolchains and their commands
 POST   /api/sdd/repos/detect               Profile a repository (language, toolchain, gaps)
@@ -33,7 +37,10 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from future_agents.sdd import (
+    AuditLog,
     DeliveryPipeline,
+    DispatchBackend,
+    Dispatcher,
     IntakeSource,
     MasterOrchestrator,
     MemoryHub,
@@ -42,10 +49,16 @@ from future_agents.sdd import (
     RepoKnowledge,
     RepoScaffolder,
     RunState,
+    RunStore,
     SpecKitConfig,
+    TicketWorker,
+    ToolchainBackend,
+    Workforce,
+    WorkQueue,
     detect_repo,
     get_persona,
     language_matrix,
+    objective_from_payload,
     persona_catalog,
 )
 
@@ -60,6 +73,14 @@ _pipeline = DeliveryPipeline(_config, memory=_memory)
 # Runs live in memory: a run is a conversation, not a record of truth. Persist
 # with future_agents.sdd.save_state when a run must outlive the process.
 _RUNS: dict[str, RunState] = {}
+
+# Durable surfaces: the queue and the run store outlive this process.
+_STATE_ROOT = _ROOT / ".spec-kit/state"
+_STORE = RunStore(_STATE_ROOT)
+_QUEUE = WorkQueue(_STATE_ROOT)
+_AUDIT = AuditLog(_STATE_ROOT)
+_WORKFORCE_PATH = _ROOT / "data/config/spec_kit/workforce.yaml"
+_WORKFORCE = Workforce.load(_WORKFORCE_PATH) if _WORKFORCE_PATH.is_file() else Workforce()
 _PROGRAMS: dict[str, tuple[MasterOrchestrator, ProgramRun]] = {}
 
 
@@ -344,3 +365,96 @@ def post_context(body: KnowledgeRequest) -> dict:
 @router.post("/api/sdd/repos/placement", summary="Where a change goes, and where it must not")
 def post_placement(body: PlacementRequest) -> dict:
     return _knowledge(body.path).advise(body.what).model_dump(mode="json")
+
+
+class TicketRequest(BaseModel):
+    """A raw payload from a tracker, or a plain statement."""
+
+    payload: dict = {}
+    system: str = ""
+    priority: int = 5
+
+
+class WorkRequest(BaseModel):
+    worker_id: str = ""
+    repo_root: str = ""
+    max_items: int = 1
+
+
+def _ticket_worker(repo_root: str = "") -> TicketWorker:
+    root = repo_root or str(_ROOT)
+    profile = detect_repo(root)
+    toolchain = profile.toolchain()
+
+    def factory(_objective):
+        dispatcher = Dispatcher(_WORKFORCE, language=profile.primary_language)
+        backend = DispatchBackend(
+            dispatcher,
+            repo_root=root,
+            toolchain=toolchain,
+            fallback=ToolchainBackend(root, toolchain),
+        )
+        return DeliveryPipeline(
+            _config, memory=_memory, backend=backend, repo_root=root, profile=profile
+        )
+
+    return TicketWorker(factory, _STORE, _QUEUE, _AUDIT)
+
+
+@router.post("/api/sdd/tickets", summary="Ingest a ticket onto the queue")
+def post_ticket(body: TicketRequest) -> dict:
+    if not body.payload:
+        raise HTTPException(status_code=400, detail="payload is required")
+    objective = objective_from_payload(body.payload, system=body.system)
+    item = _QUEUE.enqueue(objective, priority=body.priority)
+    return {
+        "item_id": item.id,
+        "external": objective.external.key if objective.external else "",
+        "statement": objective.statement,
+        "sanitiser_removed": objective.metadata.get("removed_by_sanitizer", []),
+        "queue": _QUEUE.stats(),
+    }
+
+
+@router.get("/api/sdd/queue", summary="Queue, dead letter and stalled runs")
+def get_queue() -> dict:
+    return {
+        "stats": _QUEUE.stats(),
+        "pending": [
+            {
+                "id": i.id,
+                "priority": i.priority,
+                "attempts": i.attempts,
+                "owner": i.owner,
+                "statement": i.objective.statement[:200],
+            }
+            for i in _QUEUE.pending()
+        ],
+        "dead_letter": [
+            {"id": i.id, "statement": i.objective.statement[:200], "reasons": i.reasons}
+            for i in _QUEUE.dead_letter()
+        ],
+        "stalled_runs": [r.model_dump(mode="json") for r in _STORE.stuck()],
+    }
+
+
+@router.post("/api/sdd/work", summary="Claim the next ticket and run it")
+def post_work(body: WorkRequest) -> dict:
+    worker = _ticket_worker(body.repo_root)
+    outcomes = worker.work(worker_id=body.worker_id, max_items=body.max_items)
+    return {"worked": len(outcomes), "outcomes": [o.model_dump(mode="json") for o in outcomes]}
+
+
+@router.get("/api/sdd/agents", summary="The workforce, and who would take a task")
+def get_agents(task: Optional[str] = Query(None), kind: str = Query("code")) -> dict:
+    from future_agents.sdd.models import TaskKind, TaskUnit
+
+    payload: dict = {
+        "stats": _WORKFORCE.stats(),
+        "agents": [spec.model_dump(mode="json") for spec in _WORKFORCE.agents.values()],
+        "skills": [spec.model_dump(mode="json") for spec in _WORKFORCE.skills.values()],
+    }
+    if task:
+        unit = TaskUnit(id="T-000", title=task, kind=TaskKind(kind))
+        payload["routing"] = Dispatcher(_WORKFORCE).explain(unit)
+    return payload

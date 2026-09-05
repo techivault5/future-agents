@@ -38,8 +38,13 @@ _MUST = re.compile(r"\b(must|shall|required|blocker|critical)\b", re.IGNORECASE)
 _COULD = re.compile(r"\b(could|nice to have|maybe|optional|stretch)\b", re.IGNORECASE)
 
 
+# Scope declarations only. The bare verb "exclude" is domain language — a ticket
+# about excluding refunds from a total is not a ticket about scope.
 _OUT_OF_SCOPE = re.compile(
-    r"\b(out of scope|not in scope|won'?t (?:do|cover)|exclude[sd]?|later phase)\b", re.IGNORECASE
+    r"\b(out[- ]of[- ]scope|not in scope|won'?t (?:do|cover|ship)|non[- ]goals?|"
+    r"explicitly excluded|excluded from (?:this|the) (?:scope|phase|release|ticket|change)|"
+    r"later phase|future phase|out of this (?:phase|release))\b",
+    re.IGNORECASE,
 )
 
 

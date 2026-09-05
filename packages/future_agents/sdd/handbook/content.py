@@ -639,9 +639,9 @@ def ch_summary() -> list[Any]:
         h2("1.3 Reading this document"),
         p(
             "Chapters 2–6 are the core pipeline. Chapters 7–10 cover seniority, languages, structure and repository "
-            "knowledge. Chapters 11–15 cover execution, QA, memory, routing and "
-            "multi-repo orchestration. Chapters 16–18 are operational: configuration, the CLI and "
-            "API, and the pattern catalog. Chapters 19–21 cover extension, testing and honest "
+            "knowledge. Chapters 11–16 cover execution, QA, memory, routing and "
+            "multi-repo orchestration. Chapters 17–19 are operational: configuration, the CLI and "
+            "API, and the pattern catalog. Chapters 20–22 cover extension, testing and honest "
             "limits."
         ),
         PageBreak(),
@@ -1586,15 +1586,238 @@ def ch_execution() -> list[Any]:
     ]
 
 
+def ch_autonomy() -> list[Any]:
+    from future_agents.sdd.intake.sanitize import INJECTION_PATTERNS
+    from future_agents.sdd.workforce import Workforce
+
+    workforce_path = REPO_ROOT / "data" / "config" / "spec_kit" / "workforce.yaml"
+    workforce = Workforce.load(workforce_path) if workforce_path.is_file() else Workforce()
+    agent_rows = [["Agent", "Takes", "Skills", "Engine", "Concurrency"]]
+    for spec in workforce.agents.values():
+        agent_rows.append(
+            [
+                f"<b>{spec.name or spec.id}</b><br/><font face='Courier' size='6.5'>{spec.id}</font>",
+                ", ".join(spec.kinds) or "any",
+                ", ".join(spec.skills) or "—",
+                spec.engine or "—",
+                str(spec.max_concurrency),
+            ]
+        )
+
+    return [
+        h1("12 · Autonomy: tickets in, work out"),
+        p(
+            "Everything so far assumed a human typed an objective and watched it run. This chapter "
+            "is the part that makes the system autonomous: a ticket arrives from a tracker, a "
+            "worker claims it, agents do the work under guards, and evidence — not a claim — "
+            "decides whether it passed."
+        ),
+        h2("12.1 The path a ticket takes"),
+        flow(
+            "GitHub / Jira / Linear / Slack / transcript / webhook\n"
+            "        │  adapter → Objective (+ ExternalRef, sanitised)\n"
+            "        ▼\n"
+            "   WorkQueue ──claim(lease)──► TicketWorker ──► DeliveryPipeline\n"
+            "        ▲                          │                  │\n"
+            "        │ fail → retry → dead      │ heartbeat        ▼\n"
+            "        └──────────────────────────┘            DispatchBackend\n"
+            "                                                     │\n"
+            "                       Dispatcher ──picks agent──► skill (shell │ callable │ MCP)\n"
+            "                                                     │\n"
+            "                                   sandbox · budget · breaker · loop detector\n"
+            "                                                     ▼\n"
+            "                                                 Evidence ──► QA"
+        ),
+        h2("12.2 Intake: any tracker, one objective"),
+        p(
+            "Adapters take the payload a tracker already produces — they do not fetch it, because "
+            "the network client, its auth and its rate limits belong to the caller, and that keeps "
+            "intake testable. Each one maps to the same artifact, carries an `ExternalRef` so the "
+            "same ticket never starts two runs, and keeps the original payload for the record."
+        ),
+        table(
+            [
+                ["Adapter", "Recognises", "Extra it lifts"],
+                [
+                    "github",
+                    "issue / issue-comment webhooks",
+                    "labels → constraints, milestone → deadline, comments",
+                ],
+                [
+                    "jira",
+                    "`fields` + `key`, incl. Atlassian document format",
+                    "priority and labels, due date, comments",
+                ],
+                ["linear", "`identifier` + `title`", "labels, due date"],
+                ["slack", "a message or a thread", "the thread as raw input"],
+                ["transcript", "a meeting transcript", "speaker attribution"],
+                ["webhook", "anything with a title", "the fallback that always works"],
+            ],
+            widths=[0.8, 1.9, 2.3],
+            mono_columns=(0,),
+        ),
+        p(
+            "Bullets under an <i>acceptance criteria</i> heading become requirements directly, "
+            "which is why a well-written ticket often clears the clarification gate on the first "
+            "pass."
+        ),
+        h2("12.3 External text is data, never instructions"),
+        p(
+            f"A ticket body is written by someone else. {len(INJECTION_PATTERNS)} phrasings whose "
+            "only purpose is to redirect an agent are neutralised on the way in — instruction "
+            "overrides, fake role markers, secret-exfiltration asks, 'don't tell the user', "
+            "'skip the tests', piped shell installs. What was removed is recorded on the "
+            "objective; the original is kept by digest."
+        ),
+        *listing("intake/sanitize", "sanitize"),
+        callout(
+            "This is a layer, not a boundary",
+            "Sanitising is the cheap defence that stops the obvious attempts. The real boundaries "
+            "are elsewhere and structural: the constitution gates, the sandbox path fences, the "
+            "evidence rule in QA, and the fact that no stage lets model output decide structure.",
+        ),
+        h2("12.4 The queue: one worker per ticket"),
+        table(
+            [
+                ["Property", "How"],
+                [
+                    "No duplicate work",
+                    "an item is keyed by `ExternalRef`; enqueueing twice returns the first item",
+                ],
+                ["One owner", "claiming takes a time-bounded lease; a second worker gets nothing"],
+                [
+                    "Crash recovery",
+                    "an expired lease is reclaimable; `recover()` reclaims and records",
+                ],
+                [
+                    "Poison control",
+                    "`max_attempts` failures move an item to the dead letter, with its reasons",
+                ],
+                [
+                    "Durability",
+                    "atomic write (temp file + rename); readable with `cat` when something is wrong",
+                ],
+                ["Provenance", "an append-only audit log: who claimed, what ran, what shipped"],
+            ],
+            widths=[1.0, 3.8],
+        ),
+        *listing("runner", "TicketWorker.work_once"),
+        h2("12.5 The workforce"),
+        p(
+            "Specs are data — declarable in YAML, shippable in a repo, reviewable in a pull "
+            "request. Handlers are code, bound at runtime. That split is what makes the workforce "
+            "pluggable: a team adds an agent with six lines and one callable, and nothing in the "
+            "pipeline changes."
+        ),
+        table(agent_rows, widths=[1.5, 0.8, 1.5, 1.0, 0.6]),
+        caption(f"Read live from {workforce_path.relative_to(REPO_ROOT)}."),
+        p(
+            "A skill is what an agent can actually do, in one of four shapes: a shell command "
+            "(rendered from the toolchain, run without a shell), a Python callable, an MCP tool "
+            "through a caller the host provides, or the simulated runner whose evidence can never "
+            "pass QA. A shell skill whose command does not exist for this toolchain is "
+            "<i>not applicable</i> — the dispatcher tries the next one rather than failing the task."
+        ),
+        *listing(
+            "workforce/dispatch", "Dispatcher.rank", "Routing, and why it chose what it chose"
+        ),
+        flow(
+            "$ python scripts/spec_kit.py agents --task 'Implement REQ-002: schema migration' --kind code\n"
+            "\n"
+            "   2.970  claude_coder             handles code tasks\n"
+            "   2.560  claude_architect         handles code tasks; domain match 40%"
+        ),
+        h2("12.6 Guards"),
+        table(
+            [
+                ["Guard", "Stops", "Where"],
+                [
+                    "WorkspacePolicy",
+                    "a write outside the paths placement chose, or into a fenced zone",
+                    "execution/sandbox.py",
+                ],
+                [
+                    "BudgetGuard",
+                    "a runaway run: time, tasks, attempts, engine calls",
+                    "execution/resilience.py",
+                ],
+                [
+                    "CircuitBreaker",
+                    "hammering an agent or engine that keeps failing",
+                    "execution/resilience.py",
+                ],
+                [
+                    "LoopDetector",
+                    "an agent repeating the identical failing action",
+                    "execution/resilience.py",
+                ],
+                [
+                    "retry",
+                    "a transient failure being reported as a real one",
+                    "execution/resilience.py",
+                ],
+            ],
+            widths=[1.0, 2.6, 1.2],
+            mono_columns=(2,),
+        ),
+        *listing("execution/sandbox", "WorkspacePolicy.violation"),
+        h2("12.7 Evidence, not claims"),
+        p(
+            "The most important change in this chapter. A backend used to be believed: a task that "
+            "said it covered a criterion covered it. Now a criterion is verified only when a test "
+            "task carries a command that actually exited zero, and only when the implementation "
+            "tasks for it were not simulated. A dry run reports BLOCKED, never PASS — a simulated "
+            "green is the most dangerous output this system could produce."
+        ),
+        flow(
+            "verified(criterion) =\n"
+            "      ∃ test task DONE  whose Evidence.exit_code == 0  and is not simulated\n"
+            "  AND ∀ code tasks for it: DONE and not simulated\n"
+            "\n"
+            "QA BLOCKED [simulated] — 2/2 behaviours verified\n"
+            "Blocker: no work was executed — every result is simulated"
+        ),
+        h2("12.8 Running it"),
+        *code(
+            "# one worker, one ticket\n"
+            "python scripts/spec_kit.py enqueue --payload github-webhook.json\n"
+            "python scripts/spec_kit.py work --repo . --max-items 5\n"
+            "python scripts/spec_kit.py queue          # waiting, held, dead, stalled\n"
+            "python scripts/spec_kit.py recover        # reclaim what a dead worker held\n"
+            "\n"
+            "# or over HTTP\n"
+            'POST /api/sdd/tickets   {"payload": {…}}\n'
+            'POST /api/sdd/work      {"worker_id": "worker-1", "repo_root": "."}\n'
+            "GET  /api/sdd/queue"
+        ),
+        h2("12.9 Attaching your own agent"),
+        *code(
+            "from future_agents.sdd import Workforce, Dispatcher, DispatchBackend, Evidence\n"
+            "\n"
+            "workforce = Workforce.load('data/config/spec_kit/workforce.yaml')\n"
+            "\n"
+            "def my_agent(context):            # context knows the task, the target paths,\n"
+            "    target = context.target_paths[0]   # the fences, and the toolchain commands\n"
+            "    ...                                # do the work — write files, call an SDK\n"
+            "    return [Evidence(kind='diff', exit_code=0, path=target,\n"
+            "                     criterion_ids=list(context.task.criterion_ids))]\n"
+            "\n"
+            "workforce.bind('claude_coder', my_agent)\n"
+            "backend = DispatchBackend(Dispatcher(workforce, language='python'), repo_root='.')"
+        ),
+        PageBreak(),
+    ]
+
+
 def ch_qa() -> list[Any]:
     return [
-        h1("12 · QA orchestration"),
+        h1("13 · QA orchestration"),
         p(
             "QA is not a log reader. It builds a behaviour check for every in-scope acceptance "
             "criterion, decides verification from evidence in the work results, computes coverage "
             "over MUST criteria, and reports in a fixed, short format."
         ),
-        h2("12.1 BDD and AAA scaffolding"),
+        h2("13.1 BDD and AAA scaffolding"),
         flow(
             "criterion  REQ-002-AC-001\n"
             "  Given    a week of usage data\n"
@@ -1606,7 +1829,7 @@ def ch_qa() -> list[Any]:
             "  Act:     the churn report runs\n"
             "  Assert:  at-risk accounts are listed"
         ),
-        h2("12.2 Verification rule"),
+        h2("13.2 Verification rule"),
         flow(
             "verified(criterion) =\n"
             "      ∃ test task covering it whose WorkResult.status == DONE\n"
@@ -1619,7 +1842,7 @@ def ch_qa() -> list[Any]:
             "        = PASS     otherwise"
         ),
         *listing("stages/qa", "QAStage.verify"),
-        h2("12.3 Scope fences"),
+        h2("13.3 Scope fences"),
         p(
             "Criteria matching a configured fence are dropped before checks are built and listed "
             "in <font face='Courier'>out_of_scope_ignored</font>. They can never become findings, "
@@ -1627,7 +1850,7 @@ def ch_qa() -> list[Any]:
             "the failure mode that makes teams turn automated QA off."
         ),
         *listing("stages/qa", "QAStage._out_of_scope"),
-        h2("12.4 The reporting protocol"),
+        h2("13.4 The reporting protocol"),
         p(
             "Verbosity is <font face='Courier'>summary_only</font> by default: a verdict line, the "
             "verified behaviours, then the first blocker. Logs stay in the artifact, out of the "
@@ -1640,7 +1863,7 @@ def ch_qa() -> list[Any]:
             "✓ the report pulls from Snowflake every Monday 09:00\n"
             "✓ flag any account whose usage dropped 20% or more"
         ),
-        h2("12.5 Ephemeral environments"),
+        h2("13.5 Ephemeral environments"),
         p(
             "When <font face='Courier'>qa.ephemeral_environment</font> is set, the report records "
             "the environment as ephemeral and marks it cleaned when the verdict is written — the "
@@ -1652,14 +1875,14 @@ def ch_qa() -> list[Any]:
 
 def ch_memory() -> list[Any]:
     return [
-        h1("13 · The memory hub"),
+        h1("14 · The memory hub"),
         p(
             "Agents that forget repeat the same mistake every sprint. After every run the "
             "harvester compresses what happened into a case: the objective, the problem, the "
             "solution, and — the part that earns its keep — the pitfalls. Cases are markdown on "
             "disk, so they are reviewable, diffable and greppable, with a JSON index for retrieval."
         ),
-        h2("13.1 Where pitfalls come from"),
+        h2("14.1 Where pitfalls come from"),
         table(
             [
                 ["Source", "Becomes"],
@@ -1674,7 +1897,7 @@ def ch_memory() -> list[Any]:
             widths=[1.5, 3.2],
         ),
         *listing("memory_hub", "_pitfalls"),
-        h2("13.2 Retrieval, biased toward failure"),
+        h2("14.2 Retrieval, biased toward failure"),
         p(
             "Matching is keyword overlap (Jaccard) with a 1.5× boost for cases whose outcome was "
             "not a success. A case that records a pitfall changes the next plan; a success case "
@@ -1683,9 +1906,9 @@ def ch_memory() -> list[Any]:
             "<font face='Courier'>source=memory</font>."
         ),
         *listing("memory_hub", "MemoryHub.retrieve"),
-        h2("13.3 Harvest"),
+        h2("14.3 Harvest"),
         *listing("memory_hub", "MemoryHub.harvest"),
-        h2("13.4 The case format"),
+        h2("14.4 The case format"),
         *code(
             "# Weekly churn report for sales\n"
             "\n"
@@ -1707,7 +1930,7 @@ def ch_memory() -> list[Any]:
             "  answer: Snowflake, refreshed nightly at 02:00\n"
             "- QA blocker: REQ-003-AC-001 not verified — no passing test task"
         ),
-        h2("13.5 Swapping in a vector store"),
+        h2("14.5 Swapping in a vector store"),
         p(
             "Retrieval is deliberately behind one method. A semantic store (Chroma, pgvector, a "
             "hosted index) replaces <font face='Courier'>MemoryHub.retrieve</font> without any "
@@ -1725,20 +1948,20 @@ def ch_routing() -> list[Any]:
             [name, role.engine, role.fallback or config.agents.default_engine, role.purpose]
         )
     return [
-        h1("14 · Engine routing and MCP"),
+        h1("15 · Engine routing and MCP"),
         p(
             "The pipeline never names a model inline. It asks the router, which resolves role → "
             "engine from the rulebook, lets an intent keyword override it, and falls back when an "
             "engine is unavailable. Changing vendor or model is a configuration edit, and a "
             "failing engine degrades to deterministic behaviour instead of taking the run down."
         ),
-        h2("14.1 Current role map"),
+        h2("15.1 Current role map"),
         table(rows, widths=[0.95, 1.15, 1.15, 2.2], mono_columns=(0, 1, 2)),
         caption(
             "Read live from the rulebook. Intent routes: "
             + (", ".join(f"{k} → {v}" for k, v in config.agents.intent_routes.items()) or "none")
         ),
-        h2("14.2 Resolution order"),
+        h2("15.2 Resolution order"),
         flow(
             "1. intent keyword match ....... 'terraform' in the task intent → claude-opus-5\n"
             "2. role default ............... agents.roles[role].engine\n"
@@ -1747,7 +1970,7 @@ def ch_routing() -> list[Any]:
             "5. NullEngine ................. deterministic; the stage's own rules stand"
         ),
         *listing("router", "EngineRouter.run"),
-        h2("14.3 Engines"),
+        h2("15.3 Engines"),
         p(
             "An engine is anything with a <font face='Courier'>name</font> and a "
             "<font face='Courier'>complete(call)</font>. Three ship: NullEngine (the default, "
@@ -1763,7 +1986,7 @@ def ch_routing() -> list[Any]:
             "upgraded model is an unversioned dependency, which is exactly what the principal AI "
             "persona's heuristics say.",
         ),
-        h2("14.4 MCP exposure"),
+        h2("15.4 MCP exposure"),
         p(
             "The gateway URI lives in the rulebook, and the resources an agent needs are already "
             "addressable: the constitution as markdown, the golden CI template, the language "
@@ -1792,7 +2015,7 @@ def ch_routing() -> list[Any]:
 
 def ch_master() -> list[Any]:
     return [
-        h1("15 · The master orchestrator"),
+        h1("16 · The master orchestrator"),
         p(
             "Real work rarely lands in one repository: an API change needs a client change needs "
             "a pipeline change. The master orchestrator profiles every registered repository, "
@@ -1800,7 +2023,7 @@ def ch_master() -> list[Any]:
             "declared dependencies, and runs a full delivery pipeline in each — each with its own "
             "language, its own toolchain and, if you want, its own persona."
         ),
-        h2("15.1 The part that matters to a human"),
+        h2("16.1 The part that matters to a human"),
         callout(
             "One question set for the whole program",
             "Five repositories each raise 'which system of record supplies this data?'. The "
@@ -1810,7 +2033,7 @@ def ch_master() -> list[Any]:
             "questions.",
         ),
         *listing("master", "MasterOrchestrator._merge_questions"),
-        h2("15.2 Registration and inventory"),
+        h2("16.2 Registration and inventory"),
         *listing("master", "MasterOrchestrator.register"),
         flow(
             "orchestrator.register('checkout-api',   '../checkout-api',\n"
@@ -1826,7 +2049,7 @@ def ch_master() -> list[Any]:
             "web-app         typescript  missing: none\n"
             "platform-infra  terraform   missing: ['docs/runbook.md']"
         ),
-        h2("15.3 Routing and waves"),
+        h2("16.3 Routing and waves"),
         p(
             "An explicit repo list always wins. Otherwise the objective is scored against each "
             "repo's name, keywords and language; if nothing matches, every repo is in scope "
@@ -1834,7 +2057,7 @@ def ch_master() -> list[Any]:
             "cycle raises instead of deadlocking."
         ),
         *listing("master", "MasterOrchestrator.waves"),
-        h2("15.4 Dependency behaviour"),
+        h2("16.4 Dependency behaviour"),
         p(
             "A repo whose dependency is still clarifying or blocked is skipped with the reason "
             "recorded, and picked up automatically once the dependency reaches a usable state — "
@@ -1842,7 +2065,7 @@ def ch_master() -> list[Any]:
             "restarted."
         ),
         *listing("master", "MasterOrchestrator._resume_blocked_waves"),
-        h2("15.5 Per-repo context"),
+        h2("16.5 Per-repo context"),
         p(
             "Each repository receives its own copy of the objective, carrying that repo's "
             "language, test command and dependency policy as constraints — which is why the Go "
@@ -1850,7 +2073,7 @@ def ch_master() -> list[Any]:
             "says <font face='Courier'>npm test</font> from the same human sentence."
         ),
         *listing("master", "MasterOrchestrator._repo_objective"),
-        h2("15.6 A program run"),
+        h2("16.6 A program run"),
         flow(
             "$ python scripts/spec_kit.py program \\\n"
             "    --repo checkout-api=../checkout-api \\\n"
@@ -1871,7 +2094,7 @@ def ch_master() -> list[Any]:
             "  checkout-api  done  3 requirements  13 tasks  QA pass  accepted\n"
             "  web-app       done  3 requirements  13 tasks  QA pass  accepted"
         ),
-        h2("15.7 The program report"),
+        h2("16.7 The program report"),
         *listing("master", "ProgramRun.report"),
         PageBreak(),
     ]
@@ -1908,7 +2131,7 @@ def ch_configuration() -> list[Any]:
         ["qa", "communication.verbosity", "summary_only keeps logs out of the channel"],
     ]
     return [
-        h1("16 · Configuration reference"),
+        h1("17 · Configuration reference"),
         p(
             "One rulebook, loaded by every surface — pipeline, CLI, API and CI. "
             "<font face='Courier'>${VAR}</font> and <font face='Courier'>${VAR:-default}</font> "
@@ -1916,11 +2139,11 @@ def ch_configuration() -> list[Any]:
             "looks like a secret is rejected with a ConfigError rather than being caught later by "
             "a scanner."
         ),
-        h2("16.1 Every key"),
+        h2("17.1 Every key"),
         table(sections, widths=[0.85, 1.6, 2.6], mono_columns=(1,)),
-        h2("16.2 Secret handling"),
+        h2("17.2 Secret handling"),
         *listing("config", "_resolve"),
-        h2("16.3 The rulebook in full"),
+        h2("17.3 The rulebook in full"),
         caption("data/config/spec_kit/spec-kit-enterprise.yaml"),
         *code(text),
         PageBreak(),
@@ -1961,13 +2184,13 @@ def ch_operations() -> list[Any]:
         ["POST /api/sdd/cicd/diff-gate", "golden-pattern check"],
     ]
     return [
-        h1("17 · Operating the system"),
-        h2("17.1 Command line"),
+        h1("18 · Operating the system"),
+        h2("18.1 Command line"),
         table(cli_rows, widths=[1.9, 3.0], mono_columns=(0,)),
-        h2("17.2 HTTP"),
+        h2("18.2 HTTP"),
         p("Served by <font face='Courier'>uvicorn future_agents.api.main:app</font>."),
         table(api_rows, widths=[1.7, 3.0], mono_columns=(0,)),
-        h2("17.3 Python"),
+        h2("18.3 Python"),
         *code(
             "from future_agents.sdd import (\n"
             "    DeliveryPipeline, MasterOrchestrator, Objective, SpecKitConfig, get_persona,\n"
@@ -1999,7 +2222,7 @@ def ch_operations() -> list[Any]:
             "print(state.delivery.accepted, state.delivery.unconfirmed_assumptions)\n"
             "save_state(state, '.spec-kit/runs')"
         ),
-        h2("17.4 In CI"),
+        h2("18.4 In CI"),
         *code(
             "# .github/workflows/spec-kit.yml\n"
             "name: spec-kit\n"
@@ -2015,7 +2238,7 @@ def ch_operations() -> list[Any]:
             "      - run: python scripts/spec_kit.py detect --path .\n"
             "      - run: python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml"
         ),
-        h2("17.5 Intake from a meeting tool"),
+        h2("18.5 Intake from a meeting tool"),
         p(
             "The API is the integration point: post the transcript as "
             "<font face='Courier'>raw_inputs</font> with "
@@ -2198,7 +2421,7 @@ PATTERNS = [
 
 def ch_patterns() -> list[Any]:
     out: list[Any] = [
-        h1("18 · Pattern catalog"),
+        h1("19 · Pattern catalog"),
         p(
             "The design patterns this system is built from, each with the failure it prevents and "
             "the price it charges. They are reusable outside this codebase — most of them are "
@@ -2209,7 +2432,7 @@ def ch_patterns() -> list[Any]:
         out.append(
             KeepTogether(
                 [
-                    h3(f"18.{index} {name}"),
+                    h3(f"19.{index} {name}"),
                     table(
                         [
                             ["Problem", problem],
@@ -2230,10 +2453,10 @@ def ch_patterns() -> list[Any]:
 
 def ch_extending() -> list[Any]:
     return [
-        h1("19 · Extending the system"),
-        h2("19.1 Add a language"),
+        h1("20 · Extending the system"),
+        h2("20.1 Add a language"),
         p("One entry in <font face='Courier'>TOOLCHAINS</font> — see §8.5. Nothing else changes."),
-        h2("19.2 Add a persona"),
+        h2("20.2 Add a persona"),
         *code(
             "from future_agents.sdd.personas import Heuristic, Persona, ReviewGate, PERSONAS\n"
             "\n"
@@ -2260,7 +2483,7 @@ def ch_extending() -> list[Any]:
             ")\n"
             "PERSONAS[EMBEDDED.id] = EMBEDDED"
         ),
-        h2("19.3 Add a clarification detector"),
+        h2("20.3 Add a clarification detector"),
         p(
             "A detector is a function from an objective and its context to signals. Register it on "
             "the clarifier and it participates in scoring immediately."
@@ -2287,14 +2510,14 @@ def ch_extending() -> list[Any]:
             "clarifier = IntentClarifier(config)\n"
             "clarifier._detectors.append(detect_missing_retention)"
         ),
-        h2("19.4 Add a governance rule"),
+        h2("20.4 Add a governance rule"),
         p(
             "Add a method to <font face='Courier'>Constitution</font> returning "
             "<font face='Courier'>Violation</font> objects, and call it from the matching stage "
             "transition in <font face='Courier'>DeliveryPipeline._build</font>. Error severity "
             "stops the run; warn severity is recorded."
         ),
-        h2("19.5 Add a stage"),
+        h2("20.5 Add a stage"),
         p(
             "Stages are plain classes with one method that takes upstream artifacts and returns "
             "the next one. Add the artifact to <font face='Courier'>RunState</font>, add the enum "
@@ -2302,10 +2525,10 @@ def ch_extending() -> list[Any]:
             "two stages it belongs between. Keep it deterministic; let the engine enrich only free "
             "text."
         ),
-        h2("19.6 Replace the memory backend"),
+        h2("20.6 Replace the memory backend"),
         p(
             "Implement <font face='Courier'>retrieve()</font> against a vector store and keep the "
-            "markdown cases as the durable record — see §13.5."
+            "markdown cases as the durable record — see §14.5."
         ),
         PageBreak(),
     ]
@@ -2313,7 +2536,7 @@ def ch_extending() -> list[Any]:
 
 def ch_testing() -> list[Any]:
     return [
-        h1("20 · Testing"),
+        h1("21 · Testing"),
         p(
             "The whole pipeline runs offline and deterministically, which is what makes it "
             "testable at all. Two suites cover it: "
@@ -2363,7 +2586,7 @@ def ch_testing() -> list[Any]:
             ],
             widths=[0.9, 4.1],
         ),
-        h2("20.1 Running them"),
+        h2("21.1 Running them"),
         *code(
             "pytest -q                                    # whole repo\n"
             "pytest -q tests/test_sdd.py                  # core pipeline\n"
@@ -2372,7 +2595,7 @@ def ch_testing() -> list[Any]:
             "ruff format --check packages/future_agents/ apps/ scripts/\n"
             "python packages/guardrails/guardrails_engine.py . --mode block"
         ),
-        h2("20.2 Testing your own backend"),
+        h2("21.2 Testing your own backend"),
         p(
             "Use <font face='Courier'>CallableEngine</font> for the model seam and a fake backend "
             "for the work seam; both are single functions, so a full delivery run in a test is "
@@ -2393,7 +2616,7 @@ def ch_testing() -> list[Any]:
 
 def ch_limits() -> list[Any]:
     return [
-        h1("21 · Limits, and what to build next"),
+        h1("22 · Limits, and what to build next"),
         p(
             "Stated plainly, because a system that oversells itself gets switched off the first "
             "time it is believed."
@@ -2419,7 +2642,7 @@ def ch_limits() -> list[Any]:
                 [
                     "Detectors are keyword-driven",
                     "an unusual phrasing can slip past a gate",
-                    "add a detector (§19.3); gates still catch the artifact",
+                    "add a detector (§20.3); gates still catch the artifact",
                 ],
                 [
                     "API runs live in memory",
@@ -2439,7 +2662,7 @@ def ch_limits() -> list[Any]:
             ],
             widths=[1.2, 1.7, 2.1],
         ),
-        h2("21.1 The next things worth building"),
+        h2("22.1 The next things worth building"),
         *bullets(
             [
                 "<b>A real worker backend</b> in this repo: shell out per task kind, run the "
@@ -2454,7 +2677,7 @@ def ch_limits() -> list[Any]:
                 "and cases directly — the API already serves each of them.",
             ]
         ),
-        h2("21.2 Where to start reading the code"),
+        h2("22.2 Where to start reading the code"),
         table(
             [
                 ["If you want to understand…", "Read"],
@@ -2492,6 +2715,7 @@ CHAPTERS = (
     ch_structure,
     ch_knowledge,
     ch_execution,
+    ch_autonomy,
     ch_qa,
     ch_memory,
     ch_routing,

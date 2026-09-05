@@ -43,6 +43,8 @@ packages/future_agents/
   sdd/             # Spec-driven delivery: clarify → spec → plan → tasks → work → QA → deliver
                    #   stages/ (6 stages), repos/ (19 toolchains + scaffolding),
                    #   knowledge/ (repo RAG: where code may/may not go),
+                   #   intake/ (any tracker), store/ (queue+runs), workforce/
+                   #   (pluggable agents+skills), execution/ (backends+guards),
                    #   handbook/ (generated PDF), personas, master orchestrator
   workers/         # BaseWorker, WorkerScheduler, + 5 worker types
   system.py        # AgentSystem — top-level entry point

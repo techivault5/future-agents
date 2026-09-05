@@ -250,7 +250,9 @@ def test_monorepo_source_root_is_accepted(tmp_path: Path, scaffolder: RepoScaffo
 
 @pytest.fixture
 def orchestrator(config: SpecKitConfig, tmp_path: Path) -> MasterOrchestrator:
-    orc = MasterOrchestrator(config, memory=MemoryHub(config.memory_hub))
+    from tests.conftest import executing_backend
+
+    orc = MasterOrchestrator(config, memory=MemoryHub(config.memory_hub), backend=executing_backend)
     orc.register(
         "checkout-api",
         make_repo(tmp_path, "checkout-api", "go"),

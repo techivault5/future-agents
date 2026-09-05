@@ -42,6 +42,20 @@ class Hashable(BaseModel):
 # ── Intake ────────────────────────────────────────────────────────────────────
 
 
+class ExternalRef(BaseModel):
+    """Where a piece of work came from, so the same ticket never runs twice."""
+
+    system: str = ""  # github | jira | linear | slack | email | webhook
+    id: str = ""  # the identifier in that system
+    url: str = ""
+    author: str = ""
+    labels: list[str] = Field(default_factory=list)
+
+    @property
+    def key(self) -> str:
+        return f"{self.system}:{self.id}" if self.system and self.id else ""
+
+
 class IntakeSource(str, Enum):
     MEETING = "meeting_transcript"
     TICKET = "ticket"
@@ -62,6 +76,10 @@ class Objective(Hashable):
     raw_inputs: list[str] = Field(default_factory=list)
     constraints: list[str] = Field(default_factory=list)
     deadline: Optional[str] = None
+    external: Optional[ExternalRef] = None
+    # Text that arrived from outside is data, never instructions. `raw_inputs`
+    # and `context` are sanitised at intake; the original stays in `metadata`.
+    untrusted: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=_now)
 
@@ -418,17 +436,115 @@ class TaskGraph(Hashable):
 # ── Work ──────────────────────────────────────────────────────────────────────
 
 
+class Evidence(BaseModel):
+    """Proof that something actually ran. QA verifies from these, not from claims."""
+
+    kind: str  # command | test-report | diff | file | simulated
+    summary: str = ""
+    command: str = ""
+    exit_code: Optional[int] = None
+    path: str = ""
+    output_digest: str = ""  # sha256 prefix of captured output
+    output_excerpt: str = ""
+    criterion_ids: list[str] = Field(default_factory=list)
+    produced_by: str = ""  # agent or skill id
+    at: datetime = Field(default_factory=_now)
+
+    @property
+    def passed(self) -> bool:
+        return self.exit_code == 0
+
+    @property
+    def simulated(self) -> bool:
+        return self.kind == "simulated"
+
+    @staticmethod
+    def digest(text: str) -> str:
+        return hashlib.sha256(text.encode(errors="ignore")).hexdigest()[:16]
+
+
+class Assignment(BaseModel):
+    """Who is doing a task, under what lease, and how many tries it has had."""
+
+    task_id: str
+    agent_id: str = ""
+    skill_id: str = ""
+    rationale: str = ""
+    claimed_at: datetime = Field(default_factory=_now)
+    lease_seconds: int = 900
+    attempts: int = 0
+
+    def expired(self, now: Optional[datetime] = None) -> bool:
+        moment = now or _now()
+        return (moment - self.claimed_at).total_seconds() > self.lease_seconds
+
+
+class Budget(BaseModel):
+    """A hard stop. A runaway agent is a cost incident, not a bug report."""
+
+    max_seconds: float = 3600.0
+    max_task_attempts: int = 3
+    max_tasks: int = 200
+    max_engine_calls: int = 400
+    spent_seconds: float = 0.0
+    spent_task_attempts: int = 0
+    spent_tasks: int = 0
+    spent_engine_calls: int = 0
+
+    def exhausted(self) -> str:
+        """The first limit that has been hit, or an empty string."""
+        checks = (
+            ("time", self.spent_seconds, self.max_seconds),
+            ("tasks", self.spent_tasks, self.max_tasks),
+            ("attempts", self.spent_task_attempts, self.max_task_attempts * max(self.max_tasks, 1)),
+            ("engine calls", self.spent_engine_calls, self.max_engine_calls),
+        )
+        for name, spent, limit in checks:
+            if spent >= limit:
+                return f"{name} budget exhausted ({spent} >= {limit})"
+        return ""
+
+    def charge(
+        self,
+        seconds: float = 0.0,
+        tasks: int = 0,
+        attempts: int = 0,
+        engine_calls: int = 0,
+    ) -> None:
+        self.spent_seconds += seconds
+        self.spent_tasks += tasks
+        self.spent_task_attempts += attempts
+        self.spent_engine_calls += engine_calls
+
+
 class WorkResult(BaseModel):
     task_id: str
     status: TaskStatus
     summary: str = ""
     engine: str = ""
+    agent_id: str = ""
     changed_files: list[str] = Field(default_factory=list)
     tests_added: list[str] = Field(default_factory=list)
     criterion_ids: list[str] = Field(default_factory=list)
+    evidence: list[Evidence] = Field(default_factory=list)
+    attempts: int = 1
     log_excerpt: str = ""
     error: str = ""
     duration_ms: float = 0.0
+
+    def passing_evidence(self, criterion_id: str = "") -> list[Evidence]:
+        """Evidence of a command that actually succeeded for this criterion."""
+        return [
+            e
+            for e in self.evidence
+            if e.passed
+            and not e.simulated
+            and (not criterion_id or criterion_id in e.criterion_ids or not e.criterion_ids)
+        ]
+
+    @property
+    def simulated(self) -> bool:
+        return bool(self.evidence) and all(e.simulated for e in self.evidence)
 
 
 # ── QA ────────────────────────────────────────────────────────────────────────
@@ -455,6 +571,7 @@ class BehaviourCheck(BaseModel):
 
     criterion_id: str
     requirement_id: str
+    evidence: list[Evidence] = Field(default_factory=list)
     given: str
     when: str
     then: str
@@ -471,6 +588,9 @@ class QAReport(BaseModel):
     id: str = Field(default_factory=lambda: _nid("qa"))
     spec_id: str
     verdict: QAVerdict = QAVerdict.BLOCKED
+    #: True when nothing actually executed — a dry run must never read as a pass.
+    simulated: bool = False
+    evidence_required: bool = False
     checks: list[BehaviourCheck] = Field(default_factory=list)
     findings: list[QAFinding] = Field(default_factory=list)
     out_of_scope_ignored: list[str] = Field(default_factory=list)
@@ -483,7 +603,8 @@ class QAReport(BaseModel):
         """The summary_only wire format — verbose logs stay out of the channel."""
         verified = [c for c in self.checks if c.verified]
         headline = f"{len(verified)}/{len(self.checks)} behaviours verified"
-        lines = [f"QA {self.verdict.value.upper()} — {headline}"]
+        mark = " [simulated]" if self.simulated else ""
+        lines = [f"QA {self.verdict.value.upper()}{mark} — {headline}"]
         blockers = [f for f in self.findings if f.severity == "blocker"]
         if blockers:
             lines.append(f"Blocker: {blockers[0].summary}")
@@ -569,10 +690,15 @@ class PipelineEvent(BaseModel):
     data: dict[str, Any] = Field(default_factory=dict)
 
 
+#: Bumped when RunState gains or changes a field that older runs cannot satisfy.
+SCHEMA_VERSION = 2
+
+
 class RunState(BaseModel):
     """The whole run, resumable from JSON — the pipeline holds no other state."""
 
     id: str = Field(default_factory=lambda: _nid("run"))
+    schema_version: int = SCHEMA_VERSION
     objective: Objective
     stage: Stage = Stage.INTAKE
     clarification: Optional[ClarificationResult] = None
@@ -584,8 +710,15 @@ class RunState(BaseModel):
     delivery: Optional[Delivery] = None
     case_id: Optional[str] = None
     events: list[PipelineEvent] = Field(default_factory=list)
+    assignments: list[Assignment] = Field(default_factory=list)
+    budget: Budget = Field(default_factory=Budget)
     clarification_rounds: int = 0
+    owner: str = ""  # the worker holding the lease, when claimed from a queue
     updated_at: datetime = Field(default_factory=_now)
+
+    @property
+    def external_key(self) -> str:
+        return self.objective.external.key if self.objective.external else ""
 
     def log(self, stage: Stage, message: str, **data: Any) -> None:
         self.events.append(PipelineEvent(stage=stage, message=message, data=data))
