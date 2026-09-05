@@ -12,9 +12,26 @@ Implementation: `packages/future_agents/sdd/`. Rulebook:
 `data/config/spec_kit/spec-kit-enterprise.yaml`. CLI: `scripts/spec_kit.py`.
 API: `/api/sdd/*`.
 
-**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 64 pages
+**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 66 pages
 covering every stage, pattern and code path, generated from the source itself
 (`python scripts/generate_handbook.py`). This page is the summary.
+
+![Delivery pipeline](diagrams/delivery-pipeline.png)
+
+Diagrams live in `docs/diagrams/` as SVG and PNG, generated from
+`packages/future_agents/sdd/handbook/figures.py`:
+
+```bash
+python scripts/generate_handbook.py --diagrams
+```
+
+| Figure | Shows |
+|---|---|
+| `delivery-pipeline` | the whole system, numbered step by step |
+| `deployment-topology` | what is a process, what is state, what is external |
+| `autonomy-loop` | ticket → queue → worker → agents → evidence |
+| `traceability-chain` | REQ → criterion → tasks → evidence → coverage |
+| `multi-repo-program` | routing, dependency waves, one merged question set |
 
 ---
 

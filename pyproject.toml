@@ -48,6 +48,9 @@ dev = [
     # inside Markdown, which turned a green branch red on an unrelated push.
     # Patches still flow; bumping the minor is a visible, reviewable change.
     "ruff~=0.16.0",
+    # Optional raster backend for `generate_handbook.py --diagrams`; the SVG
+    # export and the PDF itself need nothing beyond reportlab.
+    "rlPyCairo~=0.3",
 ]
 
 [tool.setuptools.packages.find]

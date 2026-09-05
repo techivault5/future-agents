@@ -79,6 +79,7 @@ directories to `workspaces`; npm cannot build them and it will only mislead.
 | An LLM provider | `apps/finance_advisor/agent/providers.py` | Take the key as a call argument; never store, log or return it |
 | Role/agent definition data | `data/agents/…` | Regenerate `agents_index.json` |
 | A guide or doc | `docs/` | Never at the repo root — root keeps only README and CLAUDE.md |
+| An architecture diagram | `packages/future_agents/sdd/handbook/figures.py` | Diagrams are code, not binaries: `--diagrams` regenerates `docs/diagrams/` and the PDF from the same source |
 | A browser asset | `web/static/` | — |
 | A one-off script | `scripts/` | Keep it runnable with no framework import if CI calls it |
 

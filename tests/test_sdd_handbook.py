@@ -79,3 +79,46 @@ def test_handbook_builds_a_real_pdf(tmp_path: Path) -> None:
     assert data.rstrip().endswith(b"%%EOF")
     pages = len(re.findall(rb"/Type\s*/Page[^s]", data))
     assert pages >= 30, f"only {pages} pages — the document lost content"
+
+
+# ── Diagrams ──────────────────────────────────────────────────────────────────
+
+
+def test_every_figure_builds_and_fits_the_page() -> None:
+
+    from future_agents.sdd.handbook.figures import FIGURES
+
+    frame = handbook.PAGE_W - 2 * handbook.MARGIN
+    for name, build in FIGURES.items():
+        figure = build()
+        drawing = figure.render()
+        assert drawing.width <= frame, f"{name} is wider than the text frame"
+        assert drawing.height > 0
+        assert figure.nodes, f"{name} has no boxes"
+
+
+def test_figures_export_as_svg(tmp_path: Path) -> None:
+    from future_agents.sdd.handbook.figures import export_all
+
+    written = export_all(tmp_path)
+    svgs = [p for p in written if p.suffix == ".svg"]
+
+    assert len(svgs) >= 4
+    for path in svgs:
+        assert path.read_text().lstrip().startswith("<?xml")
+
+
+def test_arrows_point_at_real_boxes() -> None:
+    """An arrow that ends nowhere is a diagram that lies about the flow."""
+    from future_agents.sdd.handbook.figures import FIGURES
+
+    for name, build in FIGURES.items():
+        figure = build()
+        anchors = {
+            (round(x, 2), round(y, 2))
+            for node in figure.nodes
+            for x, y in (node.anchor(side) for side in ("left", "right", "top", "bottom"))
+        }
+        for arrow in figure.arrows:
+            assert (round(arrow.end[0], 2), round(arrow.end[1], 2)) in anchors, name
+            assert (round(arrow.start[0], 2), round(arrow.start[1], 2)) in anchors, name

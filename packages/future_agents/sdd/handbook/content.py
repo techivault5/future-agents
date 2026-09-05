@@ -21,8 +21,6 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
@@ -40,6 +38,14 @@ from reportlab.platypus.tableofcontents import TableOfContents
 
 from future_agents.sdd import personas
 from future_agents.sdd.config import SpecKitConfig
+from future_agents.sdd.handbook.figures import (
+    autonomy_loop,
+    delivery_pipeline,
+    deployment_topology,
+    multi_repo_program,
+    traceability_chain,
+)
+from future_agents.sdd.handbook.fonts import FONTS, sanitize
 from future_agents.sdd.repos import languages
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
@@ -54,113 +60,6 @@ BAND = colors.HexColor("#eef2f6")
 
 PAGE_W, PAGE_H = A4
 MARGIN = 18 * mm
-
-# The core PDF fonts are Latin-1 only: an arrow or a box-drawing character comes
-# out as the wrong glyph. Prefer a Unicode TTF; when none is installed, fall back
-# to the core fonts and transliterate the diagrams to ASCII instead.
-_FONT_DIRS = (
-    Path("/usr/share/fonts/truetype/dejavu"),
-    Path("/usr/share/fonts/dejavu"),
-    Path("/usr/share/fonts/TTF"),
-    Path("/Library/Fonts"),
-    Path("C:/Windows/Fonts"),
-)
-_FONT_FILES = {
-    "sans": ("DejaVuSans.ttf",),
-    "sans_bold": ("DejaVuSans-Bold.ttf",),
-    "sans_italic": ("DejaVuSans-Oblique.ttf", "DejaVuSans-Italic.ttf"),
-    "mono": ("DejaVuSansMono.ttf",),
-}
-_COVERAGE_PROBE = "→▼►─│┌└✓✗≥…"
-
-_ASCII_MAP = {
-    "→": "->",
-    "←": "<-",
-    "▼": "v",
-    "▲": "^",
-    "►": ">",
-    "◄": "<",
-    "─": "-",
-    "│": "|",
-    "┌": "+",
-    "┐": "+",
-    "└": "+",
-    "┘": "+",
-    "├": "+",
-    "┤": "+",
-    "┬": "+",
-    "┴": "+",
-    "┼": "+",
-    "✓": "[ok]",
-    "✗": "[x]",
-    "≥": ">=",
-    "≤": "<=",
-    "≠": "!=",
-    "…": "...",
-    "‘": "'",
-    "’": "'",
-    "“": '"',
-    "”": '"',
-    "•": "*",
-}
-
-
-class _Fonts:
-    """Which font family the document is actually able to draw with."""
-
-    def __init__(self) -> None:
-        self.sans = "Helvetica"
-        self.sans_bold = "Helvetica-Bold"
-        self.sans_italic = "Helvetica-Oblique"
-        self.mono = "Courier"
-        self.unicode = False
-        self._register()
-
-    def _find(self, names: tuple[str, ...]) -> Optional[Path]:
-        for directory in _FONT_DIRS:
-            for name in names:
-                candidate = directory / name
-                if candidate.is_file():
-                    return candidate
-        return None
-
-    def _register(self) -> None:
-        found = {key: self._find(names) for key, names in _FONT_FILES.items()}
-        if not found["sans"] or not found["mono"]:
-            return
-        try:
-            pdfmetrics.registerFont(TTFont("SDDSans", str(found["sans"])))
-            pdfmetrics.registerFont(
-                TTFont("SDDSans-Bold", str(found["sans_bold"] or found["sans"]))
-            )
-            pdfmetrics.registerFont(
-                TTFont("SDDSans-Italic", str(found["sans_italic"] or found["sans"]))
-            )
-            pdfmetrics.registerFont(TTFont("SDDMono", str(found["mono"])))
-        except Exception:  # a broken font file must not fail the build
-            return
-        face = pdfmetrics.getFont("SDDMono").face
-        if any(ord(ch) not in face.charToGlyph for ch in _COVERAGE_PROBE):
-            return  # registered but incomplete — transliterate instead
-        pdfmetrics.registerFontFamily(
-            "SDDSans", normal="SDDSans", bold="SDDSans-Bold", italic="SDDSans-Italic"
-        )
-        self.sans, self.sans_bold = "SDDSans", "SDDSans-Bold"
-        self.sans_italic, self.mono = "SDDSans-Italic", "SDDMono"
-        self.unicode = True
-
-
-FONTS = _Fonts()
-
-
-def sanitize(value: str) -> str:
-    """Transliterate glyphs the active font cannot draw."""
-    if FONTS.unicode:
-        return value
-    for source, replacement in _ASCII_MAP.items():
-        value = value.replace(source, replacement)
-    return value
-
 
 # ── Source extraction ─────────────────────────────────────────────────────────
 
@@ -458,6 +357,15 @@ def callout(title: str, text: str) -> Table:
         )
     )
     return t
+
+
+def figure(build, note: str = "") -> list[Any]:
+    """A vector diagram plus its caption, kept on one page."""
+    drawing = build().render()
+    items: list[Any] = [Spacer(1, 2 * mm), drawing]
+    if note:
+        items.append(caption(note))
+    return [KeepTogether(items)]
 
 
 def flow(text: str) -> Preformatted:
@@ -798,7 +706,13 @@ def ch_architecture() -> list[Any]:
             widths=[1.05, 2.1, 2.0],
             mono_columns=(0, 2),
         ),
-        h2("3.2 Control flow"),
+        h2("3.2 The system, end to end"),
+        *figure(
+            delivery_pipeline,
+            "Every box is a module in packages/future_agents/sdd/; every number is a step a run "
+            "actually takes.",
+        ),
+        h2("3.3 Control flow, in code"),
         flow(
             "DeliveryPipeline.start(objective)\n"
             "  ├─ IntentClarifier.assess ............... score intent, produce questions\n"
@@ -816,7 +730,7 @@ def ch_architecture() -> list[Any]:
             "  ├─ DeliveryStage.package ................ accepted? assumptions? residuals?\n"
             "  └─ MemoryHub.harvest .................... one case, pitfalls first"
         ),
-        h2("3.3 Where a human enters"),
+        h2("3.4 Where a human enters"),
         p(
             "Exactly three places, and never in the middle of a stage: answering clarification "
             "questions, holding a clarification meeting, and reading the delivery record. The run "
@@ -951,6 +865,7 @@ def ch_artifacts() -> list[Any]:
             "requirements and criteria it serves, and QA measures coverage over those ids. "
             "Coverage becomes computable rather than asserted."
         ),
+        *figure(traceability_chain),
         flow(
             "REQ-002                     a requirement\n"
             "└── REQ-002-AC-001          an acceptance criterion (Given / When / Then)\n"
@@ -1613,6 +1528,11 @@ def ch_autonomy() -> list[Any]:
             "decides whether it passed."
         ),
         h2("12.1 The path a ticket takes"),
+        *figure(
+            autonomy_loop,
+            "Nobody is watching this run: the queue hands it out, the guards bound it, and the "
+            "evidence decides whether it passed.",
+        ),
         flow(
             "GitHub / Jira / Linear / Slack / transcript / webhook\n"
             "        │  adapter → Objective (+ ExternalRef, sanitised)\n"
@@ -2033,6 +1953,11 @@ def ch_master() -> list[Any]:
             "questions.",
         ),
         *listing("master", "MasterOrchestrator._merge_questions"),
+        *figure(
+            multi_repo_program,
+            "Questions are merged across repositories so a human answers once for the whole "
+            "program.",
+        ),
         h2("16.2 Registration and inventory"),
         *listing("master", "MasterOrchestrator.register"),
         flow(
@@ -2222,7 +2147,19 @@ def ch_operations() -> list[Any]:
             "print(state.delivery.accepted, state.delivery.unconfirmed_assumptions)\n"
             "save_state(state, '.spec-kit/runs')"
         ),
-        h2("18.4 In CI"),
+        h2("18.4 Deployment topology"),
+        p(
+            "Nothing here needs a database or a broker to start: the queue, the run store and the "
+            "audit log are files written atomically, and the control plane and workers hold no "
+            "state of their own. That is what makes the worker pool horizontally scalable — the "
+            "lease, not the process, owns a ticket."
+        ),
+        *figure(
+            deployment_topology,
+            "Swap the file-backed queue and store for a managed service when you outgrow them; "
+            "nothing above the store changes.",
+        ),
+        h2("18.5 In CI"),
         *code(
             "# .github/workflows/spec-kit.yml\n"
             "name: spec-kit\n"
@@ -2238,7 +2175,7 @@ def ch_operations() -> list[Any]:
             "      - run: python scripts/spec_kit.py detect --path .\n"
             "      - run: python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml"
         ),
-        h2("18.5 Intake from a meeting tool"),
+        h2("18.6 Intake from a meeting tool"),
         p(
             "The API is the integration point: post the transcript as "
             "<font face='Courier'>raw_inputs</font> with "
