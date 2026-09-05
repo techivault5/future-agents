@@ -11,6 +11,16 @@ if state.awaiting_human:
 from future_agents.sdd.clarify import IntentClarifier
 from future_agents.sdd.config import ConfigError, SpecKitConfig
 from future_agents.sdd.constitution import Constitution, PatchDecision, Severity, Violation
+from future_agents.sdd.languages import (
+    TOOLCHAINS,
+    LayoutEntry,
+    RepoProfile,
+    Toolchain,
+    detect_repo,
+    language_matrix,
+    toolchain_for,
+)
+from future_agents.sdd.master import MasterOrchestrator, ProgramRun, RepoTarget
 from future_agents.sdd.memory_hub import MemoryHub, RetrievalReport
 from future_agents.sdd.models import (
     AcceptanceCriterion,
@@ -37,6 +47,13 @@ from future_agents.sdd.models import (
     TaskUnit,
     WorkResult,
 )
+from future_agents.sdd.personas import (
+    DEFAULT_PERSONA,
+    PERSONAS,
+    Persona,
+    get_persona,
+    persona_catalog,
+)
 from future_agents.sdd.pipeline import DeliveryPipeline, load_state, save_state
 from future_agents.sdd.router import (
     AnthropicEngine,
@@ -45,6 +62,7 @@ from future_agents.sdd.router import (
     EngineRouter,
     NullEngine,
 )
+from future_agents.sdd.scaffold import RepoScaffolder, ScaffoldAction, ScaffoldPlan
 from future_agents.sdd.stages import (
     ArchitectStage,
     DeliveryStage,
@@ -65,29 +83,47 @@ __all__ = [
     "ClarificationResult",
     "ConfigError",
     "Constitution",
+    "DEFAULT_PERSONA",
     "Delivery",
     "DeliveryPipeline",
     "DeliveryStage",
+    "detect_repo",
+    "dry_run_backend",
     "EngineCall",
     "EngineRouter",
+    "get_persona",
     "IntakeSource",
     "IntentClarifier",
+    "language_matrix",
+    "LayoutEntry",
+    "load_state",
+    "MasterOrchestrator",
     "MeetingRequest",
     "MemoryCase",
     "MemoryHub",
     "NullEngine",
     "Objective",
-    "PMStage",
     "PatchDecision",
+    "Persona",
+    "persona_catalog",
+    "PERSONAS",
     "Plan",
+    "PMStage",
     "Priority",
+    "ProgramRun",
     "QAReport",
     "QAStage",
     "QAVerdict",
     "Question",
+    "RepoProfile",
+    "RepoScaffolder",
+    "RepoTarget",
     "Requirement",
     "RetrievalReport",
     "RunState",
+    "save_state",
+    "ScaffoldAction",
+    "ScaffoldPlan",
     "Severity",
     "Spec",
     "SpecKitConfig",
@@ -97,10 +133,10 @@ __all__ = [
     "TaskPlanner",
     "TaskStatus",
     "TaskUnit",
+    "Toolchain",
+    "toolchain_for",
+    "TOOLCHAINS",
     "Violation",
-    "WorkResult",
     "WorkerStage",
-    "dry_run_backend",
-    "load_state",
-    "save_state",
+    "WorkResult",
 ]

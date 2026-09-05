@@ -24,11 +24,17 @@ sys.path.insert(0, str(REPO_ROOT / "packages"))
 from future_agents.sdd import (  # noqa: E402
     DeliveryPipeline,
     IntakeSource,
+    MasterOrchestrator,
     MemoryHub,
     Objective,
+    RepoScaffolder,
     RunState,
     SpecKitConfig,
+    detect_repo,
+    get_persona,
+    language_matrix,
     load_state,
+    persona_catalog,
     save_state,
 )
 
@@ -37,7 +43,12 @@ DEFAULT_STATE_DIR = ".spec-kit/runs"
 
 def _pipeline(args: argparse.Namespace) -> DeliveryPipeline:
     config = SpecKitConfig.load(getattr(args, "config", None), root=REPO_ROOT)
-    return DeliveryPipeline(config, memory=MemoryHub(config.memory_hub, root=REPO_ROOT))
+    return DeliveryPipeline(
+        config,
+        memory=MemoryHub(config.memory_hub, root=REPO_ROOT),
+        persona=get_persona(getattr(args, "persona", None)),
+        repo_root=getattr(args, "repo", None),
+    )
 
 
 def _kv(pairs: list[str]) -> dict[str, str]:
@@ -171,10 +182,110 @@ def cmd_diff_gate(args: argparse.Namespace) -> int:
     return 0 if decision.allowed else 1
 
 
+def cmd_detect(args: argparse.Namespace) -> int:
+    profile = detect_repo(args.path)
+    chain = profile.toolchain()
+    print(f"{args.path}: {profile.summary()}")
+    print(f"  monorepo: {profile.monorepo}  ci: {profile.has_ci}  tests: {profile.has_tests}")
+    print(f"  toolchain: {chain.display_name}")
+    for name, command in chain.commands().items():
+        print(f"    {name:9s} {command}")
+    print(f"  dependency policy: {chain.pin_rule}")
+    missing = RepoScaffolder(get_persona(args.persona)).validate(args.path, profile)
+    print(f"  missing structure: {', '.join(missing) if missing else 'none'}")
+    return 0
+
+
+def cmd_scaffold(args: argparse.Namespace) -> int:
+    scaffolder = RepoScaffolder(get_persona(args.persona))
+    plan = scaffolder.plan(
+        args.path, language=args.language, name=args.name or "", description=args.description or ""
+    )
+    print(plan.summary())
+    for action in plan.actions:
+        mark = "+" if action.action == "create" else "="
+        print(f"  {mark} {action.path:52s} {action.purpose}")
+    written = scaffolder.apply(plan, dry_run=not args.write)
+    verb = "wrote" if args.write else "would write"
+    print(f"\n{verb} {len(written)} entries")
+    if not args.write:
+        print("re-run with --write to create them")
+    return 0
+
+
+def cmd_program(args: argparse.Namespace) -> int:
+    config = SpecKitConfig.load(args.config, root=REPO_ROOT)
+    orchestrator = MasterOrchestrator(
+        config,
+        memory=MemoryHub(config.memory_hub, root=REPO_ROOT),
+        persona=get_persona(args.persona),
+    )
+    for spec in args.repo:
+        name, _, path = spec.partition("=")
+        if not path:
+            raise SystemExit(f"--repo expects name=path, got: {spec}")
+        depends = [d for d in (args.depends or []) if d.startswith(f"{name}:")]
+        orchestrator.register(
+            name,
+            path,
+            keywords=[name, *name.split("-")],
+            depends_on=[d.split(":", 1)[1] for d in depends],
+        )
+    for row in orchestrator.inventory():
+        missing = row["missing_structure"] or "none"
+        print(f"  {row['name']:22s} {row['language']:12s} missing: {missing}")
+
+    raw_inputs = [Path(p).read_text() for p in args.input or []]
+    objective = Objective(
+        statement=args.statement,
+        context=args.context or "",
+        source=IntakeSource(args.source),
+        submitted_by=args.by,
+        raw_inputs=raw_inputs,
+        constraints=args.constraint or [],
+        deadline=args.deadline,
+    )
+    program = orchestrator.start(objective)
+    print(f"\nprogram {program.id} — waves: {program.waves}")
+    for repo, state in program.runs.items():
+        print(f"  {repo:22s} {state.stage.value}")
+    for repo, why in program.skipped.items():
+        print(f"  {repo:22s} skipped — {why}")
+    if program.questions:
+        print("\nopen questions (answer once for the whole program):")
+        for question in program.questions:
+            print(f"  {'!' if question.blocking else '·'} {question.id}  {question.text}")
+    if program.meeting:
+        print(f"\nmeeting requested: {program.meeting.title}")
+    for blocker in program.blockers():
+        print(f"  blocker: {blocker}")
+    return 0
+
+
+def cmd_personas(_args: argparse.Namespace) -> int:
+    for persona in persona_catalog():
+        print(f"{persona['id']:24s} {persona['years_experience']:>3}y  {persona['title']}")
+        print(f"  {persona['summary']}")
+        print(f"  gates: {', '.join(persona['gates'])}")
+        print(f"  heuristics: {persona['heuristics']}")
+    return 0
+
+
+def cmd_languages(_args: argparse.Namespace) -> int:
+    for row in language_matrix():
+        print(f"{row['language']:16s} test: {row['test']:38s} pin: {row['pin_style']}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Spec-driven delivery pipeline")
     parser.add_argument("--config", help="path to spec-kit-enterprise.yaml")
     parser.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
+    parser.add_argument(
+        "--persona",
+        default=None,
+        help="seniority profile driving the run (see `personas`)",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     run = sub.add_parser("run", help="intake an objective and drive it as far as it can go")
@@ -185,7 +296,38 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--input", action="append", help="file of raw intake (transcript, ticket)")
     run.add_argument("--constraint", action="append")
     run.add_argument("--deadline")
+    run.add_argument("--repo", help="repo root, so tasks use its toolchain and structure")
     run.set_defaults(func=cmd_run)
+
+    detect = sub.add_parser("detect", help="profile a repository: language, toolchain, gaps")
+    detect.add_argument("--path", default=".")
+    detect.set_defaults(func=cmd_detect)
+
+    scaffold = sub.add_parser("scaffold", help="create the structure a repo is missing")
+    scaffold.add_argument("--path", default=".")
+    scaffold.add_argument("--language", help="override detection")
+    scaffold.add_argument("--name")
+    scaffold.add_argument("--description")
+    scaffold.add_argument("--write", action="store_true", help="actually create the entries")
+    scaffold.set_defaults(func=cmd_scaffold)
+
+    program = sub.add_parser("program", help="run one objective across many repositories")
+    program.add_argument("--repo", action="append", required=True, metavar="name=path")
+    program.add_argument("--depends", action="append", metavar="name:dependency")
+    program.add_argument("--statement", required=True)
+    program.add_argument("--context", default="")
+    program.add_argument("--source", default="chat", choices=[s.value for s in IntakeSource])
+    program.add_argument("--by", default="unknown")
+    program.add_argument("--input", action="append")
+    program.add_argument("--constraint", action="append")
+    program.add_argument("--deadline")
+    program.set_defaults(func=cmd_program)
+
+    personas = sub.add_parser("personas", help="list the seniority profiles")
+    personas.set_defaults(func=cmd_personas)
+
+    languages = sub.add_parser("languages", help="list the supported toolchains")
+    languages.set_defaults(func=cmd_languages)
 
     answer = sub.add_parser("answer", help="answer open questions and resume")
     answer.add_argument("--state", required=True)

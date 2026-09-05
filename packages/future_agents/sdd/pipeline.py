@@ -16,6 +16,7 @@ from typing import Callable, Optional
 from future_agents.sdd.clarify import IntentClarifier
 from future_agents.sdd.config import SpecKitConfig
 from future_agents.sdd.constitution import Severity, Violation
+from future_agents.sdd.languages import RepoProfile, Toolchain, detect_repo
 from future_agents.sdd.memory_hub import MemoryHub
 from future_agents.sdd.models import (
     ClarificationOutcome,
@@ -24,6 +25,7 @@ from future_agents.sdd.models import (
     RunState,
     Stage,
 )
+from future_agents.sdd.personas import DEFAULT_PERSONA, Persona
 from future_agents.sdd.router import EngineRouter
 from future_agents.sdd.stages import (
     ArchitectStage,
@@ -48,17 +50,29 @@ class DeliveryPipeline:
         router: Optional[EngineRouter] = None,
         backend: Optional[WorkerBackend] = None,
         on_event: Optional[EventSink] = None,
+        persona: Optional[Persona] = None,
+        repo_root: Optional[str] = None,
+        profile: Optional[RepoProfile] = None,
     ) -> None:
-        self.config = config or SpecKitConfig()
+        base = config or SpecKitConfig()
+        self.persona = persona or DEFAULT_PERSONA
+        # The persona tunes the rulebook it works under: how hard it interrogates
+        # intent, which gates are mandatory, what coverage it accepts.
+        self.config = self.persona.apply_to_config(base)
         self.router = router or EngineRouter(self.config)
         self.memory = memory or MemoryHub(self.config.memory_hub)
         self.constitution = self.config.constitution()
         self.on_event = on_event
+        self.repo_root = repo_root
+        self.profile = profile or (detect_repo(repo_root) if repo_root else None)
+        self.toolchain: Optional[Toolchain] = self.profile.toolchain() if self.profile else None
 
         self.clarifier = IntentClarifier(self.config)
         self.pm = PMStage(self.config, self.router)
-        self.architect = ArchitectStage(self.config, self.router)
-        self.planner = TaskPlanner(self.config, self.router)
+        self.architect = ArchitectStage(self.config, self.router, self.persona, self.toolchain)
+        self.planner = TaskPlanner(
+            self.config, self.router, self.persona, self.toolchain, self.repo_root
+        )
         self.worker = WorkerStage(backend)
         self.qa = QAStage(self.config)
         self.delivery = DeliveryStage()
@@ -67,7 +81,13 @@ class DeliveryPipeline:
 
     def start(self, objective: Objective) -> RunState:
         state = RunState(objective=objective)
-        self._log(state, Stage.INTAKE, f"objective accepted from {objective.source.value}")
+        self._log(
+            state,
+            Stage.INTAKE,
+            f"objective accepted from {objective.source.value}",
+            persona=self.persona.id,
+            toolchain=self.toolchain.language if self.toolchain else None,
+        )
         return self._clarify(state)
 
     def answer(

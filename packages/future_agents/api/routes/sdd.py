@@ -11,6 +11,13 @@ POST   /api/sdd/runs/{run_id}/meeting      Record a clarification meeting and re
 GET    /api/sdd/cases                      Browse / search the memory hub
 GET    /api/sdd/constitution               The constitution as markdown (MCP resource)
 POST   /api/sdd/cicd/diff-gate             Check a pipeline change against the golden template
+GET    /api/sdd/personas                   Seniority profiles the pipeline can run as
+GET    /api/sdd/languages                  Supported toolchains and their commands
+POST   /api/sdd/repos/detect               Profile a repository (language, toolchain, gaps)
+POST   /api/sdd/repos/scaffold             Plan (or write) the structure a repo is missing
+POST   /api/sdd/programs                   Run one objective across many repositories
+POST   /api/sdd/programs/{id}/answers      Answer the merged question set and resume
+POST   /api/sdd/programs/{id}/meeting      Record one meeting for the whole program
 """
 
 from __future__ import annotations
@@ -25,10 +32,17 @@ from pydantic import BaseModel
 from future_agents.sdd import (
     DeliveryPipeline,
     IntakeSource,
+    MasterOrchestrator,
     MemoryHub,
     Objective,
+    ProgramRun,
+    RepoScaffolder,
     RunState,
     SpecKitConfig,
+    detect_repo,
+    get_persona,
+    language_matrix,
+    persona_catalog,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,6 +56,7 @@ _pipeline = DeliveryPipeline(_config, memory=_memory)
 # Runs live in memory: a run is a conversation, not a record of truth. Persist
 # with future_agents.sdd.save_state when a run must outlive the process.
 _RUNS: dict[str, RunState] = {}
+_PROGRAMS: dict[str, tuple[MasterOrchestrator, ProgramRun]] = {}
 
 
 class ObjectiveRequest(BaseModel):
@@ -67,6 +82,28 @@ class MeetingRequestBody(BaseModel):
 class DiffGateRequest(BaseModel):
     proposed: str
     golden: Optional[str] = None
+
+
+class RepoRequest(BaseModel):
+    path: str
+    language: Optional[str] = None
+    name: str = ""
+    description: str = ""
+    persona: Optional[str] = None
+    write: bool = False
+
+
+class ProgramRepo(BaseModel):
+    name: str
+    path: str
+    keywords: list[str] = []
+    depends_on: list[str] = []
+    persona: Optional[str] = None
+
+
+class ProgramRequest(ObjectiveRequest):
+    repos: list[ProgramRepo]
+    persona: Optional[str] = None
 
 
 def _summary(state: RunState) -> dict:
@@ -175,3 +212,80 @@ def post_diff_gate(body: DiffGateRequest) -> dict:
         raise HTTPException(status_code=400, detail="no golden template configured")
     decision = _config.constitution().diff_gate(golden, body.proposed)
     return decision.model_dump()
+
+
+@router.get("/api/sdd/personas", summary="Seniority profiles the pipeline can run as")
+def get_personas() -> dict:
+    return {"personas": persona_catalog()}
+
+
+@router.get("/api/sdd/languages", summary="Supported toolchains and their commands")
+def get_languages() -> dict:
+    return {"languages": language_matrix()}
+
+
+@router.post("/api/sdd/repos/detect", summary="Profile a repository")
+def post_detect(body: RepoRequest) -> dict:
+    profile = detect_repo(body.path)
+    chain = profile.toolchain()
+    scaffolder = RepoScaffolder(get_persona(body.persona))
+    return {
+        "profile": profile.model_dump(mode="json"),
+        "toolchain": chain.model_dump(mode="json", exclude={"layout"}),
+        "commands": chain.commands(),
+        "missing_structure": scaffolder.validate(body.path, profile),
+    }
+
+
+@router.post("/api/sdd/repos/scaffold", summary="Plan or write the missing repo structure")
+def post_scaffold(body: RepoRequest) -> dict:
+    scaffolder = RepoScaffolder(get_persona(body.persona))
+    plan = scaffolder.plan(
+        body.path, language=body.language, name=body.name, description=body.description
+    )
+    written = scaffolder.apply(plan, dry_run=not body.write)
+    return {
+        "summary": plan.summary(),
+        "written" if body.write else "would_write": written,
+        "actions": [a.model_dump(mode="json", exclude={"content"}) for a in plan.actions],
+    }
+
+
+@router.post("/api/sdd/programs", summary="Run one objective across many repositories")
+def post_program(body: ProgramRequest) -> dict:
+    orchestrator = MasterOrchestrator(_config, memory=_memory, persona=get_persona(body.persona))
+    for repo in body.repos:
+        orchestrator.register(
+            repo.name,
+            repo.path,
+            persona_id=repo.persona,
+            keywords=repo.keywords or [repo.name],
+            depends_on=repo.depends_on,
+        )
+    objective = Objective(**body.model_dump(exclude={"repos", "persona"}))
+    program = orchestrator.start(objective)
+    _PROGRAMS[program.id] = (orchestrator, program)
+    return program.report()
+
+
+def _program(program_id: str) -> tuple[MasterOrchestrator, ProgramRun]:
+    entry = _PROGRAMS.get(program_id)
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"program {program_id} not found")
+    return entry
+
+
+@router.post("/api/sdd/programs/{program_id}/answers", summary="Answer the merged question set")
+def post_program_answers(program_id: str, body: AnswerRequest) -> dict:
+    orchestrator, program = _program(program_id)
+    program = orchestrator.answer(program, body.answers, answered_by=body.answered_by)
+    _PROGRAMS[program_id] = (orchestrator, program)
+    return program.report()
+
+
+@router.post("/api/sdd/programs/{program_id}/meeting", summary="Record one program meeting")
+def post_program_meeting(program_id: str, body: MeetingRequestBody) -> dict:
+    orchestrator, program = _program(program_id)
+    program = orchestrator.hold_meeting(program, body.notes, body.answers)
+    _PROGRAMS[program_id] = (orchestrator, program)
+    return program.report()

@@ -13,6 +13,7 @@ import time
 from typing import Callable, Optional
 
 from future_agents.sdd.config import SpecKitConfig
+from future_agents.sdd.languages import Toolchain
 from future_agents.sdd.memory_hub import RetrievalReport
 from future_agents.sdd.models import (
     AcceptanceCriterion,
@@ -36,7 +37,9 @@ from future_agents.sdd.models import (
     TaskUnit,
     WorkResult,
 )
+from future_agents.sdd.personas import DEFAULT_PERSONA, Persona
 from future_agents.sdd.router import EngineCall, EngineRouter
+from future_agents.sdd.scaffold import RepoScaffolder
 
 _ACTION = re.compile(
     r"\b(must|shall|should|needs? (?:to|a|the)?|we (?:need|want)|require[sd]?|"
@@ -163,10 +166,16 @@ class ArchitectStage:
     role = "architect_agent"
 
     def __init__(
-        self, config: Optional[SpecKitConfig] = None, router: Optional[EngineRouter] = None
+        self,
+        config: Optional[SpecKitConfig] = None,
+        router: Optional[EngineRouter] = None,
+        persona: Optional[Persona] = None,
+        toolchain: Optional[Toolchain] = None,
     ) -> None:
         self.config = config or SpecKitConfig()
         self.router = router or EngineRouter(self.config)
+        self.persona = persona or DEFAULT_PERSONA
+        self.toolchain = toolchain
 
     def draft(self, spec: Spec, memory: Optional[RetrievalReport] = None) -> Plan:
         components = _components(spec)
@@ -204,13 +213,18 @@ class ArchitectStage:
                 )
             )
 
+        # Experience enters the plan as risks, not as advice in a prompt.
+        risks.extend(self.persona.risks_for(spec))
+
         high = sum(1 for r in risks if r.severity == "high")
         architecture = self._architecture(spec, components)
         return Plan(
             spec_id=spec.id,
             spec_hash=spec.content_hash(),
             architecture=architecture,
-            runtime_stack=self.config.governance.runtime_stack,
+            runtime_stack=self.toolchain.display_name
+            if self.toolchain
+            else self.config.governance.runtime_stack,
             components=components,
             data_contracts=[
                 f"{c.name}: inputs/outputs defined by {', '.join(c.requirement_ids)}"
@@ -246,6 +260,8 @@ class ArchitectStage:
     def _test_strategy(self, spec: Spec) -> str:
         qa = self.config.qa
         bits = [f"{len(spec.criteria())} acceptance criteria verified as Given/When/Then"]
+        if self.toolchain and self.toolchain.test:
+            bits.append(f"run with `{self.toolchain.test}`")
         if qa.enforce_aaa:
             bits.append("tests structured Arrange-Act-Assert")
         if qa.ephemeral_environment:
@@ -260,10 +276,18 @@ class TaskPlanner:
     role = "planner_agent"
 
     def __init__(
-        self, config: Optional[SpecKitConfig] = None, router: Optional[EngineRouter] = None
+        self,
+        config: Optional[SpecKitConfig] = None,
+        router: Optional[EngineRouter] = None,
+        persona: Optional[Persona] = None,
+        toolchain: Optional[Toolchain] = None,
+        repo_root: Optional[str] = None,
     ) -> None:
         self.config = config or SpecKitConfig()
         self.router = router or EngineRouter(self.config)
+        self.persona = persona or DEFAULT_PERSONA
+        self.toolchain = toolchain
+        self.repo_root = repo_root
 
     def build(self, plan: Plan, spec: Spec) -> TaskGraph:
         tasks: list[TaskUnit] = []
@@ -301,7 +325,8 @@ class TaskPlanner:
                         id=test_id,
                         title=f"Test {req_id}: {_short(requirement.statement)}",
                         description="\n".join(
-                            ac.render() for ac in requirement.acceptance_criteria
+                            [ac.render() for ac in requirement.acceptance_criteria]
+                            + ([f"Run: {self.toolchain.test}"] if self.toolchain else [])
                         ),
                         kind=TaskKind.TEST,
                         requirement_ids=[req_id],
@@ -327,6 +352,21 @@ class TaskPlanner:
                 )
                 code_ids.append(impl_id)
 
+        missing = RepoScaffolder(self.persona).validate(self.repo_root) if self.repo_root else []
+        if missing:
+            structure_id = next_id()
+            tasks.append(
+                TaskUnit(
+                    id=structure_id,
+                    title="Create the missing repository structure",
+                    description="Missing required entries: " + ", ".join(missing),
+                    kind=TaskKind.INFRA,
+                    requirement_ids=[r.id for r in spec.requirements],
+                    engine=self.router.decide("worker_agent", "repository structure").engine,
+                )
+            )
+            code_ids.append(structure_id)
+
         review_id = next_id()
         tasks.append(
             TaskUnit(
@@ -339,14 +379,20 @@ class TaskPlanner:
                 engine=self.router.decide("reviewer_agent", "review").engine,
             )
         )
+        gate_tasks = self.persona.gate_tasks(spec, depends_on=[review_id], start_index=counter)
+        for gate in gate_tasks:
+            gate.engine = self.router.decide("reviewer_agent", gate.title).engine
+            counter += 1
+        tasks.extend(gate_tasks)
+
         tasks.append(
             TaskUnit(
                 id=next_id(),
                 title="Document the delivered behaviour",
-                description="Update docs and the delivery record.",
+                description="Update docs, the runbook and the delivery record.",
                 kind=TaskKind.DOC,
                 requirement_ids=[r.id for r in spec.requirements],
-                depends_on=[review_id],
+                depends_on=[review_id] + [g.id for g in gate_tasks],
                 engine=self.router.decide("doc_agent", "documentation").engine,
             )
         )
