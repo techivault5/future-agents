@@ -64,6 +64,7 @@ directories to `workspaces`; npm cannot build them and it will only mislead.
 |---|---|---|
 | A new agent type | `packages/future_agents/agents/<name>_agent.py` | Subclass `BaseAgent`; register in `AgentRegistry`; add tests |
 | An agentic pattern | `packages/future_agents/patterns/` | Export from the package `__init__` |
+| A spec-driven delivery stage or gate | `packages/future_agents/sdd/` | Stages stay deterministic without an LLM; an engine may only enrich free text. Rules go in `data/config/spec_kit/spec-kit-enterprise.yaml`, never inline |
 | A scheduled worker | `packages/future_agents/workers/` + entrypoint in `scripts/workers/` | Entrypoints must not import the framework — GitHub Actions runs them bare |
 | A guardrail rule | `packages/guardrails/` | Add a case to `tests/test_guardrails.py` |
 | A user-facing application | `apps/<app_name>/` | Own README; add to `include` in `pyproject.toml` |

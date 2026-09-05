@@ -1,0 +1,123 @@
+# Spec Kit — the single rulebook for automated delivery.
+# Loaded by future_agents.sdd.SpecKitConfig.load(); exposed to agents over MCP.
+# Values may reference the environment as ${VAR} or ${VAR:-default}.
+# Never write a literal credential here — the loader rejects it.
+
+version: "1.0"
+
+project:
+  name: "enterprise-automation-core"
+  description: "Objective in, verified delivery out, lesson recorded."
+  owner: "platform-engineering"
+
+governance:
+  runtime_stack: "Python 3.11+, FastAPI, Pydantic v2"
+  banned_practices:
+    - "No direct database connections from API route handlers."
+    - "No secrets in code — environment variables or a secrets manager only."
+    - "No exact version pins without written justification."
+  required_practices:
+    - "Every MUST requirement carries at least one test task."
+    - "Every acceptance criterion is written Given/When/Then."
+    - "Every assumption is recorded and surfaced at delivery."
+  security_boundaries:
+    - "Agents never hold long-lived production credentials."
+    - "Outbound calls carry no user financial or personal context."
+  # Free-text matches here force a named human approver before ship.
+  escalation_triggers:
+    - "auth"
+    - "payment"
+    - "pii"
+    - "phi"
+    - "migration"
+    - "production credential"
+  # Implementation vocabulary that must not appear in a functional spec.
+  stack_terms:
+    - "postgres"
+    - "kubernetes"
+    - "react"
+    - "kafka"
+    - "redis"
+    - "lambda"
+  enforce_test_parity: true
+  enforce_spec_purity: true
+
+agents:
+  mcp_gateway_uri: "${SPEC_KIT_MCP_GATEWAY:-mcp://internal-devops-gateway:8080}"
+  default_engine: "claude-opus-5"
+  roles:
+    pm_agent:
+      engine: "claude-sonnet-5"
+      purpose: "Turn transcripts and tickets into a traceable spec.md"
+      fallback: "claude-opus-5"
+    architect_agent:
+      engine: "claude-opus-5"
+      purpose: "Draft plan.md with past pitfalls injected as constraints"
+    planner_agent:
+      engine: "claude-sonnet-5"
+      purpose: "Expand the plan into a test-first task DAG"
+    worker_agent:
+      engine: "claude-sonnet-5"
+      purpose: "Execute tasks.md and open pull requests"
+      fallback: "claude-opus-5"
+    qa_agent:
+      engine: "claude-sonnet-5"
+      purpose: "Provision, verify against acceptance criteria, tear down, report"
+    reviewer_agent:
+      engine: "claude-opus-5"
+      purpose: "Guardrails and constitution review before delivery"
+    doc_agent:
+      engine: "claude-haiku-4-5-20251001"
+      purpose: "Update docs and the delivery record"
+    harvester_agent:
+      engine: "claude-haiku-4-5-20251001"
+      purpose: "Compress a finished run into a memory case"
+  # Keyword in the task intent → engine override, checked before the role default.
+  intent_routes:
+    pipeline: "claude-opus-5"
+    terraform: "claude-opus-5"
+    migration: "claude-opus-5"
+
+memory_hub:
+  enabled: true
+  case_studies_path: "docs/memory/cases"
+  retrieval:
+    max_context_injection: 3
+    min_score: 0.15
+    prefer_failures: true
+
+clarification:
+  ready_threshold: 0.75
+  meeting_threshold: 0.45
+  max_rounds: 2
+  max_questions_per_round: 6
+  meeting_duration_minutes: 30
+  auto_assume_low_risk: true
+  meeting_attendees:
+    - "requester"
+    - "delivery-lead"
+
+cicd:
+  enforce_golden_pattern: true
+  golden_template_uri: "internal://cicd/templates/golden-microservice.yaml"
+  golden_template_path: "data/config/spec_kit/golden-microservice.yaml"
+  rules:
+    - "Never rewrite the base workflow topology. Append steps only."
+    - "Job names, needs edges and runners are load-bearing — patch around them."
+
+qa:
+  enforce_bdd: true
+  enforce_aaa: true
+  acceptance_criteria_rules:
+    - "Every criterion is Given/When/Then."
+    - "Every test body follows Arrange-Act-Assert."
+  # Fences: QA never fails a run over these, and never invents them as findings.
+  out_of_scope:
+    - "load testing"
+    - "penetration testing"
+    - "third-party vendor uptime"
+  required_coverage: 1.0
+  ephemeral_environment: true
+  communication:
+    verbosity: "summary_only"
+    max_summary_lines: 8

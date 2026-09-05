@@ -1,0 +1,32 @@
+# Golden CI/CD pattern. Agents patch this shape; they never rewrite it.
+# The diff gate (Constitution.diff_gate) rejects any change that removes a
+# topology line — jobs, needs, runs-on, uses, steps, strategy.
+name: microservice
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - run: ruff check .
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - run: pytest -q
+
+  guardrails:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python packages/guardrails/guardrails_engine.py . --mode block
