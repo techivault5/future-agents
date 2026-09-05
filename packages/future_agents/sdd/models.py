@@ -200,6 +200,7 @@ class Spec(Hashable):
     open_questions: list[Question] = Field(default_factory=list)
     glossary: dict[str, str] = Field(default_factory=dict)
     success_metrics: list[str] = Field(default_factory=list)
+    context_notes: list[str] = Field(default_factory=list)  # what the repo already does
     confidence: float = 0.0
     created_at: datetime = Field(default_factory=_now)
 
@@ -208,6 +209,78 @@ class Spec(Hashable):
 
     def requirement(self, req_id: str) -> Optional[Requirement]:
         return next((r for r in self.requirements if r.id == req_id), None)
+
+
+# ── Repository knowledge ──────────────────────────────────────────────────────
+
+
+class RepoMatch(BaseModel):
+    """Something that already exists in the repository, and where."""
+
+    path: str
+    symbol: str = ""
+    kind: str = ""
+    score: float = 0.0
+    excerpt: str = ""
+    reason: str = ""
+
+    def render(self) -> str:
+        target = f"{self.path}::{self.symbol}" if self.symbol else self.path
+        return f"{target} ({self.reason})"
+
+
+class PlacementOption(BaseModel):
+    """One way to satisfy a requirement, with the price of taking it."""
+
+    path: str
+    approach: str  # extend | new-module | new-package | new-app | config | docs
+    rationale: str = ""
+    tradeoff: str = ""
+    score: float = 0.0
+
+
+class ForbiddenZone(BaseModel):
+    """Somewhere the change must not go, and the rule that says so."""
+
+    path: str
+    reason: str
+    source: str = ""  # the file the rule came from
+
+
+class PlacementDecision(BaseModel):
+    """Where a requirement's code, tests and docs go — and where they may not."""
+
+    requirement_id: str = ""
+    target_path: str = ""
+    test_path: str = ""
+    docs_path: str = ""
+    approach: str = "new-module"
+    rationale: str = ""
+    confidence: float = 0.0
+    alternatives: list[PlacementOption] = Field(default_factory=list)
+    forbidden: list[ForbiddenZone] = Field(default_factory=list)
+    reuse: list[RepoMatch] = Field(default_factory=list)
+    conventions: list[str] = Field(default_factory=list)  # rules that decided it
+
+    def summary(self) -> str:
+        where = self.target_path or "unknown"
+        alt = (
+            f"; alternatives: {', '.join(a.path for a in self.alternatives)}"
+            if self.alternatives
+            else ""
+        )
+        return f"{self.requirement_id or 'change'} → {where} ({self.approach}){alt}"
+
+
+class RepoContext(BaseModel):
+    """What the repository already knows that bears on this piece of work."""
+
+    query: str
+    matches: list[RepoMatch] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+    def render(self, limit: int = 5) -> list[str]:
+        return [m.render() for m in self.matches[:limit]]
 
 
 # ── Plan ──────────────────────────────────────────────────────────────────────
@@ -219,6 +292,7 @@ class Component(BaseModel):
     requirement_ids: list[str] = Field(default_factory=list)
     interfaces: list[str] = Field(default_factory=list)
     depends_on: list[str] = Field(default_factory=list)
+    target_path: str = ""  # where this component's code goes, from repo knowledge
 
 
 class Risk(BaseModel):
@@ -243,8 +317,13 @@ class Plan(Hashable):
     risks: list[Risk] = Field(default_factory=list)
     historical_warnings: list[str] = Field(default_factory=list)
     memory_case_ids: list[str] = Field(default_factory=list)
+    placements: list[PlacementDecision] = Field(default_factory=list)
+    reuse_candidates: list[RepoMatch] = Field(default_factory=list)
     confidence: float = 0.0
     created_at: datetime = Field(default_factory=_now)
+
+    def placement_for(self, requirement_id: str) -> Optional[PlacementDecision]:
+        return next((p for p in self.placements if p.requirement_id == requirement_id), None)
 
 
 # ── Tasks ─────────────────────────────────────────────────────────────────────

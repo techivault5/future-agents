@@ -60,7 +60,8 @@ def test_ascii_fallback_covers_the_diagram_glyphs() -> None:
 
 
 def test_stats_reflect_the_live_system() -> None:
-    from future_agents.sdd import languages, personas
+    from future_agents.sdd import personas
+    from future_agents.sdd.repos import languages
 
     stats = handbook.handbook_stats()
     assert stats["chapters"] == len(handbook.CHAPTERS)

@@ -19,7 +19,6 @@ from typing import Callable, Iterable, Optional
 from pydantic import BaseModel, Field
 
 from future_agents.sdd.config import SpecKitConfig
-from future_agents.sdd.languages import RepoProfile, detect_repo
 from future_agents.sdd.memory_hub import MemoryHub
 from future_agents.sdd.models import (
     ClarificationOutcome,
@@ -32,7 +31,8 @@ from future_agents.sdd.models import (
 )
 from future_agents.sdd.personas import DEFAULT_PERSONA, Persona, get_persona
 from future_agents.sdd.pipeline import DeliveryPipeline
-from future_agents.sdd.scaffold import RepoScaffolder, ScaffoldPlan
+from future_agents.sdd.repos.languages import RepoProfile, detect_repo
+from future_agents.sdd.repos.scaffold import RepoScaffolder, ScaffoldPlan
 from future_agents.sdd.stages import WorkerBackend
 
 

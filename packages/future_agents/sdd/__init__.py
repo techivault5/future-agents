@@ -11,14 +11,13 @@ if state.awaiting_human:
 from future_agents.sdd.clarify import IntentClarifier
 from future_agents.sdd.config import ConfigError, SpecKitConfig
 from future_agents.sdd.constitution import Constitution, PatchDecision, Severity, Violation
-from future_agents.sdd.languages import (
-    TOOLCHAINS,
-    LayoutEntry,
-    RepoProfile,
-    Toolchain,
-    detect_repo,
-    language_matrix,
-    toolchain_for,
+from future_agents.sdd.knowledge import (
+    Conventions,
+    PlacementAdvisor,
+    PlacementRule,
+    Prohibition,
+    RepoIndex,
+    RepoKnowledge,
 )
 from future_agents.sdd.master import MasterOrchestrator, ProgramRun, RepoTarget
 from future_agents.sdd.memory_hub import MemoryHub, RetrievalReport
@@ -28,15 +27,20 @@ from future_agents.sdd.models import (
     ClarificationOutcome,
     ClarificationResult,
     Delivery,
+    ForbiddenZone,
     IntakeSource,
     MeetingRequest,
     MemoryCase,
     Objective,
+    PlacementDecision,
+    PlacementOption,
     Plan,
     Priority,
     QAReport,
     QAVerdict,
     Question,
+    RepoContext,
+    RepoMatch,
     Requirement,
     RunState,
     Spec,
@@ -55,6 +59,16 @@ from future_agents.sdd.personas import (
     persona_catalog,
 )
 from future_agents.sdd.pipeline import DeliveryPipeline, load_state, save_state
+from future_agents.sdd.repos.languages import (
+    TOOLCHAINS,
+    LayoutEntry,
+    RepoProfile,
+    Toolchain,
+    detect_repo,
+    language_matrix,
+    toolchain_for,
+)
+from future_agents.sdd.repos.scaffold import RepoScaffolder, ScaffoldAction, ScaffoldPlan
 from future_agents.sdd.router import (
     AnthropicEngine,
     CallableEngine,
@@ -62,7 +76,6 @@ from future_agents.sdd.router import (
     EngineRouter,
     NullEngine,
 )
-from future_agents.sdd.scaffold import RepoScaffolder, ScaffoldAction, ScaffoldPlan
 from future_agents.sdd.stages import (
     ArchitectStage,
     DeliveryStage,
@@ -83,6 +96,7 @@ __all__ = [
     "ClarificationResult",
     "ConfigError",
     "Constitution",
+    "Conventions",
     "DEFAULT_PERSONA",
     "Delivery",
     "DeliveryPipeline",
@@ -91,6 +105,7 @@ __all__ = [
     "dry_run_backend",
     "EngineCall",
     "EngineRouter",
+    "ForbiddenZone",
     "get_persona",
     "IntakeSource",
     "IntentClarifier",
@@ -107,14 +122,23 @@ __all__ = [
     "Persona",
     "persona_catalog",
     "PERSONAS",
+    "PlacementAdvisor",
+    "PlacementDecision",
+    "PlacementOption",
+    "PlacementRule",
     "Plan",
     "PMStage",
     "Priority",
     "ProgramRun",
+    "Prohibition",
     "QAReport",
     "QAStage",
     "QAVerdict",
     "Question",
+    "RepoContext",
+    "RepoIndex",
+    "RepoKnowledge",
+    "RepoMatch",
     "RepoProfile",
     "RepoScaffolder",
     "RepoTarget",

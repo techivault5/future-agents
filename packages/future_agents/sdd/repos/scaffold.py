@@ -16,8 +16,14 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from future_agents.sdd.languages import GENERIC, RepoProfile, Toolchain, detect_repo, toolchain_for
 from future_agents.sdd.personas import DEFAULT_PERSONA, Persona
+from future_agents.sdd.repos.languages import (
+    GENERIC,
+    RepoProfile,
+    Toolchain,
+    detect_repo,
+    toolchain_for,
+)
 
 # Never created by scaffolding, in any language, for any reason.
 FORBIDDEN = (

@@ -38,10 +38,11 @@ from reportlab.platypus import (
 )
 from reportlab.platypus.tableofcontents import TableOfContents
 
-from future_agents.sdd import languages, personas
+from future_agents.sdd import personas
 from future_agents.sdd.config import SpecKitConfig
+from future_agents.sdd.repos import languages
 
-PACKAGE_ROOT = Path(__file__).resolve().parent
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PACKAGE_ROOT.parents[2]
 
 INK = colors.HexColor("#12161c")
@@ -637,10 +638,10 @@ def ch_summary() -> list[Any]:
         ),
         h2("1.3 Reading this document"),
         p(
-            "Chapters 2–6 are the core pipeline. Chapters 7–9 cover seniority, languages and "
-            "repository structure. Chapters 10–14 cover execution, QA, memory, routing and "
-            "multi-repo orchestration. Chapters 15–17 are operational: configuration, the CLI and "
-            "API, and the pattern catalog. Chapters 18–20 cover extension, testing and honest "
+            "Chapters 2–6 are the core pipeline. Chapters 7–10 cover seniority, languages, structure and repository "
+            "knowledge. Chapters 11–15 cover execution, QA, memory, routing and "
+            "multi-repo orchestration. Chapters 16–18 are operational: configuration, the CLI and "
+            "API, and the pattern catalog. Chapters 19–21 cover extension, testing and honest "
             "limits."
         ),
         PageBreak(),
@@ -792,7 +793,7 @@ def ch_architecture() -> list[Any]:
                 ],
                 ["pipeline.py", "The stage machine over one RunState", "DeliveryPipeline"],
                 ["master.py", "Many repos, one objective", "MasterOrchestrator, ProgramRun"],
-                ["handbook.py", "This document, generated from the code", "build_handbook"],
+                ["handbook/", "This document, generated from the code", "build_handbook"],
             ],
             widths=[1.05, 2.1, 2.0],
             mono_columns=(0, 2),
@@ -1190,7 +1191,7 @@ def ch_languages() -> list[Any]:
             "Manifests score 50, files score 1, and TypeScript never loses to JavaScript merely "
             "because both carry a package.json."
         ),
-        *listing("languages", "detect_repo"),
+        *listing("repos/languages", "detect_repo"),
         h2("8.4 A polyglot repository"),
         p(
             "Secondary languages are kept, not discarded. The scaffolder emits an extra CI "
@@ -1238,7 +1239,7 @@ def ch_languages() -> list[Any]:
 
 
 def ch_structure() -> list[Any]:
-    from future_agents.sdd.scaffold import FORBIDDEN
+    from future_agents.sdd.repos.scaffold import FORBIDDEN
 
     universal = [
         ["Entry", "Why it is required"],
@@ -1291,9 +1292,9 @@ def ch_structure() -> list[Any]:
             "jobs wired with <font face='Courier'>needs</font>, so the diff gate can later "
             "protect it from being flattened."
         ),
-        *listing("scaffold", "_ci_workflow"),
+        *listing("repos/scaffold", "_ci_workflow"),
         h2("9.5 Planning and applying"),
-        *listing("scaffold", "RepoScaffolder.plan"),
+        *listing("repos/scaffold", "RepoScaffolder.plan"),
         h2("9.6 Monorepos"),
         p(
             "A monorepo keeps its source under <font face='Courier'>packages/</font> or "
@@ -1301,7 +1302,7 @@ def ch_structure() -> list[Any]:
             "validator accepts any conventional root rather than littering an established "
             "repository with an empty directory it does not want."
         ),
-        *listing("scaffold", "_satisfied"),
+        *listing("repos/scaffold", "_satisfied"),
         h2("9.7 As a delivery gate"),
         p(
             "When a pipeline is given a repo root, the planner asks the scaffolder what is "
@@ -1326,10 +1327,163 @@ def ch_structure() -> list[Any]:
     ]
 
 
+def ch_knowledge() -> list[Any]:
+    from future_agents.sdd.knowledge import RepoKnowledge
+
+    knowledge = RepoKnowledge.build(REPO_ROOT)
+    stats = knowledge.stats()
+    rules = knowledge.conventions.rules[:8]
+
+    return [
+        h1("10 · Repository knowledge: where a change may and may not go"),
+        p(
+            "A spec that does not know the repository produces plans nobody can act on: a "
+            "component with no home, a duplicate of something that already exists, a file written "
+            "into a generated directory. This stage indexes the repository and answers three "
+            "questions before the plan is drawn — what already exists, where this change belongs, "
+            "and where it must never land."
+        ),
+        h2("10.1 What gets indexed"),
+        table(
+            [
+                ["Source", "What is taken", "Used for"],
+                [
+                    "Python files",
+                    "module docstring, classes, functions, method names (AST)",
+                    "reuse candidates, duplicate risk",
+                ],
+                [
+                    "Other code",
+                    "symbol names by language-specific pattern, leading comment",
+                    "the same, in any language",
+                ],
+                ["Docs", "first heading", "context, not placement"],
+                [
+                    "Directories",
+                    "kind (source / tests / docs / data / generated), purpose, file count",
+                    "target and test paths, fences",
+                ],
+                [
+                    "`AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`",
+                    "'where does a new X go' tables, prohibitions",
+                    "the decisive placement rules",
+                ],
+                [
+                    "Toolchain",
+                    "the ecosystem's layout and test glob",
+                    "fallback when nothing else applies",
+                ],
+            ],
+            widths=[1.4, 2.2, 1.5],
+        ),
+        caption(
+            f"On this repository: {stats['files_indexed']} files, {stats['symbols']} symbols, "
+            f"{stats['placement_rules']} placement rules from {', '.join(stats['convention_sources'])}, "
+            f"built in well under a second."
+        ),
+        h2("10.2 Retrieval"),
+        p(
+            "TF-IDF over path segments, symbol names and docstrings, with symmetric suffix "
+            "stripping so 'invoices' finds <font face='Courier'>invoice_agent.py</font>. Lexical, "
+            "not semantic — it builds in a second, runs offline, and returns the same answer "
+            "twice. `RepoIndex.search` is the single seam an embedding store would replace."
+        ),
+        *listing("knowledge/index", "RepoIndex.search"),
+        h2("10.3 Believable matches only"),
+        p(
+            "Prose overlap alone matches almost anything, and a false 'this already exists' "
+            "teaches people to ignore the warning that matters. A duplicate-risk claim therefore "
+            "requires two query words in the path or a symbol name, not merely in a docstring."
+        ),
+        *listing("knowledge/__init__", "RepoKnowledge.duplicate_risk"),
+        h2("10.4 The repository's own rules win"),
+        p(
+            "Most teams have already written down where things go. Parsing that table beats "
+            "inventing a policy, and it lets every decision cite the file it came from."
+        ),
+        table(
+            [["The repo says", "Destination", "From"]]
+            + [[r.subject, r.destination, r.source] for r in rules],
+            widths=[1.6, 2.2, 0.7],
+            mono_columns=(1,),
+        ),
+        *listing("knowledge/conventions", "_parse_tables", "Reading a 'where does it go' table"),
+        h2("10.5 Where it must not go"),
+        p(
+            "Fences come from three places: prohibitions written in the instruction files "
+            "('never put code at the repo root'), directories the scan classifies as generated or "
+            "as bulk data, and a built-in list no repository should have to state. A chosen path "
+            "that violates one is not a warning at the end — it becomes a high-severity risk on "
+            "the plan."
+        ),
+        *listing("knowledge/placement", "PlacementAdvisor.forbidden_zones"),
+        h2("10.6 The decision, with its alternatives"),
+        p(
+            "Placement is rarely a single defensible answer, so the decision carries the ones it "
+            "rejected and the price of each: extend the closest existing module, add a sibling "
+            "beside it, or start a new package. Evidence is ranked — a written rule beats a "
+            "similarity match, which beats the toolchain default."
+        ),
+        *listing("knowledge/placement", "PlacementAdvisor._options"),
+        h2("10.7 What the pipeline does with it"),
+        table(
+            [
+                ["Stage", "Effect"],
+                [
+                    "PM",
+                    "requirements that echo existing code become `spec.context_notes` — a duplicate warning before the plan",
+                ],
+                [
+                    "Architect",
+                    "each requirement gets a `PlacementDecision`; components get a `target_path`; fence violations and duplicates become plan risks",
+                ],
+                [
+                    "Planner",
+                    "code and test tasks carry their real file paths, and each task description names where it goes, what to read first, and what to avoid",
+                ],
+                ["Worker", "a backend receives a task that already knows its target file"],
+            ],
+            widths=[0.7, 4.1],
+        ),
+        flow(
+            "$ python scripts/spec_kit.py where --what 'a new agent type that reviews pull requests'\n"
+            "\n"
+            "  goes in   packages/future_agents/agents/…_agent.py   [new-module, confidence 0.9]\n"
+            "  because   the repo's own rule: 'A new agent type' → …/agents/<name>_agent.py (AGENTS.md)\n"
+            "  tests     tests/test_agent_type_reviews.py\n"
+            "\n"
+            "  read first:\n"
+            "    - packages/future_agents/agents/pdf_agent.py::PDFAgent.agent_type\n"
+            "\n"
+            "  other approaches:\n"
+            "    - …/agents/pdf_agent.py [extend]  trade-off: grows an existing file\n"
+            "    - packages/…_type_reviews.py [new-module]  trade-off: one more file to discover\n"
+            "\n"
+            "  must not go in:\n"
+            "    x <root> - Never put code at the repo root. Root is for manifests [AGENTS.md]\n"
+            "    x data/agents/ - bulk data (10000 files across 53 directories) [repo scan]"
+        ),
+        h2("10.8 Embedding it elsewhere"),
+        p(
+            "The package is standalone: point it at any repository, in any language, and it works "
+            "from that repository's own files and instructions."
+        ),
+        *code(
+            "from future_agents.sdd import RepoKnowledge\n"
+            "\n"
+            "knowledge = RepoKnowledge.build('../some-other-repo')\n"
+            "knowledge.context('rate limiting on the public API')   # what already exists\n"
+            "decision = knowledge.advise('add per-tenant rate limits')\n"
+            "decision.target_path, decision.test_path, decision.forbidden, decision.alternatives"
+        ),
+        PageBreak(),
+    ]
+
+
 def ch_execution() -> list[Any]:
     return [
-        h1("10 · Task graph and execution"),
-        h2("10.1 How the graph is built"),
+        h1("11 · Task graph and execution"),
+        h2("11.1 How the graph is built"),
         table(
             [
                 ["Unit", "Kind", "Depends on", "Why it exists"],
@@ -1378,23 +1532,23 @@ def ch_execution() -> list[Any]:
             ],
             widths=[1.5, 0.6, 1.3, 2.2],
         ),
-        *listing("stages", "TaskPlanner.build"),
-        h2("10.2 Execution order and failure propagation"),
+        *listing("stages/planner", "TaskPlanner.build"),
+        h2("11.2 Execution order and failure propagation"),
         p(
             "Tasks run in topological order. A failing task marks its dependents BLOCKED rather "
             "than failing the whole run — the rest of the graph still produces useful work, and "
             "QA reports precisely which criteria went unverified as a result. A backend that "
             "raises is a task failure, never a pipeline crash."
         ),
-        *listing("stages", "WorkerStage.execute"),
-        h2("10.3 Backends"),
+        *listing("stages/worker", "WorkerStage.execute"),
+        h2("11.3 Backends"),
         p(
             "The default backend records what would happen. A real backend is one function: shell "
             "out to a coding agent, run the repo's own test command, open a pull request. The "
             "criterion ids it claims are what QA verifies against, so a backend must claim only "
             "what it actually exercised."
         ),
-        *listing("stages", "dry_run_backend"),
+        *listing("stages/worker", "dry_run_backend"),
         *code(
             "import subprocess\n"
             "from future_agents.sdd import TaskStatus, WorkResult\n"
@@ -1434,13 +1588,13 @@ def ch_execution() -> list[Any]:
 
 def ch_qa() -> list[Any]:
     return [
-        h1("11 · QA orchestration"),
+        h1("12 · QA orchestration"),
         p(
             "QA is not a log reader. It builds a behaviour check for every in-scope acceptance "
             "criterion, decides verification from evidence in the work results, computes coverage "
             "over MUST criteria, and reports in a fixed, short format."
         ),
-        h2("11.1 BDD and AAA scaffolding"),
+        h2("12.1 BDD and AAA scaffolding"),
         flow(
             "criterion  REQ-002-AC-001\n"
             "  Given    a week of usage data\n"
@@ -1452,7 +1606,7 @@ def ch_qa() -> list[Any]:
             "  Act:     the churn report runs\n"
             "  Assert:  at-risk accounts are listed"
         ),
-        h2("11.2 Verification rule"),
+        h2("12.2 Verification rule"),
         flow(
             "verified(criterion) =\n"
             "      ∃ test task covering it whose WorkResult.status == DONE\n"
@@ -1464,16 +1618,16 @@ def ch_qa() -> list[Any]:
             "        = FAIL     if any blocker finding, or coverage < required_coverage\n"
             "        = PASS     otherwise"
         ),
-        *listing("stages", "QAStage.verify"),
-        h2("11.3 Scope fences"),
+        *listing("stages/qa", "QAStage.verify"),
+        h2("12.3 Scope fences"),
         p(
             "Criteria matching a configured fence are dropped before checks are built and listed "
             "in <font face='Courier'>out_of_scope_ignored</font>. They can never become findings, "
             "so the QA agent cannot halt a pipeline over load testing that was never in scope — "
             "the failure mode that makes teams turn automated QA off."
         ),
-        *listing("stages", "QAStage._out_of_scope"),
-        h2("11.4 The reporting protocol"),
+        *listing("stages/qa", "QAStage._out_of_scope"),
+        h2("12.4 The reporting protocol"),
         p(
             "Verbosity is <font face='Courier'>summary_only</font> by default: a verdict line, the "
             "verified behaviours, then the first blocker. Logs stay in the artifact, out of the "
@@ -1486,7 +1640,7 @@ def ch_qa() -> list[Any]:
             "✓ the report pulls from Snowflake every Monday 09:00\n"
             "✓ flag any account whose usage dropped 20% or more"
         ),
-        h2("11.5 Ephemeral environments"),
+        h2("12.5 Ephemeral environments"),
         p(
             "When <font face='Courier'>qa.ephemeral_environment</font> is set, the report records "
             "the environment as ephemeral and marks it cleaned when the verdict is written — the "
@@ -1498,14 +1652,14 @@ def ch_qa() -> list[Any]:
 
 def ch_memory() -> list[Any]:
     return [
-        h1("12 · The memory hub"),
+        h1("13 · The memory hub"),
         p(
             "Agents that forget repeat the same mistake every sprint. After every run the "
             "harvester compresses what happened into a case: the objective, the problem, the "
             "solution, and — the part that earns its keep — the pitfalls. Cases are markdown on "
             "disk, so they are reviewable, diffable and greppable, with a JSON index for retrieval."
         ),
-        h2("12.1 Where pitfalls come from"),
+        h2("13.1 Where pitfalls come from"),
         table(
             [
                 ["Source", "Becomes"],
@@ -1520,7 +1674,7 @@ def ch_memory() -> list[Any]:
             widths=[1.5, 3.2],
         ),
         *listing("memory_hub", "_pitfalls"),
-        h2("12.2 Retrieval, biased toward failure"),
+        h2("13.2 Retrieval, biased toward failure"),
         p(
             "Matching is keyword overlap (Jaccard) with a 1.5× boost for cases whose outcome was "
             "not a success. A case that records a pitfall changes the next plan; a success case "
@@ -1529,9 +1683,9 @@ def ch_memory() -> list[Any]:
             "<font face='Courier'>source=memory</font>."
         ),
         *listing("memory_hub", "MemoryHub.retrieve"),
-        h2("12.3 Harvest"),
+        h2("13.3 Harvest"),
         *listing("memory_hub", "MemoryHub.harvest"),
-        h2("12.4 The case format"),
+        h2("13.4 The case format"),
         *code(
             "# Weekly churn report for sales\n"
             "\n"
@@ -1553,7 +1707,7 @@ def ch_memory() -> list[Any]:
             "  answer: Snowflake, refreshed nightly at 02:00\n"
             "- QA blocker: REQ-003-AC-001 not verified — no passing test task"
         ),
-        h2("12.5 Swapping in a vector store"),
+        h2("13.5 Swapping in a vector store"),
         p(
             "Retrieval is deliberately behind one method. A semantic store (Chroma, pgvector, a "
             "hosted index) replaces <font face='Courier'>MemoryHub.retrieve</font> without any "
@@ -1571,20 +1725,20 @@ def ch_routing() -> list[Any]:
             [name, role.engine, role.fallback or config.agents.default_engine, role.purpose]
         )
     return [
-        h1("13 · Engine routing and MCP"),
+        h1("14 · Engine routing and MCP"),
         p(
             "The pipeline never names a model inline. It asks the router, which resolves role → "
             "engine from the rulebook, lets an intent keyword override it, and falls back when an "
             "engine is unavailable. Changing vendor or model is a configuration edit, and a "
             "failing engine degrades to deterministic behaviour instead of taking the run down."
         ),
-        h2("13.1 Current role map"),
+        h2("14.1 Current role map"),
         table(rows, widths=[0.95, 1.15, 1.15, 2.2], mono_columns=(0, 1, 2)),
         caption(
             "Read live from the rulebook. Intent routes: "
             + (", ".join(f"{k} → {v}" for k, v in config.agents.intent_routes.items()) or "none")
         ),
-        h2("13.2 Resolution order"),
+        h2("14.2 Resolution order"),
         flow(
             "1. intent keyword match ....... 'terraform' in the task intent → claude-opus-5\n"
             "2. role default ............... agents.roles[role].engine\n"
@@ -1593,7 +1747,7 @@ def ch_routing() -> list[Any]:
             "5. NullEngine ................. deterministic; the stage's own rules stand"
         ),
         *listing("router", "EngineRouter.run"),
-        h2("13.3 Engines"),
+        h2("14.3 Engines"),
         p(
             "An engine is anything with a <font face='Courier'>name</font> and a "
             "<font face='Courier'>complete(call)</font>. Three ship: NullEngine (the default, "
@@ -1609,7 +1763,7 @@ def ch_routing() -> list[Any]:
             "upgraded model is an unversioned dependency, which is exactly what the principal AI "
             "persona's heuristics say.",
         ),
-        h2("13.4 MCP exposure"),
+        h2("14.4 MCP exposure"),
         p(
             "The gateway URI lives in the rulebook, and the resources an agent needs are already "
             "addressable: the constitution as markdown, the golden CI template, the language "
@@ -1638,7 +1792,7 @@ def ch_routing() -> list[Any]:
 
 def ch_master() -> list[Any]:
     return [
-        h1("14 · The master orchestrator"),
+        h1("15 · The master orchestrator"),
         p(
             "Real work rarely lands in one repository: an API change needs a client change needs "
             "a pipeline change. The master orchestrator profiles every registered repository, "
@@ -1646,7 +1800,7 @@ def ch_master() -> list[Any]:
             "declared dependencies, and runs a full delivery pipeline in each — each with its own "
             "language, its own toolchain and, if you want, its own persona."
         ),
-        h2("14.1 The part that matters to a human"),
+        h2("15.1 The part that matters to a human"),
         callout(
             "One question set for the whole program",
             "Five repositories each raise 'which system of record supplies this data?'. The "
@@ -1656,7 +1810,7 @@ def ch_master() -> list[Any]:
             "questions.",
         ),
         *listing("master", "MasterOrchestrator._merge_questions"),
-        h2("14.2 Registration and inventory"),
+        h2("15.2 Registration and inventory"),
         *listing("master", "MasterOrchestrator.register"),
         flow(
             "orchestrator.register('checkout-api',   '../checkout-api',\n"
@@ -1672,7 +1826,7 @@ def ch_master() -> list[Any]:
             "web-app         typescript  missing: none\n"
             "platform-infra  terraform   missing: ['docs/runbook.md']"
         ),
-        h2("14.3 Routing and waves"),
+        h2("15.3 Routing and waves"),
         p(
             "An explicit repo list always wins. Otherwise the objective is scored against each "
             "repo's name, keywords and language; if nothing matches, every repo is in scope "
@@ -1680,7 +1834,7 @@ def ch_master() -> list[Any]:
             "cycle raises instead of deadlocking."
         ),
         *listing("master", "MasterOrchestrator.waves"),
-        h2("14.4 Dependency behaviour"),
+        h2("15.4 Dependency behaviour"),
         p(
             "A repo whose dependency is still clarifying or blocked is skipped with the reason "
             "recorded, and picked up automatically once the dependency reaches a usable state — "
@@ -1688,7 +1842,7 @@ def ch_master() -> list[Any]:
             "restarted."
         ),
         *listing("master", "MasterOrchestrator._resume_blocked_waves"),
-        h2("14.5 Per-repo context"),
+        h2("15.5 Per-repo context"),
         p(
             "Each repository receives its own copy of the objective, carrying that repo's "
             "language, test command and dependency policy as constraints — which is why the Go "
@@ -1696,7 +1850,7 @@ def ch_master() -> list[Any]:
             "says <font face='Courier'>npm test</font> from the same human sentence."
         ),
         *listing("master", "MasterOrchestrator._repo_objective"),
-        h2("14.6 A program run"),
+        h2("15.6 A program run"),
         flow(
             "$ python scripts/spec_kit.py program \\\n"
             "    --repo checkout-api=../checkout-api \\\n"
@@ -1717,7 +1871,7 @@ def ch_master() -> list[Any]:
             "  checkout-api  done  3 requirements  13 tasks  QA pass  accepted\n"
             "  web-app       done  3 requirements  13 tasks  QA pass  accepted"
         ),
-        h2("14.7 The program report"),
+        h2("15.7 The program report"),
         *listing("master", "ProgramRun.report"),
         PageBreak(),
     ]
@@ -1754,7 +1908,7 @@ def ch_configuration() -> list[Any]:
         ["qa", "communication.verbosity", "summary_only keeps logs out of the channel"],
     ]
     return [
-        h1("15 · Configuration reference"),
+        h1("16 · Configuration reference"),
         p(
             "One rulebook, loaded by every surface — pipeline, CLI, API and CI. "
             "<font face='Courier'>${VAR}</font> and <font face='Courier'>${VAR:-default}</font> "
@@ -1762,11 +1916,11 @@ def ch_configuration() -> list[Any]:
             "looks like a secret is rejected with a ConfigError rather than being caught later by "
             "a scanner."
         ),
-        h2("15.1 Every key"),
+        h2("16.1 Every key"),
         table(sections, widths=[0.85, 1.6, 2.6], mono_columns=(1,)),
-        h2("15.2 Secret handling"),
+        h2("16.2 Secret handling"),
         *listing("config", "_resolve"),
-        h2("15.3 The rulebook in full"),
+        h2("16.3 The rulebook in full"),
         caption("data/config/spec_kit/spec-kit-enterprise.yaml"),
         *code(text),
         PageBreak(),
@@ -1807,13 +1961,13 @@ def ch_operations() -> list[Any]:
         ["POST /api/sdd/cicd/diff-gate", "golden-pattern check"],
     ]
     return [
-        h1("16 · Operating the system"),
-        h2("16.1 Command line"),
+        h1("17 · Operating the system"),
+        h2("17.1 Command line"),
         table(cli_rows, widths=[1.9, 3.0], mono_columns=(0,)),
-        h2("16.2 HTTP"),
+        h2("17.2 HTTP"),
         p("Served by <font face='Courier'>uvicorn future_agents.api.main:app</font>."),
         table(api_rows, widths=[1.7, 3.0], mono_columns=(0,)),
-        h2("16.3 Python"),
+        h2("17.3 Python"),
         *code(
             "from future_agents.sdd import (\n"
             "    DeliveryPipeline, MasterOrchestrator, Objective, SpecKitConfig, get_persona,\n"
@@ -1845,7 +1999,7 @@ def ch_operations() -> list[Any]:
             "print(state.delivery.accepted, state.delivery.unconfirmed_assumptions)\n"
             "save_state(state, '.spec-kit/runs')"
         ),
-        h2("16.4 In CI"),
+        h2("17.4 In CI"),
         *code(
             "# .github/workflows/spec-kit.yml\n"
             "name: spec-kit\n"
@@ -1861,7 +2015,7 @@ def ch_operations() -> list[Any]:
             "      - run: python scripts/spec_kit.py detect --path .\n"
             "      - run: python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml"
         ),
-        h2("16.5 Intake from a meeting tool"),
+        h2("17.5 Intake from a meeting tool"),
         p(
             "The API is the integration point: post the transcript as "
             "<font face='Courier'>raw_inputs</font> with "
@@ -2044,7 +2198,7 @@ PATTERNS = [
 
 def ch_patterns() -> list[Any]:
     out: list[Any] = [
-        h1("17 · Pattern catalog"),
+        h1("18 · Pattern catalog"),
         p(
             "The design patterns this system is built from, each with the failure it prevents and "
             "the price it charges. They are reusable outside this codebase — most of them are "
@@ -2055,7 +2209,7 @@ def ch_patterns() -> list[Any]:
         out.append(
             KeepTogether(
                 [
-                    h3(f"17.{index} {name}"),
+                    h3(f"18.{index} {name}"),
                     table(
                         [
                             ["Problem", problem],
@@ -2076,10 +2230,10 @@ def ch_patterns() -> list[Any]:
 
 def ch_extending() -> list[Any]:
     return [
-        h1("18 · Extending the system"),
-        h2("18.1 Add a language"),
+        h1("19 · Extending the system"),
+        h2("19.1 Add a language"),
         p("One entry in <font face='Courier'>TOOLCHAINS</font> — see §8.5. Nothing else changes."),
-        h2("18.2 Add a persona"),
+        h2("19.2 Add a persona"),
         *code(
             "from future_agents.sdd.personas import Heuristic, Persona, ReviewGate, PERSONAS\n"
             "\n"
@@ -2106,7 +2260,7 @@ def ch_extending() -> list[Any]:
             ")\n"
             "PERSONAS[EMBEDDED.id] = EMBEDDED"
         ),
-        h2("18.3 Add a clarification detector"),
+        h2("19.3 Add a clarification detector"),
         p(
             "A detector is a function from an objective and its context to signals. Register it on "
             "the clarifier and it participates in scoring immediately."
@@ -2133,14 +2287,14 @@ def ch_extending() -> list[Any]:
             "clarifier = IntentClarifier(config)\n"
             "clarifier._detectors.append(detect_missing_retention)"
         ),
-        h2("18.4 Add a governance rule"),
+        h2("19.4 Add a governance rule"),
         p(
             "Add a method to <font face='Courier'>Constitution</font> returning "
             "<font face='Courier'>Violation</font> objects, and call it from the matching stage "
             "transition in <font face='Courier'>DeliveryPipeline._build</font>. Error severity "
             "stops the run; warn severity is recorded."
         ),
-        h2("18.5 Add a stage"),
+        h2("19.5 Add a stage"),
         p(
             "Stages are plain classes with one method that takes upstream artifacts and returns "
             "the next one. Add the artifact to <font face='Courier'>RunState</font>, add the enum "
@@ -2148,10 +2302,10 @@ def ch_extending() -> list[Any]:
             "two stages it belongs between. Keep it deterministic; let the engine enrich only free "
             "text."
         ),
-        h2("18.6 Replace the memory backend"),
+        h2("19.6 Replace the memory backend"),
         p(
             "Implement <font face='Courier'>retrieve()</font> against a vector store and keep the "
-            "markdown cases as the durable record — see §12.5."
+            "markdown cases as the durable record — see §13.5."
         ),
         PageBreak(),
     ]
@@ -2159,7 +2313,7 @@ def ch_extending() -> list[Any]:
 
 def ch_testing() -> list[Any]:
     return [
-        h1("19 · Testing"),
+        h1("20 · Testing"),
         p(
             "The whole pipeline runs offline and deterministically, which is what makes it "
             "testable at all. Two suites cover it: "
@@ -2209,7 +2363,7 @@ def ch_testing() -> list[Any]:
             ],
             widths=[0.9, 4.1],
         ),
-        h2("19.1 Running them"),
+        h2("20.1 Running them"),
         *code(
             "pytest -q                                    # whole repo\n"
             "pytest -q tests/test_sdd.py                  # core pipeline\n"
@@ -2218,7 +2372,7 @@ def ch_testing() -> list[Any]:
             "ruff format --check packages/future_agents/ apps/ scripts/\n"
             "python packages/guardrails/guardrails_engine.py . --mode block"
         ),
-        h2("19.2 Testing your own backend"),
+        h2("20.2 Testing your own backend"),
         p(
             "Use <font face='Courier'>CallableEngine</font> for the model seam and a fake backend "
             "for the work seam; both are single functions, so a full delivery run in a test is "
@@ -2239,7 +2393,7 @@ def ch_testing() -> list[Any]:
 
 def ch_limits() -> list[Any]:
     return [
-        h1("20 · Limits, and what to build next"),
+        h1("21 · Limits, and what to build next"),
         p(
             "Stated plainly, because a system that oversells itself gets switched off the first "
             "time it is believed."
@@ -2260,12 +2414,12 @@ def ch_limits() -> list[Any]:
                 [
                     "dry_run_backend does no work",
                     "delivery is simulated until a backend is wired",
-                    "wire a shell/agent backend (§10.3)",
+                    "wire a shell/agent backend (§11.3)",
                 ],
                 [
                     "Detectors are keyword-driven",
                     "an unusual phrasing can slip past a gate",
-                    "add a detector (§18.3); gates still catch the artifact",
+                    "add a detector (§19.3); gates still catch the artifact",
                 ],
                 [
                     "API runs live in memory",
@@ -2285,7 +2439,7 @@ def ch_limits() -> list[Any]:
             ],
             widths=[1.2, 1.7, 2.1],
         ),
-        h2("20.1 The next things worth building"),
+        h2("21.1 The next things worth building"),
         *bullets(
             [
                 "<b>A real worker backend</b> in this repo: shell out per task kind, run the "
@@ -2300,7 +2454,7 @@ def ch_limits() -> list[Any]:
                 "and cases directly — the API already serves each of them.",
             ]
         ),
-        h2("20.2 Where to start reading the code"),
+        h2("21.2 Where to start reading the code"),
         table(
             [
                 ["If you want to understand…", "Read"],
@@ -2336,6 +2490,7 @@ CHAPTERS = (
     ch_personas,
     ch_languages,
     ch_structure,
+    ch_knowledge,
     ch_execution,
     ch_qa,
     ch_memory,

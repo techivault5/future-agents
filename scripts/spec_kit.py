@@ -27,6 +27,7 @@ from future_agents.sdd import (  # noqa: E402
     MasterOrchestrator,
     MemoryHub,
     Objective,
+    RepoKnowledge,
     RepoScaffolder,
     RunState,
     SpecKitConfig,
@@ -262,6 +263,61 @@ def cmd_program(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_index(args: argparse.Namespace) -> int:
+    knowledge = RepoKnowledge.build(args.path)
+    stats = knowledge.stats()
+    print(f"{args.path}")
+    for key in ("files_indexed", "directories", "symbols", "truncated"):
+        print(f"  {key:16s} {stats[key]}")
+    print(f"  {'languages':16s} {', '.join(stats['languages'])}")
+    print(f"  {'source roots':16s} {', '.join(knowledge.index.source_roots())}")
+    print(f"  {'conventions':16s} {', '.join(stats['convention_sources'])}")
+    print(f"  {'placement rules':16s} {stats['placement_rules']}")
+    if stats["bulk_directories"]:
+        print(f"  {'bulk data dirs':16s} {', '.join(stats['bulk_directories'][:4])} …")
+    if args.query:
+        print(f"\ncontext for: {args.query}")
+        context = knowledge.context(args.query)
+        for match in context.matches:
+            target = f"{match.path}::{match.symbol}" if match.symbol else match.path
+            print(f"  {match.score:6.3f}  {target}")
+            if match.excerpt:
+                print(f"          {match.excerpt[:96]}")
+        for note in context.notes:
+            print(f"  note: {note}")
+    return 0
+
+
+def cmd_where(args: argparse.Namespace) -> int:
+    knowledge = RepoKnowledge.build(args.path)
+    decision = knowledge.advise(args.what)
+    print(f"{args.what}\n")
+    how = f"[{decision.approach}, confidence {decision.confidence}]"
+    print(f"  goes in   {decision.target_path}   {how}")
+    print(f"  because   {decision.rationale}")
+    print(f"  tests     {decision.test_path}")
+    print(f"  docs      {decision.docs_path}")
+    if decision.reuse:
+        print("\n  read first:")
+        for match in decision.reuse:
+            print(f"    - {match.render()}")
+    if decision.alternatives:
+        print("\n  other approaches:")
+        for option in decision.alternatives:
+            print(f"    - {option.path} [{option.approach}]")
+            print(f"        {option.rationale}")
+            print(f"        trade-off: {option.tradeoff}")
+    if decision.forbidden:
+        print("\n  must not go in:")
+        for zone in decision.forbidden:
+            print(f"    ✗ {zone.path or '(repo root)'} — {zone.reason} [{zone.source}]")
+    if decision.conventions:
+        print("\n  rules consulted:")
+        for rule in decision.conventions:
+            print(f"    · {rule}")
+    return 0
+
+
 def cmd_personas(_args: argparse.Namespace) -> int:
     for persona in persona_catalog():
         print(f"{persona['id']:24s} {persona['years_experience']:>3}y  {persona['title']}")
@@ -322,6 +378,16 @@ def build_parser() -> argparse.ArgumentParser:
     program.add_argument("--constraint", action="append")
     program.add_argument("--deadline")
     program.set_defaults(func=cmd_program)
+
+    index = sub.add_parser("index", help="index a repo: symbols, conventions, gaps")
+    index.add_argument("--path", default=".")
+    index.add_argument("--query", help="also show what the repo knows about this")
+    index.set_defaults(func=cmd_index)
+
+    where = sub.add_parser("where", help="where does a change go — and where must it not")
+    where.add_argument("--what", required=True, help="the change, in a sentence")
+    where.add_argument("--path", default=".")
+    where.set_defaults(func=cmd_where)
 
     personas = sub.add_parser("personas", help="list the seniority profiles")
     personas.set_defaults(func=cmd_personas)

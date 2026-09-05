@@ -22,7 +22,6 @@ from future_agents.sdd import (
     toolchain_for,
 )
 from future_agents.sdd.config import MemoryHubConfig
-from future_agents.sdd.languages import TOOLCHAINS
 from future_agents.sdd.models import CycleError
 from future_agents.sdd.personas import (
     DEFAULT_PERSONA,
@@ -31,7 +30,8 @@ from future_agents.sdd.personas import (
     PRINCIPAL_FULLSTACK,
     PRINCIPAL_HYBRID,
 )
-from future_agents.sdd.scaffold import FORBIDDEN
+from future_agents.sdd.repos.languages import TOOLCHAINS
+from future_agents.sdd.repos.scaffold import FORBIDDEN
 
 CHECKOUT = "Add saved payment methods to checkout so that returning customers can pay in one tap"
 

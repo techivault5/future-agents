@@ -14,6 +14,9 @@ POST   /api/sdd/cicd/diff-gate             Check a pipeline change against the g
 GET    /api/sdd/personas                   Seniority profiles the pipeline can run as
 GET    /api/sdd/languages                  Supported toolchains and their commands
 POST   /api/sdd/repos/detect               Profile a repository (language, toolchain, gaps)
+POST   /api/sdd/repos/index                Index a repository: symbols, conventions, source roots
+POST   /api/sdd/repos/context              What the repo already knows about a piece of work
+POST   /api/sdd/repos/placement            Where a change goes, where it must not, alternatives
 POST   /api/sdd/repos/scaffold             Plan (or write) the structure a repo is missing
 POST   /api/sdd/programs                   Run one objective across many repositories
 POST   /api/sdd/programs/{id}/answers      Answer the merged question set and resume
@@ -36,6 +39,7 @@ from future_agents.sdd import (
     MemoryHub,
     Objective,
     ProgramRun,
+    RepoKnowledge,
     RepoScaffolder,
     RunState,
     SpecKitConfig,
@@ -91,6 +95,17 @@ class RepoRequest(BaseModel):
     description: str = ""
     persona: Optional[str] = None
     write: bool = False
+
+
+class KnowledgeRequest(BaseModel):
+    path: str = "."
+    query: str = ""
+    limit: int = 6
+
+
+class PlacementRequest(BaseModel):
+    path: str = "."
+    what: str
 
 
 class ProgramRepo(BaseModel):
@@ -289,3 +304,43 @@ def post_program_meeting(program_id: str, body: MeetingRequestBody) -> dict:
     program = orchestrator.hold_meeting(program, body.notes, body.answers)
     _PROGRAMS[program_id] = (orchestrator, program)
     return program.report()
+
+
+# Indexing a repository is cheap but not free; one index per path is plenty.
+_KNOWLEDGE: dict[str, RepoKnowledge] = {}
+
+
+def _knowledge(path: str) -> RepoKnowledge:
+    if path not in _KNOWLEDGE:
+        _KNOWLEDGE[path] = RepoKnowledge.build(path)
+    return _KNOWLEDGE[path]
+
+
+@router.post("/api/sdd/repos/index", summary="Index a repository")
+def post_index(body: KnowledgeRequest) -> dict:
+    knowledge = _knowledge(body.path)
+    return {
+        "stats": knowledge.stats(),
+        "source_roots": knowledge.index.source_roots(),
+        "conventions": [
+            {"subject": r.subject, "destination": r.destination, "source": r.source}
+            for r in knowledge.conventions.rules
+        ],
+        "prohibitions": [
+            {"text": p.text, "paths": p.paths, "source": p.source}
+            for p in knowledge.conventions.prohibitions
+        ],
+    }
+
+
+@router.post("/api/sdd/repos/context", summary="What the repo already knows about this work")
+def post_context(body: KnowledgeRequest) -> dict:
+    if not body.query:
+        raise HTTPException(status_code=400, detail="query is required")
+    context = _knowledge(body.path).context(body.query, limit=body.limit)
+    return context.model_dump(mode="json")
+
+
+@router.post("/api/sdd/repos/placement", summary="Where a change goes, and where it must not")
+def post_placement(body: PlacementRequest) -> dict:
+    return _knowledge(body.path).advise(body.what).model_dump(mode="json")

@@ -72,4 +72,4 @@ select = ["E", "F", "I"]
 "packages/future_agents/agents/word_agent.py" = ["F401"]
 # The handbook is a document: its content is prose in table cells and narrative
 # strings, which read worse hard-wrapped at 100 columns than slightly over it.
-"packages/future_agents/sdd/handbook.py" = ["E501"]
+"packages/future_agents/sdd/handbook/content.py" = ["E501"]

@@ -16,7 +16,7 @@ from typing import Callable, Optional
 from future_agents.sdd.clarify import IntentClarifier
 from future_agents.sdd.config import SpecKitConfig
 from future_agents.sdd.constitution import Severity, Violation
-from future_agents.sdd.languages import RepoProfile, Toolchain, detect_repo
+from future_agents.sdd.knowledge import RepoKnowledge
 from future_agents.sdd.memory_hub import MemoryHub
 from future_agents.sdd.models import (
     ClarificationOutcome,
@@ -26,6 +26,7 @@ from future_agents.sdd.models import (
     Stage,
 )
 from future_agents.sdd.personas import DEFAULT_PERSONA, Persona
+from future_agents.sdd.repos.languages import RepoProfile, Toolchain, detect_repo
 from future_agents.sdd.router import EngineRouter
 from future_agents.sdd.stages import (
     ArchitectStage,
@@ -53,6 +54,7 @@ class DeliveryPipeline:
         persona: Optional[Persona] = None,
         repo_root: Optional[str] = None,
         profile: Optional[RepoProfile] = None,
+        knowledge: Optional[RepoKnowledge] = None,
     ) -> None:
         base = config or SpecKitConfig()
         self.persona = persona or DEFAULT_PERSONA
@@ -66,10 +68,16 @@ class DeliveryPipeline:
         self.repo_root = repo_root
         self.profile = profile or (detect_repo(repo_root) if repo_root else None)
         self.toolchain: Optional[Toolchain] = self.profile.toolchain() if self.profile else None
+        # Indexed once per pipeline: the spec, the plan and every task read from it.
+        self.knowledge = knowledge or (
+            RepoKnowledge.build(repo_root, profile=self.profile) if repo_root else None
+        )
 
         self.clarifier = IntentClarifier(self.config)
-        self.pm = PMStage(self.config, self.router)
-        self.architect = ArchitectStage(self.config, self.router, self.persona, self.toolchain)
+        self.pm = PMStage(self.config, self.router, self.knowledge)
+        self.architect = ArchitectStage(
+            self.config, self.router, self.persona, self.toolchain, self.knowledge
+        )
         self.planner = TaskPlanner(
             self.config, self.router, self.persona, self.toolchain, self.repo_root
         )
@@ -178,6 +186,7 @@ class DeliveryPipeline:
             Stage.PLAN,
             f"{len(plan.components)} component(s), {len(plan.historical_warnings)} warning(s)",
             cases=plan.memory_case_ids,
+            placements=[p.summary() for p in plan.placements[:5]],
         )
 
         state.stage = Stage.TASKS

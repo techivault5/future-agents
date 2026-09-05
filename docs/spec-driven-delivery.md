@@ -12,11 +12,39 @@ Implementation: `packages/future_agents/sdd/`. Rulebook:
 `data/config/spec_kit/spec-kit-enterprise.yaml`. CLI: `scripts/spec_kit.py`.
 API: `/api/sdd/*`.
 
-**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 54 pages
+**The full reference is `docs/spec-driven-delivery-handbook.pdf`** — 59 pages
 covering every stage, pattern and code path, generated from the source itself
 (`python scripts/generate_handbook.py`). This page is the summary.
 
 ---
+
+## 0 · Package layout
+
+```
+packages/future_agents/sdd/
+  models.py          IR artifacts + run state (the only place artifacts are defined)
+  config.py          spec-kit-enterprise.yaml loader
+  constitution.py    executable gates
+  personas.py        seniority profiles
+  clarify.py         intent scoring, questions, meetings
+  pipeline.py        the stage machine
+  master.py          multi-repo orchestration
+  memory_hub.py      case-based reasoning
+  router.py          role/intent → engine
+  stages/            pm · architect · planner · worker · qa · delivery · _extract
+  repos/             languages (19 toolchains) · scaffold (required structure)
+  knowledge/         index · conventions · placement  ← repo RAG
+  handbook/          the generated PDF
+```
+
+Embedding it elsewhere is one import root and one object:
+
+```python
+from future_agents.sdd import DeliveryPipeline, RepoKnowledge, SpecKitConfig
+
+RepoKnowledge.build("../any-repo")          # works on any language, any repo
+DeliveryPipeline(SpecKitConfig.load(), repo_root="../any-repo")
+```
 
 ## 1 · The pipeline
 
@@ -311,6 +339,62 @@ python scripts/spec_kit.py program \
   --source meeting_transcript --input notes.txt \
   --statement "Add saved payment methods to checkout"
 ```
+
+## 9b · Repository knowledge (RAG) — where a change may and may not go
+
+`packages/future_agents/sdd/knowledge/`. Indexed once per pipeline (under a
+second on a 600-file repo), then consulted by three stages.
+
+| Source | Taken | Used for |
+|---|---|---|
+| Python files | docstring, classes, functions, methods (AST) | reuse, duplicate risk |
+| Other code | symbols by per-language pattern | the same, in any language |
+| Directories | kind, purpose, file count, bulk-data detection | target/test paths, fences |
+| `AGENTS.md` / `CLAUDE.md` / `CONTRIBUTING.md` | "where does a new X go" tables, prohibitions | the decisive rules |
+| Toolchain | ecosystem layout + test glob | fallback |
+
+Retrieval is TF-IDF over paths, symbol names and docs with symmetric suffix
+stripping (`invoices` finds `invoice_agent.py`). A "this already exists" claim
+additionally requires **two query words in a path or symbol name** — prose
+overlap alone matches almost anything, and a false duplicate warning teaches
+people to ignore the real one. `RepoIndex.search` is the seam an embedding store
+replaces.
+
+Evidence is ranked: the repo's own written rule → the closest existing code →
+the toolchain layout → the domain word in the requirement.
+
+```bash
+python scripts/spec_kit.py index --path . --query "churn report snowflake"
+python scripts/spec_kit.py where --what "a new agent type that reviews pull requests"
+```
+
+```
+  goes in   packages/future_agents/agents/…_agent.py   [new-module, confidence 0.9]
+  because   the repo's own rule: 'A new agent type' → …/<name>_agent.py (AGENTS.md)
+  tests     tests/test_agent_type_reviews.py
+
+  read first:      packages/future_agents/agents/pdf_agent.py::PDFAgent.agent_type
+  other approaches:
+    - …/agents/pdf_agent.py [extend]     trade-off: grows an existing file
+    - packages/…_type_reviews.py [new]   trade-off: one more file to discover
+  must not go in:
+    x <root>        Never put code at the repo root [AGENTS.md]
+    x data/agents/  bulk data (10000 files across 53 directories) [repo scan]
+```
+
+What the pipeline does with it:
+
+| Stage | Effect |
+|---|---|
+| PM | requirements echoing existing code become `spec.context_notes` |
+| Architect | a `PlacementDecision` per requirement; `target_path` per component; fence violations and duplicates become plan risks |
+| Planner | tasks carry real file paths; descriptions say where it goes, what to read first, what to avoid |
+| Worker | the backend receives a task that already knows its target file |
+
+Without `repo_root` the pipeline runs exactly as before — knowledge is additive,
+never required.
+
+---
 
 ## 10 · Limits (stated plainly)
 
