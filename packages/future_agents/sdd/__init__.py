@@ -102,6 +102,7 @@ from future_agents.sdd.personas import (
     persona_catalog,
 )
 from future_agents.sdd.pipeline import DeliveryPipeline, load_state, save_state
+from future_agents.sdd.project_docs import DocumentSet, ProjectDocs
 from future_agents.sdd.repos.languages import (
     TOOLCHAINS,
     LayoutEntry,
@@ -120,6 +121,13 @@ from future_agents.sdd.router import (
     NullEngine,
 )
 from future_agents.sdd.runner import TicketWorker, WorkOutcome, default_worker_id
+from future_agents.sdd.semantics import (
+    Capability,
+    Concept,
+    ConceptKind,
+    SemanticLayer,
+    SemanticModel,
+)
 from future_agents.sdd.stages import (
     ArchitectStage,
     DeliveryStage,
@@ -131,11 +139,28 @@ from future_agents.sdd.stages import (
 )
 from future_agents.sdd.store import (
     AuditLog,
+    QueueItem,
     RunRecord,
     RunStore,
     StoreError,
-    WorkItem,
     WorkQueue,
+)
+from future_agents.sdd.tracking import (
+    DryRunPublisher,
+    IssueBuilder,
+    IssuePayload,
+    JsonlPublisher,
+    MetricKind,
+    MetricPlanner,
+    MetricSet,
+    MetricSpec,
+    PublishReport,
+    WorkBreakdown,
+    WorkBreakdownBuilder,
+    WorkItem,
+    WorkItemKind,
+    WorkItemStatus,
+    publish_breakdown,
 )
 from future_agents.sdd.workforce import (
     AgentSpec,
@@ -198,6 +223,29 @@ __all__ = [
     "ConsolidationReport",
     "Lesson",
     "LessonBook",
+    "Capability",
+    "Concept",
+    "ConceptKind",
+    "DocumentSet",
+    "DryRunPublisher",
+    "IssueBuilder",
+    "IssuePayload",
+    "JsonlPublisher",
+    "MetricKind",
+    "MetricPlanner",
+    "MetricSet",
+    "MetricSpec",
+    "ProjectDocs",
+    "PublishReport",
+    "QueueItem",
+    "SemanticLayer",
+    "SemanticModel",
+    "WorkBreakdown",
+    "WorkBreakdownBuilder",
+    "WorkItem",
+    "WorkItemKind",
+    "WorkItemStatus",
+    "publish_breakdown",
     "MemoryCase",
     "MemoryHub",
     "ObservabilityPlan",
@@ -267,7 +315,6 @@ __all__ = [
     "WorkContext",
     "WorkerStage",
     "Workforce",
-    "WorkItem",
     "WorkOutcome",
     "WorkQueue",
     "WorkResult",

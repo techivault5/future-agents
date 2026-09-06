@@ -10,6 +10,8 @@
     python scripts/spec_kit.py cases --query "churn report"
     python scripts/spec_kit.py memory lessons
     python scripts/spec_kit.py observability --state .spec-kit/runs/run-x.json
+    python scripts/spec_kit.py breakdown --state … --issues
+    python scripts/spec_kit.py docs --state … --write .
     python scripts/spec_kit.py memory consolidate
     python scripts/spec_kit.py constitution
     python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml
@@ -31,9 +33,12 @@ from future_agents.sdd import (  # noqa: E402
     DispatchBackend,
     Dispatcher,
     IntakeSource,
+    IssueBuilder,
+    JsonlPublisher,
     MasterOrchestrator,
     MemoryHub,
     Objective,
+    ProjectDocs,
     RepoKnowledge,
     RepoScaffolder,
     RunState,
@@ -49,6 +54,7 @@ from future_agents.sdd import (  # noqa: E402
     load_state,
     objective_from_payload,
     persona_catalog,
+    publish_breakdown,
     render_runbook,
     save_state,
 )
@@ -242,6 +248,102 @@ def cmd_memory(args: argparse.Namespace) -> int:
 
     print(f"unknown memory action: {action}", file=sys.stderr)
     return 2
+
+
+def cmd_breakdown(args: argparse.Namespace) -> int:
+    """The tracked tree for a run — optionally as GitHub issue bodies."""
+    state = load_state(args.state)
+    breakdown = state.breakdown
+    if breakdown is None:
+        print("this run has no work breakdown (it never reached TASKS)")
+        return 1
+
+    if args.issues or args.publish:
+        builder = IssueBuilder(
+            state.spec,
+            state.plan.observability if state.plan else None,
+            state.metrics,
+            state.qa,
+            docs_path=state.documents[0] if state.documents else "",
+        )
+        if args.publish:
+            publisher = JsonlPublisher(args.publish)
+            report = publish_breakdown(breakdown, builder, publisher)
+            print(f"{report.summary()} → {args.publish}")
+            return 0
+        for payload in builder.build(breakdown):
+            parent = (
+                f" (sub-issue of {payload.parent_work_item_id})"
+                if payload.parent_work_item_id
+                else ""
+            )
+            print(f"\n{'=' * 78}\n# {payload.title}{parent}")
+            print(f"labels: {', '.join(payload.labels)}\n")
+            print(payload.body)
+        return 0
+
+    print("\n".join(breakdown.outline()))
+    requirement_ids = [r.id for r in state.spec.requirements] if state.spec else []
+    coverage = breakdown.coverage(requirement_ids)
+    print(f"\n{len(breakdown.items)} item(s), requirement coverage {coverage:.0%}")
+    if state.metrics:
+        unbound = [m for m in state.metrics.specs if m.source == "unbound"]
+        print(f"{len(state.metrics.specs)} metric(s), {len(unbound)} still unbound")
+    return 0
+
+
+def cmd_semantics(args: argparse.Namespace) -> int:
+    """How the ask was read: terms, capabilities, and what stayed ambiguous."""
+    state = load_state(args.state)
+    model = state.semantics
+    if model is None:
+        print("this run has no semantic model (it never reached SPEC)")
+        return 1
+    print(f"domain: {model.domain}")
+    print("\nthought process")
+    for index, step in enumerate(model.trace, start=1):
+        print(f"  {index}. {step}")
+    print("\ncapabilities")
+    for capability in model.capabilities:
+        print(f"  {capability.render()}  [{', '.join(capability.requirement_ids)}]")
+    if model.ambiguities:
+        print("\nstill ambiguous")
+        for item in model.ambiguities:
+            print(f"  ! {item}")
+    if args.terms:
+        print("\nterms")
+        for concept in model.concepts:
+            print(f"  {concept.render()}  conf {concept.confidence:.2f}")
+    return 0
+
+
+def cmd_docs(args: argparse.Namespace) -> int:
+    """The project record: build it, print it, or write it into the repo."""
+    state = load_state(args.state)
+    docs = ProjectDocs().build(
+        state,
+        semantics=state.semantics,
+        breakdown=state.breakdown,
+        metrics=state.metrics,
+    )
+    if args.write:
+        written = docs.write(args.write)
+        print(f"wrote {len(written)} document(s) to {docs.root}")
+        for path in written:
+            print(f"  {path}")
+        return 0
+    if args.show:
+        body = docs.files.get(args.show)
+        if body is None:
+            print(f"no such document: {args.show}", file=sys.stderr)
+            print("available: " + ", ".join(sorted(docs.files)), file=sys.stderr)
+            return 2
+        print(body)
+        return 0
+    print(f"{docs.root}")
+    for name in sorted(docs.files):
+        print(f"  {name}  ({len(docs.files[name].splitlines())} lines)")
+    return 0
 
 
 def cmd_observability(args: argparse.Namespace) -> int:
@@ -707,6 +809,25 @@ def build_parser() -> argparse.ArgumentParser:
     memory.add_argument("--id", action="append", default=[], help="case or lesson id to forget")
     memory.add_argument("--yes", action="store_true", help="confirm a destructive forget")
     memory.set_defaults(func=cmd_memory)
+
+    breakdown = sub.add_parser(
+        "breakdown", help="the tracked work items for a run, or their issue bodies"
+    )
+    breakdown.add_argument("--state", required=True)
+    breakdown.add_argument("--issues", action="store_true", help="render GitHub issue bodies")
+    breakdown.add_argument("--publish", help="write issue payloads as JSONL for a poster")
+    breakdown.set_defaults(func=cmd_breakdown)
+
+    semantics = sub.add_parser("semantics", help="how the ask was read — terms and capabilities")
+    semantics.add_argument("--state", required=True)
+    semantics.add_argument("--terms", action="store_true", help="list every resolved term")
+    semantics.set_defaults(func=cmd_semantics)
+
+    docs = sub.add_parser("docs", help="the project record for a run")
+    docs.add_argument("--state", required=True)
+    docs.add_argument("--write", help="write the document set under this repository root")
+    docs.add_argument("--show", help="print one document, e.g. 03-architecture.md")
+    docs.set_defaults(func=cmd_docs)
 
     observability = sub.add_parser(
         "observability", help="signals, objectives, alerts and the runbook for a run"

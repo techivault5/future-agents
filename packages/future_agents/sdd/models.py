@@ -873,6 +873,317 @@ class AnswerRecord(BaseModel):
         return max(0.0, ((now or _now()) - self.last_seen).total_seconds() / 86400.0)
 
 
+# ── Semantic layer ────────────────────────────────────────────────────────────
+
+
+class ConceptKind(str, Enum):
+    ENTITY = "entity"  # a noun the business owns: refund, invoice, account
+    ACTION = "action"  # something done to an entity: reconcile, export, notify
+    ACTOR = "actor"  # who acts or is served: support, finance, the scheduler
+    CONSTRAINT = "constraint"  # a bound on the work: within 2s, PCI, nightly
+    MEASURE = "measure"  # something countable: rate, total, latency
+    SYSTEM = "system"  # a named external or internal system
+
+
+class Concept(BaseModel):
+    """One term the ask depends on, pinned to a single meaning.
+
+    Two people saying "refund" and meaning different things is the most common
+    way a delivery goes wrong before a line is written, so terms are resolved to
+    a canonical form, carry the evidence that named them, and say when they are
+    still ambiguous instead of quietly picking a reading.
+    """
+
+    id: str  # C-001
+    term: str  # as it appeared
+    canonical: str  # the form everything downstream uses
+    kind: ConceptKind = ConceptKind.ENTITY
+    definition: str = ""
+    synonyms: list[str] = Field(default_factory=list)
+    evidence: list[str] = Field(default_factory=list)  # where the term was seen
+    requirement_ids: list[str] = Field(default_factory=list)
+    confidence: float = 0.5
+    ambiguous: bool = False
+    readings: list[str] = Field(default_factory=list)  # competing meanings, if any
+
+    def render(self) -> str:
+        mark = " (ambiguous)" if self.ambiguous else ""
+        return f"{self.id} {self.canonical} [{self.kind.value}]{mark}"
+
+
+class Capability(BaseModel):
+    """What the system will be able to do — actor + action + entity, once.
+
+    Capabilities sit between requirements (what was asked) and work items (what
+    gets built), which is what stops one requirement quietly becoming four
+    unrelated tickets or four requirements collapsing into one vague one.
+    """
+
+    id: str  # CAP-001
+    statement: str  # "support refunds an order"
+    actor: str = ""
+    action: str = ""
+    entity: str = ""
+    concept_ids: list[str] = Field(default_factory=list)
+    requirement_ids: list[str] = Field(default_factory=list)
+    component: str = ""
+    outcome: str = ""  # the "so that" — why anyone wants it
+
+    def render(self) -> str:
+        tail = f" — so that {self.outcome}" if self.outcome else ""
+        return f"{self.id} {self.statement}{tail}"
+
+
+class SemanticModel(Hashable):
+    """The shared vocabulary a delivery is reasoned in, plus how it was reached.
+
+    `trace` is the thought process, kept because a decomposition nobody can
+    audit is a decomposition nobody can correct: each line says what was read,
+    what it produced, and on what evidence.
+    """
+
+    id: str = Field(default_factory=lambda: _nid("sem"))
+    spec_id: str = ""
+    domain: str = ""
+    concepts: list[Concept] = Field(default_factory=list)
+    capabilities: list[Capability] = Field(default_factory=list)
+    glossary: dict[str, str] = Field(default_factory=dict)
+    relations: list[str] = Field(default_factory=list)  # "refund belongs-to order"
+    ambiguities: list[str] = Field(default_factory=list)
+    trace: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=_now)
+
+    def concept(self, concept_id: str) -> Optional[Concept]:
+        return next((c for c in self.concepts if c.id == concept_id), None)
+
+    def capability_for(self, requirement_id: str) -> Optional[Capability]:
+        return next((c for c in self.capabilities if requirement_id in c.requirement_ids), None)
+
+    def canonical(self, term: str) -> str:
+        low = term.strip().lower()
+        for concept in self.concepts:
+            if low == concept.canonical or low in {s.lower() for s in concept.synonyms}:
+                return concept.canonical
+        return low
+
+    def coverage(self, requirement_ids: list[str]) -> float:
+        """Share of requirements that resolved to a capability."""
+        if not requirement_ids:
+            return 0.0
+        hit = sum(1 for rid in requirement_ids if self.capability_for(rid) is not None)
+        return round(hit / len(requirement_ids), 3)
+
+
+# ── Work breakdown ────────────────────────────────────────────────────────────
+
+
+class WorkItemKind(str, Enum):
+    EPIC = "epic"
+    FEATURE = "feature"
+    FIX = "fix"
+    INTEGRATION = "integration"
+    MIGRATION = "migration"
+    CHORE = "chore"
+    SPIKE = "spike"
+    TEST = "test"
+    DOCS = "docs"
+    OBSERVABILITY = "observability"
+    SUBTASK = "subtask"
+
+
+class WorkItemStatus(str, Enum):
+    PROPOSED = "proposed"
+    READY = "ready"
+    IN_PROGRESS = "in_progress"
+    BLOCKED = "blocked"
+    DONE = "done"
+
+
+class WorkItem(BaseModel):
+    """One unit of tracked work — the thing that becomes a GitHub issue.
+
+    Small enough to finish, traceable in both directions: up to the requirement
+    and the person who asked, down to the tasks, evidence and metrics that say
+    whether it worked.
+    """
+
+    id: str  # WI-001
+    kind: WorkItemKind = WorkItemKind.FEATURE
+    title: str
+    parent_id: str = ""
+    intent: str = ""  # what the asker actually wants
+    outcome: str = ""  # the "so that" — why it is worth doing
+    description: str = ""
+    requirement_ids: list[str] = Field(default_factory=list)
+    criterion_ids: list[str] = Field(default_factory=list)
+    task_ids: list[str] = Field(default_factory=list)
+    capability_id: str = ""
+    component: str = ""
+    target_paths: list[str] = Field(default_factory=list)
+    forbidden_paths: list[str] = Field(default_factory=list)
+    depends_on: list[str] = Field(default_factory=list)
+    labels: list[str] = Field(default_factory=list)
+    definition_of_done: list[str] = Field(default_factory=list)
+    metric_ids: list[str] = Field(default_factory=list)
+    slo_ids: list[str] = Field(default_factory=list)
+    signal_ids: list[str] = Field(default_factory=list)
+    risk: str = "low"  # low | medium | high
+    estimate: str = ""  # S | M | L, or a repo's own scale
+    status: WorkItemStatus = WorkItemStatus.PROPOSED
+    requested_by: str = ""
+    source: str = ""  # where the ask came from (system:id)
+    source_url: str = ""
+    external_ref: str = ""  # the issue number once it has been posted
+    created_at: datetime = Field(default_factory=_now)
+
+    @property
+    def is_root(self) -> bool:
+        return not self.parent_id
+
+    def render_title(self) -> str:
+        """`[FEATURE] REQ-001 — title`, so a board reads without opening cards.
+
+        An epic spans every requirement, so tagging it with the first one would
+        be a lie that a reader would then have to un-learn.
+        """
+        tag = self.kind.value.upper()
+        if self.kind is WorkItemKind.EPIC or len(self.requirement_ids) != 1:
+            return f"[{tag}] {self.title}"
+        return f"[{tag}] {self.requirement_ids[0]} — {self.title}"
+
+
+class WorkBreakdown(Hashable):
+    """The tree: one epic, its children, and what each of them traces to."""
+
+    id: str = Field(default_factory=lambda: _nid("wbs"))
+    spec_id: str = ""
+    root_id: str = ""
+    items: list[WorkItem] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=_now)
+
+    def by_id(self, item_id: str) -> Optional[WorkItem]:
+        return next((i for i in self.items if i.id == item_id), None)
+
+    def root(self) -> Optional[WorkItem]:
+        return self.by_id(self.root_id) or next((i for i in self.items if i.is_root), None)
+
+    def children(self, item_id: str) -> list[WorkItem]:
+        return [i for i in self.items if i.parent_id == item_id]
+
+    def leaves(self) -> list[WorkItem]:
+        parents = {i.parent_id for i in self.items if i.parent_id}
+        return [i for i in self.items if i.id not in parents]
+
+    def of_kind(self, kind: WorkItemKind) -> list[WorkItem]:
+        return [i for i in self.items if i.kind is kind]
+
+    def coverage(self, requirement_ids: list[str]) -> float:
+        """Share of requirements that have at least one work item."""
+        if not requirement_ids:
+            return 0.0
+        tracked = {rid for item in self.items for rid in item.requirement_ids}
+        return round(len(set(requirement_ids) & tracked) / len(requirement_ids), 3)
+
+    def outline(self) -> list[str]:
+        """The tree as indented text — the fastest way for a human to check it."""
+        lines: list[str] = []
+
+        def walk(item: WorkItem, depth: int) -> None:
+            lines.append(f"{'  ' * depth}{item.id} [{item.kind.value}] {item.title}")
+            for child in self.children(item.id):
+                walk(child, depth + 1)
+
+        root = self.root()
+        if root:
+            walk(root, 0)
+        for orphan in self.items:
+            if orphan.parent_id and self.by_id(orphan.parent_id) is None:
+                walk(orphan, 0)
+        return lines
+
+
+# ── Metrics ───────────────────────────────────────────────────────────────────
+
+
+class MetricKind(str, Enum):
+    DELIVERY = "delivery"  # how the work went: cycle time, rework, attempts
+    QUALITY = "quality"  # coverage, escaped defects, review findings
+    RELIABILITY = "reliability"  # the SLOs the feature runs under
+    PRODUCT = "product"  # did it change what the ask cared about
+    COST = "cost"  # engine calls, run time, budget consumed
+    ADOPTION = "adoption"  # is anyone using it
+
+
+class MetricSpec(BaseModel):
+    """A number attached to a work item, with the question it answers.
+
+    A metric with no question is a chart nobody reads, so `question` is required
+    reading in review: if it cannot be phrased, the metric should not exist.
+    """
+
+    id: str  # M-001
+    name: str
+    kind: MetricKind = MetricKind.DELIVERY
+    question: str = ""
+    work_item_id: str = ""
+    requirement_ids: list[str] = Field(default_factory=list)
+    source: str = ""  # run | qa | observability | repo | manual
+    query: str = ""  # how it is read back, in the source's own language
+    unit: str = ""
+    direction: str = "up"  # up | down — which way is better
+    target: Optional[float] = None
+    baseline: Optional[float] = None
+    value: Optional[float] = None
+    at: Optional[datetime] = None
+
+    def render(self) -> str:
+        value = "—" if self.value is None else f"{self.value:g}{self.unit}"
+        target = "" if self.target is None else f" (target {self.target:g}{self.unit})"
+        return f"{self.id} {self.name}: {value}{target}"
+
+    @property
+    def met(self) -> Optional[bool]:
+        """None when there is nothing to compare — never a silent False."""
+        if self.value is None or self.target is None:
+            return None
+        return self.value >= self.target if self.direction == "up" else self.value <= self.target
+
+
+class MetricSet(BaseModel):
+    """Every metric a run defined, and what each one read."""
+
+    id: str = Field(default_factory=lambda: _nid("mset"))
+    specs: list[MetricSpec] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=_now)
+
+    def for_item(self, work_item_id: str) -> list[MetricSpec]:
+        return [m for m in self.specs if m.work_item_id == work_item_id]
+
+    def of_kind(self, kind: MetricKind) -> list[MetricSpec]:
+        return [m for m in self.specs if m.kind is kind]
+
+    def by_id(self, metric_id: str) -> Optional[MetricSpec]:
+        return next((m for m in self.specs if m.id == metric_id), None)
+
+    def unmet(self) -> list[MetricSpec]:
+        return [m for m in self.specs if m.met is False]
+
+    def table(self) -> list[str]:
+        """Markdown rows — the same shape the issue body and the docs use."""
+        rows = [
+            "| Metric | Kind | Question | Value | Target | Source |",
+            "|---|---|---|---|---|---|",
+        ]
+        for metric in self.specs:
+            value = "—" if metric.value is None else f"{metric.value:g}{metric.unit}"
+            target = "—" if metric.target is None else f"{metric.target:g}{metric.unit}"
+            rows.append(
+                f"| `{metric.id}` {metric.name} | {metric.kind.value} | {metric.question} | "
+                f"{value} | {target} | {metric.source or '—'} |"
+            )
+        return rows
+
+
 # ── Pipeline state ────────────────────────────────────────────────────────────
 
 
@@ -915,6 +1226,10 @@ class RunState(BaseModel):
     work_results: list[WorkResult] = Field(default_factory=list)
     qa: Optional[QAReport] = None
     delivery: Optional[Delivery] = None
+    semantics: Optional[SemanticModel] = None
+    breakdown: Optional[WorkBreakdown] = None
+    metrics: Optional[MetricSet] = None
+    documents: list[str] = Field(default_factory=list)  # project docs written for this run
     case_id: Optional[str] = None
     events: list[PipelineEvent] = Field(default_factory=list)
     assignments: list[Assignment] = Field(default_factory=list)

@@ -42,10 +42,12 @@ from future_agents.sdd import (
     DispatchBackend,
     Dispatcher,
     IntakeSource,
+    IssueBuilder,
     MasterOrchestrator,
     MemoryHub,
     Objective,
     ProgramRun,
+    ProjectDocs,
     RepoKnowledge,
     RepoScaffolder,
     RunState,
@@ -253,6 +255,87 @@ def get_observability(run_id: str, runbook: bool = Query(False)) -> dict:
     if runbook:
         payload["runbook"] = render_runbook(obs, state.spec)
     return payload
+
+
+@router.get(
+    "/api/sdd/runs/{run_id}/breakdown",
+    summary="The tracked work items for a run",
+)
+def get_breakdown(run_id: str) -> dict:
+    state = _get(run_id)
+    if state.breakdown is None:
+        raise HTTPException(status_code=404, detail="this run has no work breakdown")
+    requirement_ids = [r.id for r in state.spec.requirements] if state.spec else []
+    return {
+        "outline": state.breakdown.outline(),
+        "coverage": state.breakdown.coverage(requirement_ids),
+        "items": [item.model_dump(mode="json") for item in state.breakdown.items],
+    }
+
+
+@router.get(
+    "/api/sdd/runs/{run_id}/issues",
+    summary="GitHub issue and sub-issue payloads, ready to post",
+)
+def get_issues(run_id: str) -> dict:
+    """Rendered, never posted: creating issues stays the caller's decision."""
+    state = _get(run_id)
+    if state.breakdown is None:
+        raise HTTPException(status_code=404, detail="this run has no work breakdown")
+    builder = IssueBuilder(
+        state.spec,
+        state.plan.observability if state.plan else None,
+        state.metrics,
+        state.qa,
+        docs_path=state.documents[0] if state.documents else "",
+    )
+    payloads = builder.build(state.breakdown)
+    return {
+        "count": len(payloads),
+        "issues": [
+            {**payload.model_dump(mode="json"), "github": payload.to_github()}
+            for payload in payloads
+        ],
+    }
+
+
+@router.get("/api/sdd/runs/{run_id}/semantics", summary="How the ask was read")
+def get_semantics(run_id: str) -> dict:
+    state = _get(run_id)
+    if state.semantics is None:
+        raise HTTPException(status_code=404, detail="this run has no semantic model")
+    return state.semantics.model_dump(mode="json")
+
+
+@router.get("/api/sdd/runs/{run_id}/metrics", summary="Every metric and its question")
+def get_metrics(run_id: str) -> dict:
+    state = _get(run_id)
+    if state.metrics is None:
+        raise HTTPException(status_code=404, detail="this run has no metrics")
+    return {
+        "count": len(state.metrics.specs),
+        "unbound": [m.id for m in state.metrics.specs if m.source == "unbound"],
+        "unmet": [m.id for m in state.metrics.unmet()],
+        "table": state.metrics.table(),
+        "specs": [m.model_dump(mode="json") for m in state.metrics.specs],
+    }
+
+
+@router.get("/api/sdd/runs/{run_id}/documents", summary="The project record for a run")
+def get_documents(run_id: str, name: Optional[str] = Query(None)) -> dict:
+    state = _get(run_id)
+    docs = ProjectDocs().build(
+        state,
+        semantics=state.semantics,
+        breakdown=state.breakdown,
+        metrics=state.metrics,
+    )
+    if name:
+        body = docs.files.get(name)
+        if body is None:
+            raise HTTPException(status_code=404, detail=f"no such document: {name}")
+        return {"root": docs.root, "name": name, "markdown": body}
+    return {"root": docs.root, "files": sorted(docs.files), "written": state.documents}
 
 
 @router.get("/api/sdd/memory/lessons", summary="Recurring lessons and their confidence")

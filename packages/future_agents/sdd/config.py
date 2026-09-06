@@ -181,6 +181,26 @@ class ObservabilityConfig(BaseModel):
     dashboard_dir: str = "docs/dashboards"
 
 
+class ProjectDocsConfig(BaseModel):
+    """The record every delivery leaves behind, in the repository itself."""
+
+    enabled: bool = True
+    directory: str = "docs/projects"
+    write_on_delivery: bool = True
+
+
+class TrackingConfig(BaseModel):
+    """How the ask is broken down, and what gets posted where."""
+
+    enabled: bool = True
+    # Posting is an outward-facing act: it stays a deliberate call, never a
+    # side effect of running the pipeline.
+    publish: bool = False
+    issue_repo: str = ""  # owner/name, when a poster is wired
+    default_labels: list[str] = Field(default_factory=lambda: ["sdd:generated"])
+    subtasks_as_issues: bool = True  # False keeps sub-tasks as checkboxes only
+
+
 class SpecKitConfig(BaseModel):
     version: str = "1.0"
     project: ProjectConfig = Field(default_factory=ProjectConfig)
@@ -191,6 +211,8 @@ class SpecKitConfig(BaseModel):
     cicd: CICDConfig = Field(default_factory=CICDConfig)
     qa: QAConfig = Field(default_factory=QAConfig)
     observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
+    project_docs: ProjectDocsConfig = Field(default_factory=ProjectDocsConfig)
+    tracking: TrackingConfig = Field(default_factory=TrackingConfig)
 
     # ── Loading ───────────────────────────────────────────────────────────────
 

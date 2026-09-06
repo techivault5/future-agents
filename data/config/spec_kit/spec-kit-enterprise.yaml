@@ -83,6 +83,22 @@ agents:
     terraform: "claude-opus-5"
     migration: "claude-opus-5"
 
+# Every ask is broken down into tracked items that become GitHub issues.
+tracking:
+  enabled: true
+  # Posting is an outward-facing act, so it is never a side effect of a run.
+  # `spec_kit.py breakdown --publish issues.jsonl` hands the payloads to a poster.
+  publish: false
+  issue_repo: ""
+  default_labels: ["sdd:generated"]
+  subtasks_as_issues: true
+
+# The record each delivery leaves behind, in the repository itself.
+project_docs:
+  enabled: true
+  directory: "docs/projects"
+  write_on_delivery: true
+
 observability:
   enabled: true
   # Every MUST requirement earns an objective; every objective earns an alert;

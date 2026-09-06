@@ -48,6 +48,9 @@ packages/future_agents/sdd/
   master.py          multi-repo orchestration
   memory/            cases (episodic) · lessons (semantic) · answers (procedural)
   observability/     signals · objectives · alerts · runbook, per feature
+  semantics/         terms → capabilities, with the ambiguity kept
+  tracking/          work items · GitHub issues · metrics · publisher
+  project_docs/      the 11-document record each delivery leaves behind
   router.py          role/intent → engine
   stages/            pm · architect · planner · worker · qa · delivery · _extract
   repos/             languages (19 toolchains) · scaffold (required structure)
@@ -87,6 +90,9 @@ intake → clarify → spec → plan → tasks → work → qa → deliver → h
 | `WorkResult[]` | `stages.WorkerStage` | per-task status and coverage claims |
 | `QAReport` | `stages.QAStage` | behaviour checks, findings, verdict |
 | `Delivery` | `stages.DeliveryStage` | accepted? + unconfirmed assumptions |
+| `SemanticModel` | `semantics/builder.py` | concepts, capabilities, ambiguities, trace |
+| `WorkBreakdown` | `tracking/breakdown.py` | the epic and every tracked item |
+| `MetricSet` | `tracking/metrics.py` | a number per item, with its question |
 | `ObservabilityPlan` | `observability/planner.py` | signals, SLOs, alerts and the runbook |
 | `MemoryCase` | `memory/cases.py` | pitfalls that constrain the next plan |
 | `Lesson` | `memory/lessons.py` | a pitfall that recurred, with a half-life |
@@ -202,6 +208,62 @@ makes an unwatched feature fail the gate.
 python scripts/spec_kit.py observability --state .spec-kit/runs/run-x.json
 python scripts/spec_kit.py observability --state … --runbook docs/runbooks/feature.md
 ```
+
+---
+
+## 3c · Reading the ask, tracking the work, keeping the record
+
+**Semantic layer** (`semantics/`). Between spec and plan, every term is pinned to
+one meaning and every requirement becomes a capability — *actor + action +
+entity* ("support refunds an order"). Terms the repository already uses win over
+the ticket's paraphrase. A word with two live readings (`refund`, `delete`,
+`daily`, `real-time`…) and nothing settling it becomes a recorded **ambiguity**,
+not a coin flip. The model carries a `trace`: what was read, what it produced, on
+what evidence.
+
+**Work breakdown** (`tracking/breakdown.py`). Derived, not invented:
+
+```
+objective ──► EPIC
+  requirement ──► FEATURE | FIX | INTEGRATION | MIGRATION | SPIKE
+    task ──────► SUBTASK (test, code)
+  observability task ──► OBSERVABILITY
+  structure / review ──► CHORE
+  documentation ──────► DOCS
+```
+
+Every task lands somewhere, so nothing small is untracked; every item carries the
+requirement, the capability, who asked and where the code goes, so nothing large
+is unexplained. The kind is read from the ask — a `fix` gets "a test reproduces
+the failure first", a `migration` gets a tested rollback.
+
+**Issues** (`tracking/issues.py`). GitHub's own shape: a tracking issue whose
+body carries `- [ ] #123` task-list lines, and sub-issues that name their parent.
+Bodies carry intent, provenance, criteria as checkboxes, where the code goes and
+must not go, observability, metrics, definition of done, and traceability ids.
+
+**Posting is a separate act.** Nothing here talks to GitHub. `Publisher` is one
+method wide (`create(payload) -> "#123"`); the default is a dry run, parents post
+before children, and `JsonlPublisher` writes create-issue payloads for an
+external poster.
+
+```bash
+python scripts/spec_kit.py breakdown --state … --issues            # bodies to stdout
+python scripts/spec_kit.py breakdown --state … --publish out.jsonl # payloads for a poster
+```
+
+**Metrics** (`tracking/metrics.py`). No metric without a question, no question
+without a source: **delivery** (cycle time, rework) from the run, **quality**
+(criteria verified) from QA evidence, **reliability** from the SLOs themselves,
+**cost** from the budget guard, and **product** — the outcome the asker wanted —
+named with `source="unbound"` rather than faked with a proxy.
+
+**The project record** (`project_docs/`). Eleven documents per delivery under
+`docs/projects/<slug>/`, always the same shape: objective and provenance,
+semantics, architecture (two mermaid diagrams), work breakdown, implementation
+with evidence, QA, observability, metrics, decisions (ADRs), changelog — plus an
+index across deliveries. Generated from run state, so a section with nothing to
+say says so rather than going missing.
 
 ---
 
@@ -343,6 +405,11 @@ HTTP (`uvicorn future_agents.api.main:app`):
 | `POST /api/sdd/runs/{id}/meeting` | record a meeting and resume |
 | `GET /api/sdd/cases` | search cases and lessons |
 | `GET /api/sdd/runs/{id}/observability` | signals, objectives, alerts, runbook |
+| `GET /api/sdd/runs/{id}/breakdown` | the tracked items |
+| `GET /api/sdd/runs/{id}/issues` | issue payloads, ready to post |
+| `GET /api/sdd/runs/{id}/semantics` | how the ask was read |
+| `GET /api/sdd/runs/{id}/metrics` | every metric and its question |
+| `GET /api/sdd/runs/{id}/documents` | the project record |
 | `GET /api/sdd/memory/lessons` | the active rulebook and its confidence |
 | `GET /api/sdd/memory/answers` | answers memory can stand in for |
 | `POST /api/sdd/memory/consolidate` | merge, promote, decay, prune |

@@ -6,7 +6,7 @@ audit = AuditLog(".spec-kit/state")
 """
 
 from future_agents.sdd.store.audit import AuditEvent, AuditLog
-from future_agents.sdd.store.queue import WorkItem, WorkQueue
+from future_agents.sdd.store.queue import QueueItem, WorkQueue
 from future_agents.sdd.store.run_store import (
     DEFAULT_ROOT,
     Lease,
@@ -24,7 +24,7 @@ __all__ = [
     "RunRecord",
     "RunStore",
     "StoreError",
-    "WorkItem",
+    "QueueItem",
     "WorkQueue",
     "iter_runs",
 ]

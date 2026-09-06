@@ -639,6 +639,117 @@ def observability_scope() -> Diagram:
     return figure
 
 
+def ask_to_issues() -> Diagram:
+    """One ask, read once, broken into items that can be posted and measured."""
+    figure = Diagram(172, 112)
+    figure.band(6, 26, "Read", BAND_UNDERSTAND)
+    figure.band(36, 34, "Break down", BAND_DESIGN)
+    figure.band(74, 32, "Track", BAND_EXECUTE)
+
+    ask = figure.node(
+        4, 12, 44, 14, "The ask", "ticket · meeting · chat", badge="1", accent=ACCENT, font_size=6.2
+    )
+    semantics = figure.node(
+        56,
+        12,
+        52,
+        14,
+        "Semantic layer",
+        "terms → capabilities, ambiguity kept",
+        badge="2",
+        accent=GREEN,
+        font_size=6.2,
+    )
+    spec = figure.node(
+        116, 12, 52, 14, "Spec", "REQ + criteria", badge="3", accent=ACCENT, font_size=6.2
+    )
+    figure.connect(ask, semantics)
+    figure.connect(semantics, spec)
+
+    epic = figure.node(
+        4, 44, 44, 16, "Epic", "the objective, tracked", badge="4", accent=ACCENT, font_size=6.2
+    )
+    item = figure.node(
+        56,
+        44,
+        52,
+        16,
+        "Item per requirement",
+        "feature · fix · integration · migration",
+        badge="5",
+        accent=ACCENT,
+        font_size=6.2,
+    )
+    subtask = figure.node(
+        116,
+        44,
+        52,
+        16,
+        "Sub-item per task",
+        "test · code · telemetry · docs",
+        badge="6",
+        accent=ACCENT,
+        font_size=6.2,
+    )
+    figure.connect(spec, item, from_side="bottom", to_side="top")
+    figure.connect(epic, item)
+    figure.connect(item, subtask)
+
+    issues = figure.node(
+        4,
+        82,
+        52,
+        16,
+        "GitHub issues",
+        "tracking issue + sub-issues",
+        badge="7",
+        fill=BOX_WARN,
+        accent=AMBER,
+        font_size=6.2,
+    )
+    metrics = figure.node(
+        62,
+        82,
+        50,
+        16,
+        "Metrics",
+        "delivery · quality · reliability · product",
+        badge="8",
+        fill=BOX_WARN,
+        accent=AMBER,
+        font_size=6.2,
+    )
+    record = figure.node(
+        118,
+        82,
+        50,
+        16,
+        "Project record",
+        "11 documents in the repo",
+        badge="9",
+        fill=BOX_WARN,
+        accent=AMBER,
+        font_size=6.2,
+    )
+    figure.connect(epic, issues, from_side="bottom", to_side="top")
+    figure.connect(item, metrics, from_side="bottom", to_side="top")
+    figure.connect(subtask, record, from_side="bottom", to_side="top")
+
+    figure.caption(
+        4,
+        105,
+        "Every task lands in a tracked item, so nothing small is untracked; every item names the "
+        "requirement and the person who asked, so nothing large is unexplained.",
+    )
+    figure.caption(
+        4,
+        109,
+        "Posting stays a deliberate call: the pipeline renders payloads, a poster creates them.",
+        bold=True,
+    )
+    return figure
+
+
 FIGURES = {
     "delivery-pipeline": delivery_pipeline,
     "deployment-topology": deployment_topology,
@@ -647,6 +758,7 @@ FIGURES = {
     "multi-repo-program": multi_repo_program,
     "memory-tiers": memory_tiers,
     "observability-scope": observability_scope,
+    "ask-to-issues": ask_to_issues,
 }
 
 

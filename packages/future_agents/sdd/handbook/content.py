@@ -39,6 +39,7 @@ from reportlab.platypus.tableofcontents import TableOfContents
 from future_agents.sdd import personas
 from future_agents.sdd.config import SpecKitConfig
 from future_agents.sdd.handbook.figures import (
+    ask_to_issues,
     autonomy_loop,
     delivery_pipeline,
     deployment_topology,
@@ -1991,9 +1992,264 @@ def ch_observability() -> list[Any]:
     ]
 
 
+def ch_semantics() -> list[Any]:
+    return [
+        h1("15 · The semantic layer"),
+        p(
+            'Most deliveries do not fail on syntax. They fail because "refund" meant a reversal '
+            "to one person and a credit note to another, and nobody noticed until the ledger "
+            "disagreed. So between the spec and the plan sits one job: pin every term to a single "
+            "meaning, name what the system will be able to do, and say out loud when a word is "
+            "still carrying two readings."
+        ),
+        *figure(
+            ask_to_issues,
+            "Figure 15.1 — one ask, read once, then broken into items that can be posted, "
+            "measured and reviewed.",
+        ),
+        h2("15.1 What a concept is"),
+        p(
+            "Every noun, verb and constraint in the ask becomes a concept with a canonical form, "
+            "its synonyms folded in, the requirements that used it, and a confidence. A term used "
+            "in several requirements is load-bearing; one that appears once in passing says so "
+            "rather than pretending otherwise. Where the repository already has a word for "
+            "something, the repository wins — code that says <font face='Courier'>credit_note</font> "
+            "settles what the team means by it."
+        ),
+        table(
+            [
+                ["Kind", "Example", "Why it is tracked separately"],
+                ["entity", "refund, order, ledger", "the things the change acts on"],
+                ["action", "reconcile, export, notify", "what the system will do to them"],
+                ["actor", "support, finance, the scheduler", "who is served, and who acts"],
+                ["constraint", "within 2s, nightly, PCI", "bounds, not features"],
+                ["system", "Snowflake, Stripe, Kafka", "the other side of an integration"],
+            ],
+            widths=[0.9, 1.7, 2.1],
+        ),
+        *listing("semantics/builder", "SemanticLayer._kind_of"),
+        h2("15.2 Capabilities: actor + action + entity"),
+        p(
+            'A capability is one sentence — "support refunds an order" — sitting between the '
+            "requirement and the work items. It is what stops one requirement quietly becoming "
+            "four unrelated tickets, and four requirements collapsing into one vague one. A "
+            "requirement that cannot be phrased this way is not yet a requirement, and is "
+            "recorded as such instead of being padded out."
+        ),
+        *listing("semantics/builder", "SemanticLayer._pick"),
+        h2("15.3 Ambiguity is an output, not an error"),
+        p(
+            "A dozen words reliably mean two things in the same sentence. When one appears and "
+            "nothing in the spec settles which reading applies, it becomes a recorded ambiguity: "
+            "the clarifier can turn it into a question, the architect carries it as a risk, and "
+            "the project record prints it as an open decision. What it never becomes is a coin "
+            "flip made silently at 2am."
+        ),
+        table(
+            [
+                ["Term", "Reading A", "Reading B"],
+                ["refund", "a reversal of the original payment", "a credit against a future one"],
+                ["delete", "soft delete, recoverable", "hard delete, unrecoverable"],
+                ["daily", "once per calendar day", "every 24 hours from the last run"],
+                ["real-time", "sub-second", "as soon as the next batch runs"],
+                ["archive", "hidden from the UI", "moved out of the primary store"],
+            ],
+            widths=[0.8, 1.9, 2.0],
+        ),
+        caption(
+            "The full list lives in <font face='Courier'>semantics/glossary.py</font> and is "
+            "deliberately short: every entry is one a reviewer can argue with."
+        ),
+        h2("15.4 Showing the work"),
+        p(
+            "The model carries a <font face='Courier'>trace</font> — what was read, what it "
+            "produced, on what evidence. A decomposition nobody can audit is a decomposition "
+            "nobody can correct, and this is the difference between a system that can be trusted "
+            "with an ask and one that merely sounds confident about it."
+        ),
+        *code(
+            "1. read 2 requirement(s) from spec-4f21; domain reads as 'billing'\n"
+            "2. extracted 16 term(s); 3 recur across requirements and carry more weight\n"
+            "3. grounded 2 concept(s) in existing code — the repository's own naming wins\n"
+            "4. 1 term(s) carry more than one reading and were recorded rather than guessed\n"
+            "5. named 2 capability(ies) as actor + action + entity"
+        ),
+        PageBreak(),
+    ]
+
+
+def ch_tracking() -> list[Any]:
+    return [
+        h1("16 · Work breakdown, issues and metrics"),
+        p(
+            'Two failure modes, and both are common. One ticket that says "do the refunds '
+            'thing", which is never finishable; or forty tickets nobody can trace back to why '
+            "they exist. The breakdown is derived from the artifacts that already exist, so "
+            "neither happens: every task in the graph lands in a tracked item, and every item "
+            "names the requirement, the capability and the person who asked."
+        ),
+        h2("16.1 The tree"),
+        flow(
+            "objective ──► EPIC\n"
+            "  requirement ──► FEATURE | FIX | INTEGRATION | MIGRATION | SPIKE\n"
+            "    task ──────► SUBTASK (test, code)\n"
+            "  observability task ──► OBSERVABILITY\n"
+            "  structure / review ──► CHORE\n"
+            "  documentation ──────► DOCS"
+        ),
+        p(
+            "The kind is read from what the ask actually says, because a bug report and a new "
+            "capability are not tracked the same way — and pretending they are is how fix work "
+            "quietly loses its regression test. Each kind carries its own definition of done."
+        ),
+        table(
+            [
+                ["Kind", "Definition of done includes"],
+                ["fix", "a test that reproduces the failure before the fix"],
+                ["migration", "a rollback path, written and tested; counts reconciled after"],
+                ["integration", "credentials from the environment, and the peer's failure handled"],
+                [
+                    "observability",
+                    "signals emitting in a real run, and the runbook section existing",
+                ],
+                ["spike", "the question answered in writing, with what acting on it would cost"],
+            ],
+            widths=[1.1, 3.6],
+        ),
+        *listing("tracking/breakdown", "WorkBreakdownBuilder._kind_of"),
+        PageBreak(),
+        h2("16.2 GitHub issues and sub-issues"),
+        p(
+            "The output is GitHub's own shape: a tracking issue whose body carries a task list of "
+            "its children, and sub-issues that name their parent. Task-list lines are written as "
+            "<font face='Courier'>- [ ] #123</font> once a child has a number and as "
+            "<font face='Courier'>- [ ] WI-004 — title</font> before that, which is exactly what "
+            "GitHub renders as a sub-issue reference. Nothing depends on a private API."
+        ),
+        table(
+            [
+                ["Section", "What it carries"],
+                ["Intent", 'what was asked, and the "so that" behind it'],
+                ["Provenance", "who asked, from which system, with the link"],
+                ["Acceptance criteria", "Given/When/Then as checkboxes, by id"],
+                ["Implementation", "where the code goes, and where it must not"],
+                ["Observability", "the signals and objectives this item owns"],
+                ["Metrics", "the numbers, each with its question"],
+                ["Definition of done", "per kind, as checkboxes"],
+                ["Traceability", "REQ, AC and task ids, last so it never crowds the top"],
+            ],
+            widths=[1.3, 3.4],
+        ),
+        *listing("tracking/issues", "IssueBuilder._provenance"),
+        h2("16.3 Posting is a separate, deliberate act"),
+        p(
+            "Nothing in this package talks to GitHub. <font face='Courier'>Publisher</font> is one "
+            "method wide, so a team posts with whatever client, token scope and rate-limit policy "
+            "it already trusts; the default everywhere is a dry run. Parents are posted before "
+            "children so a sub-issue can name a real number, and the epic's task list is updated "
+            "once its children have theirs."
+        ),
+        *listing("tracking/publisher", "publish_breakdown"),
+        caption(
+            "<font face='Courier'>JsonlPublisher</font> writes one create-issue payload per line "
+            'for an external poster: the handoff for "I will do the posting myself".'
+        ),
+        PageBreak(),
+        h2("16.4 A metric per item, and the question it answers"),
+        p(
+            "The rule is that no metric exists without a question, and no question without a "
+            "source. A number that cannot say what decision it would change is a chart, and "
+            "charts are how dashboards fill up while nobody learns anything."
+        ),
+        table(
+            [
+                ["Family", "Example", "Read from"],
+                ["delivery", "cycle time, rework rate", "the run itself"],
+                ["quality", "criteria verified", "QA evidence, never a claim"],
+                ["reliability", "the objective the feature runs under", "the observability plan"],
+                ["product", "the outcome the asker wanted", "usually unbound — a named gap"],
+                ["cost", "engine calls, run seconds", "the budget guard"],
+            ],
+            widths=[0.9, 1.9, 1.9],
+        ),
+        p(
+            "The product metric is the interesting one. Binding it needs a data source only the "
+            "team has, so it is created with <font face='Courier'>source=\"unbound\"</font> — "
+            "visible, assignable, and impossible to mistake for something already being measured. "
+            "A fabricated proxy would look better and teach less."
+        ),
+        *listing("tracking/metrics", "MetricPlanner._product"),
+        PageBreak(),
+    ]
+
+
+def ch_project_record() -> list[Any]:
+    return [
+        h1("17 · The project record"),
+        p(
+            "Every delivery leaves a folder in the repository, always the same eleven documents "
+            "in the same order, so anyone landing on it six months later finds the same things in "
+            "the same places. All of it is generated from run state, so none of it can quietly "
+            "drift from what happened — and a section with nothing to say says so, because an "
+            "empty QA file and a missing one mean very different things."
+        ),
+        h2("17.1 The eleven documents"),
+        table(
+            [
+                ["File", "Answers"],
+                ["README.md", "what this is, who asked, where it stands, the method it followed"],
+                ["01-objective.md", "the ask as it arrived, what was clarified, what is assumed"],
+                ["02-semantics.md", "what the words mean here, and how the ask was read"],
+                ["03-architecture.md", "components, placement, two mermaid diagrams, risks"],
+                ["04-work-breakdown.md", "every tracked item, its issue, its definition of done"],
+                ["05-implementation.md", "what ran, by whom, with which evidence"],
+                ["06-qa.md", "checks, coverage, findings, verdict, delivery"],
+                ["07-observability.md", "signals, objectives, alerts, runbook, blind spots"],
+                ["08-metrics.md", "every metric, its question, and what is still unbound"],
+                ["09-decisions.md", "ADRs from placements, ambiguities and assumptions"],
+                ["10-changelog.md", "the run, event by event"],
+            ],
+            widths=[1.5, 3.2],
+            mono_columns=(0,),
+        ),
+        h2("17.2 Diagrams that cannot drift"),
+        p(
+            "The architecture document draws itself in mermaid — text, so it diffs in review and "
+            "renders in GitHub without a plugin, and regenerated from the plan on every run. "
+            "Three views, because one diagram cannot answer three questions: what gets built and "
+            "where it lives, the requirement → capability → file → objective chain an auditor "
+            "walks, and the steps this delivery actually went through."
+        ),
+        *listing("project_docs/mermaid", "traceability_diagram"),
+        h2("17.3 Decisions, recorded as they were made"),
+        p(
+            "The decision log is not written by hand after the fact. Each placement becomes an "
+            "ADR with the alternatives it rejected and why; each unresolved ambiguity becomes an "
+            "ADR that says the pipeline deliberately did not choose; each assumption becomes one "
+            "that names its basis and its risk."
+        ),
+        *listing("project_docs/sections", "decisions_md"),
+        h2("17.4 Where it lands"),
+        flow(
+            "docs/projects/\n"
+            "  index.md                     one row per delivery, newest last\n"
+            "  <slug>/\n"
+            "    README.md  01-objective.md  02-semantics.md  03-architecture.md\n"
+            "    04-work-breakdown.md  05-implementation.md  06-qa.md\n"
+            "    07-observability.md  08-metrics.md  09-decisions.md  10-changelog.md"
+        ),
+        caption(
+            "Written on delivery when a repository root is known; "
+            "<font face='Courier'>spec_kit.py docs --state … --write .</font> writes it on demand, "
+            "and the API returns any single document as markdown."
+        ),
+        PageBreak(),
+    ]
+
+
 def ch_memory() -> list[Any]:
     return [
-        h1("15 · Memory"),
+        h1("18 · Memory"),
         p(
             "A team that forgets is a team that re-learns. This system carries three different "
             'kinds of knowledge between deliveries, because "remember things" is really three '
@@ -2005,10 +2261,10 @@ def ch_memory() -> list[Any]:
         ),
         *figure(
             memory_tiers,
-            "Figure 15.1 — the three tiers, what writes each of them, and where each one "
+            "Figure 18.1 — the three tiers, what writes each of them, and where each one "
             "re-enters the next run.",
         ),
-        h2("15.1 Three tiers"),
+        h2("18.1 Three tiers"),
         table(
             [
                 ["Tier", "Holds", "Answers", "Written by", "Module"],
@@ -2042,7 +2298,7 @@ def ch_memory() -> list[Any]:
             "is switched off: every method degrades to an empty answer rather than an exception, "
             "so a run never fails because the memory store is missing, empty or corrupt."
         ),
-        h2("15.2 Where pitfalls come from"),
+        h2("18.2 Where pitfalls come from"),
         table(
             [
                 ["Source", "Becomes"],
@@ -2058,7 +2314,7 @@ def ch_memory() -> list[Any]:
         ),
         *listing("memory/cases", "pitfalls_from_run"),
         PageBreak(),
-        h2("15.3 Retrieval, and why it ranks the way it does"),
+        h2("18.3 Retrieval, and why it ranks the way it does"),
         table(
             [
                 ["Rule", "Why"],
@@ -2086,7 +2342,7 @@ def ch_memory() -> list[Any]:
         *listing("memory/cases", "CaseStore.retrieve"),
         *listing("memory/cases", "CaseStore._score", "weighted recall across the case's fields"),
         PageBreak(),
-        h2("15.4 From anecdote to lesson"),
+        h2("18.4 From anecdote to lesson"),
         p(
             "One case is an anecdote. The same pitfall in two independent cases is a property of "
             "the codebase — and that is what the planner deserves to be told. Promotion enforces "
@@ -2100,7 +2356,7 @@ def ch_memory() -> list[Any]:
             "history intact. This is the part that keeps memory from becoming a nag."
         ),
         *listing("models", "Lesson.confidence"),
-        h2("15.5 The answer book — not asking twice"),
+        h2("18.5 The answer book — not asking twice"),
         p(
             "The clarifier's job is to ask what it cannot know. Asking the <i>same</i> question "
             "every quarter is not diligence, it is amnesia, and it is the fastest way to make "
@@ -2128,7 +2384,7 @@ def ch_memory() -> list[Any]:
         ),
         *listing("memory/answers", "AnswerBook.recall"),
         PageBreak(),
-        h2("15.6 Consolidation — the maintenance pass"),
+        h2("18.6 Consolidation — the maintenance pass"),
         p(
             "An append-only memory rots in three predictable ways, and consolidation answers each "
             "one: duplicates merge into a single case with an occurrence count (which then "
@@ -2140,7 +2396,7 @@ def ch_memory() -> list[Any]:
         *listing("memory/consolidate", "consolidate"),
         *listing("memory/consolidate", "_merge_duplicates", "the survivor keeps the worst outcome"),
         PageBreak(),
-        h2("15.7 The case format"),
+        h2("18.7 The case format"),
         *code(
             "# Weekly churn report for sales\n"
             "\n"
@@ -2163,7 +2419,7 @@ def ch_memory() -> list[Any]:
             "  answer: Snowflake, refreshed nightly at 02:00\n"
             "- QA blocker: REQ-003-AC-001 not verified — no passing test task"
         ),
-        h2("15.8 Memory is an attack surface"),
+        h2("18.8 Memory is an attack surface"),
         p(
             "Cases are built from ticket bodies, meeting notes and QA output, and are later "
             "injected into planning prompts. Without a filter, one poisoned ticket writes a "
@@ -2173,7 +2429,7 @@ def ch_memory() -> list[Any]:
             "can see that the source text tried something."
         ),
         *listing("memory/__init__", "MemoryHub._clean"),
-        h2("15.9 Operating it"),
+        h2("18.9 Operating it"),
         table(
             [
                 ["Command", "Does"],
@@ -2191,7 +2447,7 @@ def ch_memory() -> list[Any]:
             "The same surface over HTTP: GET /api/sdd/cases, /api/sdd/memory/lessons, "
             "/api/sdd/memory/answers, POST /api/sdd/memory/consolidate."
         ),
-        h2("15.10 Swapping in a vector store"),
+        h2("18.10 Swapping in a vector store"),
         p(
             "Retrieval sits behind one method. A semantic store (Chroma, pgvector, a hosted "
             "index) replaces <font face='Courier'>CaseStore.retrieve</font> without any other "
@@ -2212,20 +2468,20 @@ def ch_routing() -> list[Any]:
             [name, role.engine, role.fallback or config.agents.default_engine, role.purpose]
         )
     return [
-        h1("16 · Engine routing and MCP"),
+        h1("19 · Engine routing and MCP"),
         p(
             "The pipeline never names a model inline. It asks the router, which resolves role → "
             "engine from the rulebook, lets an intent keyword override it, and falls back when an "
             "engine is unavailable. Changing vendor or model is a configuration edit, and a "
             "failing engine degrades to deterministic behaviour instead of taking the run down."
         ),
-        h2("16.1 Current role map"),
+        h2("19.1 Current role map"),
         table(rows, widths=[0.95, 1.15, 1.15, 2.2], mono_columns=(0, 1, 2)),
         caption(
             "Read live from the rulebook. Intent routes: "
             + (", ".join(f"{k} → {v}" for k, v in config.agents.intent_routes.items()) or "none")
         ),
-        h2("16.2 Resolution order"),
+        h2("19.2 Resolution order"),
         flow(
             "1. intent keyword match ....... 'terraform' in the task intent → claude-opus-5\n"
             "2. role default ............... agents.roles[role].engine\n"
@@ -2234,7 +2490,7 @@ def ch_routing() -> list[Any]:
             "5. NullEngine ................. deterministic; the stage's own rules stand"
         ),
         *listing("router", "EngineRouter.run"),
-        h2("16.3 Engines"),
+        h2("19.3 Engines"),
         p(
             "An engine is anything with a <font face='Courier'>name</font> and a "
             "<font face='Courier'>complete(call)</font>. Three ship: NullEngine (the default, "
@@ -2250,7 +2506,7 @@ def ch_routing() -> list[Any]:
             "upgraded model is an unversioned dependency, which is exactly what the principal AI "
             "persona's heuristics say.",
         ),
-        h2("16.4 MCP exposure"),
+        h2("19.4 MCP exposure"),
         p(
             "The gateway URI lives in the rulebook, and the resources an agent needs are already "
             "addressable: the constitution as markdown, the golden CI template, the language "
@@ -2279,7 +2535,7 @@ def ch_routing() -> list[Any]:
 
 def ch_master() -> list[Any]:
     return [
-        h1("17 · The master orchestrator"),
+        h1("20 · The master orchestrator"),
         p(
             "Real work rarely lands in one repository: an API change needs a client change needs "
             "a pipeline change. The master orchestrator profiles every registered repository, "
@@ -2287,7 +2543,7 @@ def ch_master() -> list[Any]:
             "declared dependencies, and runs a full delivery pipeline in each — each with its own "
             "language, its own toolchain and, if you want, its own persona."
         ),
-        h2("17.1 The part that matters to a human"),
+        h2("20.1 The part that matters to a human"),
         callout(
             "One question set for the whole program",
             "Five repositories each raise 'which system of record supplies this data?'. The "
@@ -2302,7 +2558,7 @@ def ch_master() -> list[Any]:
             "Questions are merged across repositories so a human answers once for the whole "
             "program.",
         ),
-        h2("17.2 Registration and inventory"),
+        h2("20.2 Registration and inventory"),
         *listing("master", "MasterOrchestrator.register"),
         flow(
             "orchestrator.register('checkout-api',   '../checkout-api',\n"
@@ -2318,7 +2574,7 @@ def ch_master() -> list[Any]:
             "web-app         typescript  missing: none\n"
             "platform-infra  terraform   missing: ['docs/runbook.md']"
         ),
-        h2("17.3 Routing and waves"),
+        h2("20.3 Routing and waves"),
         p(
             "An explicit repo list always wins. Otherwise the objective is scored against each "
             "repo's name, keywords and language; if nothing matches, every repo is in scope "
@@ -2326,7 +2582,7 @@ def ch_master() -> list[Any]:
             "cycle raises instead of deadlocking."
         ),
         *listing("master", "MasterOrchestrator.waves"),
-        h2("17.4 Dependency behaviour"),
+        h2("20.4 Dependency behaviour"),
         p(
             "A repo whose dependency is still clarifying or blocked is skipped with the reason "
             "recorded, and picked up automatically once the dependency reaches a usable state — "
@@ -2334,7 +2590,7 @@ def ch_master() -> list[Any]:
             "restarted."
         ),
         *listing("master", "MasterOrchestrator._resume_blocked_waves"),
-        h2("17.5 Per-repo context"),
+        h2("20.5 Per-repo context"),
         p(
             "Each repository receives its own copy of the objective, carrying that repo's "
             "language, test command and dependency policy as constraints — which is why the Go "
@@ -2342,7 +2598,7 @@ def ch_master() -> list[Any]:
             "says <font face='Courier'>npm test</font> from the same human sentence."
         ),
         *listing("master", "MasterOrchestrator._repo_objective"),
-        h2("17.6 A program run"),
+        h2("20.6 A program run"),
         flow(
             "$ python scripts/spec_kit.py program \\\n"
             "    --repo checkout-api=../checkout-api \\\n"
@@ -2363,7 +2619,7 @@ def ch_master() -> list[Any]:
             "  checkout-api  done  3 requirements  13 tasks  QA pass  accepted\n"
             "  web-app       done  3 requirements  13 tasks  QA pass  accepted"
         ),
-        h2("17.7 The program report"),
+        h2("20.7 The program report"),
         *listing("master", "ProgramRun.report"),
         PageBreak(),
     ]
@@ -2406,7 +2662,7 @@ def ch_configuration() -> list[Any]:
         ["qa", "communication.verbosity", "summary_only keeps logs out of the channel"],
     ]
     return [
-        h1("18 · Configuration reference"),
+        h1("21 · Configuration reference"),
         p(
             "One rulebook, loaded by every surface — pipeline, CLI, API and CI. "
             "<font face='Courier'>${VAR}</font> and <font face='Courier'>${VAR:-default}</font> "
@@ -2414,11 +2670,11 @@ def ch_configuration() -> list[Any]:
             "looks like a secret is rejected with a ConfigError rather than being caught later by "
             "a scanner."
         ),
-        h2("18.1 Every key"),
+        h2("21.1 Every key"),
         table(sections, widths=[0.85, 1.6, 2.6], mono_columns=(1,)),
-        h2("18.2 Secret handling"),
+        h2("21.2 Secret handling"),
         *listing("config", "_resolve"),
-        h2("18.3 The rulebook in full"),
+        h2("21.3 The rulebook in full"),
         caption("data/config/spec_kit/spec-kit-enterprise.yaml"),
         *code(text),
         PageBreak(),
@@ -2459,13 +2715,13 @@ def ch_operations() -> list[Any]:
         ["POST /api/sdd/cicd/diff-gate", "golden-pattern check"],
     ]
     return [
-        h1("19 · Operating the system"),
-        h2("19.1 Command line"),
+        h1("22 · Operating the system"),
+        h2("22.1 Command line"),
         table(cli_rows, widths=[1.9, 3.0], mono_columns=(0,)),
-        h2("19.2 HTTP"),
+        h2("22.2 HTTP"),
         p("Served by <font face='Courier'>uvicorn future_agents.api.main:app</font>."),
         table(api_rows, widths=[1.7, 3.0], mono_columns=(0,)),
-        h2("19.3 Python"),
+        h2("22.3 Python"),
         *code(
             "from future_agents.sdd import (\n"
             "    DeliveryPipeline, MasterOrchestrator, Objective, SpecKitConfig, get_persona,\n"
@@ -2497,7 +2753,7 @@ def ch_operations() -> list[Any]:
             "print(state.delivery.accepted, state.delivery.unconfirmed_assumptions)\n"
             "save_state(state, '.spec-kit/runs')"
         ),
-        h2("19.4 Deployment topology"),
+        h2("22.4 Deployment topology"),
         p(
             "Nothing here needs a database or a broker to start: the queue, the run store and the "
             "audit log are files written atomically, and the control plane and workers hold no "
@@ -2509,7 +2765,7 @@ def ch_operations() -> list[Any]:
             "Swap the file-backed queue and store for a managed service when you outgrow them; "
             "nothing above the store changes.",
         ),
-        h2("19.5 In CI"),
+        h2("22.5 In CI"),
         *code(
             "# .github/workflows/spec-kit.yml\n"
             "name: spec-kit\n"
@@ -2525,7 +2781,7 @@ def ch_operations() -> list[Any]:
             "      - run: python scripts/spec_kit.py detect --path .\n"
             "      - run: python scripts/spec_kit.py diff-gate --proposed .github/workflows/ci.yml"
         ),
-        h2("19.6 Intake from a meeting tool"),
+        h2("22.6 Intake from a meeting tool"),
         p(
             "The API is the integration point: post the transcript as "
             "<font face='Courier'>raw_inputs</font> with "
@@ -2709,7 +2965,7 @@ PATTERNS = [
 
 def ch_patterns() -> list[Any]:
     out: list[Any] = [
-        h1("20 · Pattern catalog"),
+        h1("23 · Pattern catalog"),
         p(
             "The design patterns this system is built from, each with the failure it prevents and "
             "the price it charges. They are reusable outside this codebase — most of them are "
@@ -2741,10 +2997,10 @@ def ch_patterns() -> list[Any]:
 
 def ch_extending() -> list[Any]:
     return [
-        h1("21 · Extending the system"),
-        h2("21.1 Add a language"),
+        h1("24 · Extending the system"),
+        h2("24.1 Add a language"),
         p("One entry in <font face='Courier'>TOOLCHAINS</font> — see §8.5. Nothing else changes."),
-        h2("21.2 Add a persona"),
+        h2("24.2 Add a persona"),
         *code(
             "from future_agents.sdd.personas import Heuristic, Persona, ReviewGate, PERSONAS\n"
             "\n"
@@ -2771,7 +3027,7 @@ def ch_extending() -> list[Any]:
             ")\n"
             "PERSONAS[EMBEDDED.id] = EMBEDDED"
         ),
-        h2("21.3 Add a clarification detector"),
+        h2("24.3 Add a clarification detector"),
         p(
             "A detector is a function from an objective and its context to signals. Register it on "
             "the clarifier and it participates in scoring immediately."
@@ -2798,14 +3054,14 @@ def ch_extending() -> list[Any]:
             "clarifier = IntentClarifier(config)\n"
             "clarifier._detectors.append(detect_missing_retention)"
         ),
-        h2("21.4 Add a governance rule"),
+        h2("24.4 Add a governance rule"),
         p(
             "Add a method to <font face='Courier'>Constitution</font> returning "
             "<font face='Courier'>Violation</font> objects, and call it from the matching stage "
             "transition in <font face='Courier'>DeliveryPipeline._build</font>. Error severity "
             "stops the run; warn severity is recorded."
         ),
-        h2("21.5 Add a stage"),
+        h2("24.5 Add a stage"),
         p(
             "Stages are plain classes with one method that takes upstream artifacts and returns "
             "the next one. Add the artifact to <font face='Courier'>RunState</font>, add the enum "
@@ -2813,10 +3069,10 @@ def ch_extending() -> list[Any]:
             "two stages it belongs between. Keep it deterministic; let the engine enrich only free "
             "text."
         ),
-        h2("21.6 Replace the memory backend"),
+        h2("24.6 Replace the memory backend"),
         p(
             "Implement <font face='Courier'>retrieve()</font> against a vector store and keep the "
-            "markdown cases as the durable record — see §15.5."
+            "markdown cases as the durable record — see §18.5."
         ),
         PageBreak(),
     ]
@@ -2824,7 +3080,7 @@ def ch_extending() -> list[Any]:
 
 def ch_testing() -> list[Any]:
     return [
-        h1("22 · Testing"),
+        h1("25 · Testing"),
         p(
             "The whole pipeline runs offline and deterministically, which is what makes it "
             "testable at all. Two suites cover it: "
@@ -2874,7 +3130,7 @@ def ch_testing() -> list[Any]:
             ],
             widths=[0.9, 4.1],
         ),
-        h2("22.1 Running them"),
+        h2("25.1 Running them"),
         *code(
             "pytest -q                                    # whole repo\n"
             "pytest -q tests/test_sdd.py                  # core pipeline\n"
@@ -2883,7 +3139,7 @@ def ch_testing() -> list[Any]:
             "ruff format --check packages/future_agents/ apps/ scripts/\n"
             "python packages/guardrails/guardrails_engine.py . --mode block"
         ),
-        h2("22.2 Testing your own backend"),
+        h2("25.2 Testing your own backend"),
         p(
             "Use <font face='Courier'>CallableEngine</font> for the model seam and a fake backend "
             "for the work seam; both are single functions, so a full delivery run in a test is "
@@ -2904,7 +3160,7 @@ def ch_testing() -> list[Any]:
 
 def ch_limits() -> list[Any]:
     return [
-        h1("23 · Limits, and what to build next"),
+        h1("26 · Limits, and what to build next"),
         p(
             "Stated plainly, because a system that oversells itself gets switched off the first "
             "time it is believed."
@@ -2930,7 +3186,7 @@ def ch_limits() -> list[Any]:
                 [
                     "Detectors are keyword-driven",
                     "an unusual phrasing can slip past a gate",
-                    "add a detector (§21.3); gates still catch the artifact",
+                    "add a detector (§24.3); gates still catch the artifact",
                 ],
                 [
                     "API runs live in memory",
@@ -2950,7 +3206,7 @@ def ch_limits() -> list[Any]:
             ],
             widths=[1.2, 1.7, 2.1],
         ),
-        h2("23.1 The next things worth building"),
+        h2("26.1 The next things worth building"),
         *bullets(
             [
                 "<b>A real worker backend</b> in this repo: shell out per task kind, run the "
@@ -2965,7 +3221,7 @@ def ch_limits() -> list[Any]:
                 "and cases directly — the API already serves each of them.",
             ]
         ),
-        h2("23.2 Where to start reading the code"),
+        h2("26.2 Where to start reading the code"),
         table(
             [
                 ["If you want to understand…", "Read"],
@@ -3006,6 +3262,9 @@ CHAPTERS = (
     ch_autonomy,
     ch_qa,
     ch_observability,
+    ch_semantics,
+    ch_tracking,
+    ch_project_record,
     ch_memory,
     ch_routing,
     ch_master,

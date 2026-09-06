@@ -1,6 +1,7 @@
 """The work queue — tickets in, one worker per item, poison quarantined.
 
-A ticket becomes a `WorkItem`. A worker claims the next unclaimed item under a
+A ticket becomes a `QueueItem` — the queue's entry, not the tracker's
+work item. A worker claims the next unclaimed item under a
 lease, works it, and either completes it or fails it. A failed item is retried
 until `max_attempts`, then moved to the dead letter with its reasons intact —
 retrying a poison ticket forever is how automated systems burn budget quietly.
@@ -26,7 +27,7 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-class WorkItem(BaseModel):
+class QueueItem(BaseModel):
     """One piece of work waiting for, or held by, a worker."""
 
     id: str
@@ -66,7 +67,7 @@ class WorkQueue:
         objective: Objective,
         priority: int = 5,
         max_attempts: int = 3,
-    ) -> WorkItem:
+    ) -> QueueItem:
         """Add a ticket. The same external ticket is never queued twice."""
         items = self._load()
         key = objective.external.key if objective.external else ""
@@ -77,7 +78,7 @@ class WorkQueue:
             if existing:
                 return existing
 
-        item = WorkItem(
+        item = QueueItem(
             id=f"wi-{objective.id.split('-')[-1]}",
             objective=objective,
             external_key=key,
@@ -90,7 +91,7 @@ class WorkQueue:
 
     # ── Consuming ─────────────────────────────────────────────────────────────
 
-    def claim(self, owner: str, ttl_seconds: int = 900) -> Optional[WorkItem]:
+    def claim(self, owner: str, ttl_seconds: int = 900) -> Optional[QueueItem]:
         """Take the highest-priority claimable item, or nothing."""
         items = self._load()
         candidates = [i for i in items.values() if i.claimable]
@@ -127,7 +128,7 @@ class WorkQueue:
         item.updated_at = _now()
         self._save(items)
 
-    def fail(self, item_id: str, reason: str) -> WorkItem | None:
+    def fail(self, item_id: str, reason: str) -> QueueItem | None:
         """Requeue for another attempt, or quarantine once attempts run out."""
         items = self._load()
         item = items.get(item_id)
@@ -156,13 +157,13 @@ class WorkQueue:
 
     # ── Views ─────────────────────────────────────────────────────────────────
 
-    def pending(self) -> list[WorkItem]:
+    def pending(self) -> list[QueueItem]:
         return sorted(
             (i for i in self._load().values() if i.status in {"queued", "claimed"}),
             key=lambda i: (i.priority, i.enqueued_at),
         )
 
-    def dead_letter(self) -> list[WorkItem]:
+    def dead_letter(self) -> list[QueueItem]:
         return [i for i in self._load().values() if i.status == "dead"]
 
     def stats(self) -> dict[str, int]:
@@ -175,23 +176,23 @@ class WorkQueue:
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
-    def _load(self) -> dict[str, WorkItem]:
+    def _load(self) -> dict[str, QueueItem]:
         if not self.path.is_file():
             return {}
         try:
             raw = json.loads(self.path.read_text())
         except (json.JSONDecodeError, OSError):
             return {}
-        out: dict[str, WorkItem] = {}
+        out: dict[str, QueueItem] = {}
         for entry in raw.get("items", []):
             try:
-                item = WorkItem.model_validate(entry)
+                item = QueueItem.model_validate(entry)
             except ValueError:
                 continue
             out[item.id] = item
         return out
 
-    def _save(self, items: dict[str, WorkItem]) -> None:
+    def _save(self, items: dict[str, QueueItem]) -> None:
         payload = {
             "updated_at": _now().isoformat(),
             "items": [i.model_dump(mode="json") for i in items.values()],

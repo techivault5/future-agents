@@ -23,7 +23,7 @@ from future_agents.sdd.execution.resilience import BudgetExceeded
 from future_agents.sdd.models import Objective, RunState, Stage
 from future_agents.sdd.pipeline import DeliveryPipeline
 from future_agents.sdd.store.audit import AuditLog
-from future_agents.sdd.store.queue import WorkItem, WorkQueue
+from future_agents.sdd.store.queue import QueueItem, WorkQueue
 from future_agents.sdd.store.run_store import RunStore
 
 #: Built fresh per ticket so one run's state never leaks into the next.
@@ -171,7 +171,7 @@ class TicketWorker:
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
-    def _run(self, item: WorkItem, owner: str) -> RunState:
+    def _run(self, item: QueueItem, owner: str) -> RunState:
         pipeline = self.pipeline_factory(item.objective)
         state = pipeline.start(item.objective)
         state.owner = owner
@@ -179,7 +179,7 @@ class TicketWorker:
         self.queue.heartbeat(item.id, owner, ttl_seconds=self.lease_seconds)
         return state
 
-    def _fail(self, item: WorkItem, owner: str, reason: str, started: float) -> WorkOutcome:
+    def _fail(self, item: QueueItem, owner: str, reason: str, started: float) -> WorkOutcome:
         updated = self.queue.fail(item.id, reason)
         dead = bool(updated and updated.status == "dead")
         self.audit.record(

@@ -28,8 +28,10 @@ from future_agents.sdd.models import (
     Stage,
 )
 from future_agents.sdd.personas import DEFAULT_PERSONA, Persona
+from future_agents.sdd.project_docs import ProjectDocs
 from future_agents.sdd.repos.languages import RepoProfile, Toolchain, detect_repo
 from future_agents.sdd.router import EngineRouter
+from future_agents.sdd.semantics import SemanticLayer
 from future_agents.sdd.stages import (
     ArchitectStage,
     DeliveryStage,
@@ -38,6 +40,10 @@ from future_agents.sdd.stages import (
     TaskPlanner,
     WorkerBackend,
     WorkerStage,
+)
+from future_agents.sdd.tracking import (
+    MetricPlanner,
+    WorkBreakdownBuilder,
 )
 
 EventSink = Callable[[PipelineEvent], None]
@@ -93,6 +99,12 @@ class DeliveryPipeline:
         )
         self.worker = WorkerStage(backend)
         self.qa = QAStage(self.config)
+        # The ask is read once, in one vocabulary, and every artifact after this
+        # point — plan, issues, docs, metrics — uses the same words for it.
+        self.semantics = SemanticLayer(self.knowledge)
+        self.breakdown = WorkBreakdownBuilder(repo=self.scope)
+        self.metrics = MetricPlanner()
+        self.docs = ProjectDocs(self.config.project_docs.directory)
         self.delivery = DeliveryStage(repo_root=self.repo_root)
 
     def _recall(self, question: str, topic: str, blocking: bool) -> Optional[tuple[str, str]]:
@@ -198,11 +210,14 @@ class DeliveryPipeline:
         if self._blocking(violations):
             return self._block(state, Stage.SPEC, violations)
         state.spec = spec
+        state.semantics = self.semantics.build(spec)
         self._log(
             state,
             Stage.SPEC,
             f"{len(spec.requirements)} requirement(s), {len(spec.criteria())} criteria",
             spec_hash=spec.content_hash(),
+            capabilities=[c.render() for c in state.semantics.capabilities],
+            ambiguities=state.semantics.ambiguities,
         )
 
         state.stage = Stage.PLAN
@@ -231,7 +246,18 @@ class DeliveryPipeline:
         if self._blocking(violations):
             return self._block(state, Stage.TASKS, violations)
         state.tasks = graph
-        self._log(state, Stage.TASKS, f"{len(graph.tasks)} task(s) in the DAG")
+        # Every task lands in a tracked item, so nothing small goes unrecorded
+        # and nothing large arrives without the reason it exists.
+        state.breakdown = self.breakdown.build(
+            state.objective, spec, plan, graph, state.semantics, plan.observability
+        )
+        self._log(
+            state,
+            Stage.TASKS,
+            f"{len(graph.tasks)} task(s) in the DAG",
+            work_items=len(state.breakdown.items),
+            tracking_coverage=state.breakdown.coverage([r.id for r in spec.requirements]),
+        )
 
         state.stage = Stage.WORK
         guard = BudgetGuard(state.budget)
@@ -271,6 +297,25 @@ class DeliveryPipeline:
             slos=state.delivery.slo_summary,
         )
 
+        state.metrics = (
+            self.metrics.build(
+                state.breakdown,
+                qa=state.qa,
+                observability=plan.observability,
+                state=state,
+            )
+            if state.breakdown
+            else None
+        )
+        if state.metrics is not None:
+            self._log(
+                state,
+                Stage.DELIVER,
+                f"{len(state.metrics.specs)} metric(s) defined",
+                unbound=[m.id for m in state.metrics.specs if m.source == "unbound"],
+            )
+        self._write_documents(state)
+
         state.stage = Stage.HARVEST
         case = self.memory.harvest(state, scope=self.scope)
         state.case_id = case.id
@@ -286,6 +331,33 @@ class DeliveryPipeline:
 
         state.stage = Stage.DONE
         return state
+
+    def _write_documents(self, state: RunState) -> None:
+        """Write the project record, when there is a repository to write it into.
+
+        A run with no repo root still builds the document set on demand (the CLI
+        and the API render it); it just has nowhere to put files.
+        """
+        if not (self.config.project_docs.enabled and self.repo_root and state.spec):
+            return
+        try:
+            written = self.docs.write(
+                state,
+                self.repo_root,
+                semantics=state.semantics,
+                breakdown=state.breakdown,
+                metrics=state.metrics,
+            )
+        except OSError as exc:
+            self._log(state, Stage.DELIVER, f"project docs not written: {exc}")
+            return
+        state.documents = [str(path) for path in written]
+        self._log(
+            state,
+            Stage.DELIVER,
+            f"{len(written)} project document(s) written",
+            docs=state.documents[:3],
+        )
 
     # ── Gates & logging ───────────────────────────────────────────────────────
 
