@@ -25,6 +25,13 @@ Workflow automation (n8n-like):
     /api/executions/{id}           — full execution detail with per-node results
     /api/webhooks/{workflow_id}    — HTTP webhook trigger
 
+Spec-driven delivery (objective in, verified delivery out):
+    /api/sdd/objectives            — intake an objective and start delivery
+    /api/sdd/runs/{id}/answers     — answer clarification questions and resume
+    /api/sdd/runs/{id}/meeting     — record a clarification meeting and resume
+    /api/sdd/cases                 — the memory hub of past delivery cases
+    /api/sdd/constitution          — governance rules as markdown
+
     /docs                  — Swagger UI
 """
 
@@ -45,6 +52,7 @@ from future_agents.api.routes.connectors import router as connectors_router
 from future_agents.api.routes.guardrails_api import router as guardrails_router
 from future_agents.api.routes.marketplace import router as marketplace_router
 from future_agents.api.routes.orchestrator import router as orchestrator_router
+from future_agents.api.routes.sdd import router as sdd_router
 from future_agents.api.routes.system_agents import router as system_agents_router
 from future_agents.api.routes.templates import router as templates_router
 from future_agents.api.routes.workflows import router as workflows_router
@@ -98,6 +106,7 @@ app.include_router(system_agents_router)
 app.include_router(guardrails_router)
 app.include_router(templates_router)
 app.include_router(workflows_router)
+app.include_router(sdd_router)
 
 
 # ── Static files (marketplace UI) ────────────────────────────────────────────

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="487.5590551181103" height="294.80314960629926" preserveAspectRatio="xMinYMin meet" viewBox="0 0 487 294" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="487.5590551181103" height="294.80314960629926"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-294)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="209.76377952755908" width="487.5590551181103" height="68.03149606299215" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,95%,96%); fill-rule: evenodd;"/>
+			<text x="463.25173781988195" y="264.7559055118111" style="font-family: SDDSans-Bold; font-size: 6.0px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,529) scale(1,-1)">SPEC</text>
+			<rect x="0" y="90.70866141732284" width="487.5590551181103" height="113.38582677165357" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(93%,95%,98%); fill-rule: evenodd;"/>
+			<text x="455.79861281988195" y="191.05511811023626" style="font-family: SDDSans-Bold; font-size: 6.0px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,382) scale(1,-1)">DERIVE</text>
+			<rect x="0" y="11.338582677165356" width="487.5590551181103" height="73.70078740157481" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(98%,95%,92%); fill-rule: evenodd;"/>
+			<text x="462.71267531988195" y="72.00000000000003" style="font-family: SDDSans-Bold; font-size: 6.0px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,144) scale(1,-1)">GATE</text>
+			<path d="M 243.779528,221.102362 L 243.779528,201.259843 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 243.779528,201.259843 L 121.889764,201.259843 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 121.889764,201.259843 L 121.889764,181.417323 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="121.8898 181.4173, 117.0709 189.1276, 126.7087 189.1276" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 243.779528,221.102362 L 243.779528,201.259843 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 243.779528,201.259843 L 365.669291,201.259843 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 365.669291,201.259843 L 365.669291,181.417323 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="365.6693 181.4173, 360.8504 189.1276, 370.4882 189.1276" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 365.669291,141.732283 L 365.669291,130.393701 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="365.6693 130.3937, 360.8504 138.1039, 370.4882 138.1039" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 121.889764,141.732283 L 121.889764,68.031496 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="121.8898 68.0315, 117.0709 75.74173, 126.7087 75.74173" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 365.669291,102.047244 L 365.669291,68.031496 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="365.6693 68.0315, 360.8504 75.74173, 370.4882 75.74173" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<rect x="147.40157480314963" y="221.10236220472444" width="192.75590551181108" height="39.685039370078755" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="147.40157480314963" y="221.10236220472444" width="3.118110236220474" height="39.685039370078755" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="234.84632443405513" y="241.5959489162795" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,483) scale(1,-1)">Spec</text>
+			<text x="184.98226193405515" y="233.88330875601685" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,467) scale(1,-1)">MUST requirements + acceptance criteria</text>
+			<circle cx="147.40157480314963" cy="260.7874015748032" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="145.45333261564963" y="256.8188976377953" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,513) scale(1,-1)">1</text>
+			<rect x="17.007874015748033" y="141.73228346456693" width="209.76377952755908" height="39.685039370078755" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="17.007874015748033" y="141.73228346456693" width="3.118110236220474" height="39.685039370078755" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="109.35201963890256" y="162.225870176122" style="font-family: SDDSans-Bold; font-size: 6.2px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,324) scale(1,-1)">Build it</text>
+			<text x="68.40695127952756" y="154.9138866475613" style="font-family: SDDSans; font-size: 5.2px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,309) scale(1,-1)">components · test-first tasks · placement</text>
+			<circle cx="17.007874015748033" cy="181.4173228346457" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="15.059631828248033" y="177.4488188976378" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,354) scale(1,-1)">2</text>
+			<rect x="260.7874015748032" y="141.73228346456693" width="209.7637795275591" height="39.685039370078755" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="260.7874015748032" y="141.73228346456693" width="3.1181102362204456" height="39.685039370078755" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(10%,49%,29%); fill-rule: evenodd;"/>
+			<text x="351.0078655573327" y="162.225870176122" style="font-family: SDDSans-Bold; font-size: 6.2px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,324) scale(1,-1)">Watch it</text>
+			<text x="317.8980999323327" y="154.9138866475613" style="font-family: SDDSans; font-size: 5.2px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,309) scale(1,-1)">signals · objectives · alerts · runbook</text>
+			<circle cx="260.7874015748032" cy="181.4173228346457" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="258.8391593873032" y="177.4488188976378" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,354) scale(1,-1)">3</text>
+			<rect x="260.7874015748032" y="102.0472440944882" width="209.7637795275591" height="28.346456692913392" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(93%,95%,98%); fill-rule: evenodd;"/>
+			<rect x="260.7874015748032" y="102.0472440944882" width="3.1181102362204456" height="28.346456692913392" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<text x="278.92842219795773" y="117.32227817812529" style="font-family: SDDSans-Bold; font-size: 5.8px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,234) scale(1,-1)">counter · histogram · span → SLO → burn-rate page +</text>
+			<text x="356.2881878229577" y="110.41095128126653" style="font-family: SDDSans-Bold; font-size: 5.8px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,220) scale(1,-1)">ticket</text>
+			<rect x="17.007874015748033" y="22.67716535433071" width="209.76377952755908" height="45.35433070866142" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,95%,94%); fill-rule: evenodd;"/>
+			<rect x="17.007874015748033" y="22.67716535433071" width="3.118110236220474" height="45.35433070866142" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(63%,36%,0%); fill-rule: evenodd;"/>
+			<text x="100.31842588890257" y="46.005397735177084" style="font-family: SDDSans-Bold; font-size: 6.2px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,92) scale(1,-1)">Constitution</text>
+			<text x="58.13644346702756" y="38.693414206616374" style="font-family: SDDSans; font-size: 5.2px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,77) scale(1,-1)">no objective for a MUST → the plan is incomplete</text>
+			<circle cx="17.007874015748033" cy="68.03149606299213" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="15.059631828248033" y="64.06299212598427" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,128) scale(1,-1)">4</text>
+			<rect x="260.7874015748032" y="22.67716535433071" width="209.7637795275591" height="45.35433070866142" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,95%,94%); fill-rule: evenodd;"/>
+			<rect x="260.7874015748032" y="22.67716535433071" width="3.1181102362204456" height="45.35433070866142" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(63%,36%,0%); fill-rule: evenodd;"/>
+			<text x="360.6348186823327" y="46.005397735177084" style="font-family: SDDSans-Bold; font-size: 6.2px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,92) scale(1,-1)">QA</text>
+			<text x="310.2047405573327" y="38.693414206616374" style="font-family: SDDSans; font-size: 5.2px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,77) scale(1,-1)">instrumentation that never ran is a finding</text>
+			<circle cx="260.7874015748032" cy="68.03149606299213" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="258.8391593873032" y="64.06299212598427" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,128) scale(1,-1)">5</text>
+			<text x="11.338582677165356" y="8.503937007874017" style="font-family: SDDSans; font-size: 5.8px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,17) scale(1,-1)">Monitoring is derived from the same requirements as the code, scheduled as tasks, and checked by the same gates — not left to whoever remembers.</text>
+		</g>
+	</g>
+</svg>

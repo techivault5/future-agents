@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg
+  PUBLIC '-//W3C//DTD SVG 1.0//EN'
+  'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+<svg width="487.5590551181103" height="328.8188976377953" preserveAspectRatio="xMinYMin meet" viewBox="0 0 487 328" xmlns="http://www.w3.org/2000/svg" version="1.0" fill-rule="evenodd" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<title>...</title>
+	<desc>...</desc>
+	<clipPath id="clip">
+		<rect x="0" y="0" width="487.5590551181103" height="328.8188976377953"/>
+	</clipPath>
+	<g id="group" transform="scale(1,-1) translate(0,-328)" style="clip-path: url(#clip)">
+		<g transform="">
+			<rect x="0" y="232.44094488188978" width="487.5590551181103" height="73.70078740157481" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(94%,95%,96%); fill-rule: evenodd;"/>
+			<text x="423.18826125738195" y="293.10236220472444" style="font-family: SDDSans-Bold; font-size: 6.0px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,586) scale(1,-1)">1 · UNDERSTAND</text>
+			<rect x="0" y="158.74015748031496" width="487.5590551181103" height="73.70078740157481" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(93%,95%,98%); fill-rule: evenodd;"/>
+			<text x="444.26150344488195" y="219.40157480314966" style="font-family: SDDSans-Bold; font-size: 6.0px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,438) scale(1,-1)">2 · DESIGN</text>
+			<rect x="0" y="85.03937007874016" width="487.5590551181103" height="73.7007874015748" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(93%,96%,93%); fill-rule: evenodd;"/>
+			<text x="439.55056594488195" y="145.70078740157484" style="font-family: SDDSans-Bold; font-size: 6.0px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,291) scale(1,-1)">3 · EXECUTE</text>
+			<rect x="0" y="11.338582677165356" width="487.5590551181103" height="73.70078740157481" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(98%,95%,92%); fill-rule: evenodd;"/>
+			<text x="404.77224563238195" y="72.00000000000003" style="font-family: SDDSans-Bold; font-size: 6.0px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,144) scale(1,-1)">4 · VERIFY AND LEARN</text>
+			<path d="M 119.055118,265.03937 L 147.401575,265.03937 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="147.4016 265.0394, 139.6913 269.8583, 139.6913 260.2205" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 249.448819,265.03937 L 277.795276,265.03937 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="277.7953 265.0394, 270.085 269.8583, 270.085 260.2205" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 323.149606,243.779528 L 323.149606,240.944882 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 323.149606,240.944882 L 198.425197,240.944882 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 198.425197,240.944882 L 198.425197,243.779528 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<polygon points="198.4252 243.7795, 193.6063 236.0693, 203.2441 236.0693" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 368.503937,265.03937 L 388.346457,265.03937 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="388.3465 265.0394, 380.6362 269.8583, 380.6362 260.2205" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 433.700787,243.779528 L 433.700787,219.685039 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 433.700787,219.685039 L 198.425197,219.685039 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 198.425197,219.685039 L 198.425197,212.598425 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="198.4252 212.5984, 193.6063 220.3087, 203.2441 220.3087" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<rect x="297.6989142470473" y="223.65354330708666" width="36.72815575787399" height="12.472440944881896" rx="2.2677165354330713" ry="2.2677165354330713" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="301.9508827509843" y="226.7716535433071" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,453) scale(1,-1)">spec hash</text>
+			<path d="M 119.055118,191.338583 L 147.401575,191.338583 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="147.4016 191.3386, 139.6913 196.1575, 139.6913 186.5197" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 249.448819,191.338583 L 277.795276,191.338583 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="277.7953 191.3386, 270.085 196.1575, 270.085 186.5197" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 433.700787,170.07874 L 433.700787,167.244094 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 433.700787,167.244094 L 198.425197,167.244094 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 198.425197,167.244094 L 198.425197,170.07874 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<polygon points="198.4252 170.0787, 193.6063 162.3685, 203.2441 162.3685" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 323.149606,170.07874 L 323.149606,151.653543 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 323.149606,151.653543 L 198.425197,151.653543 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 198.425197,151.653543 L 198.425197,138.897638 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="198.4252 138.8976, 193.6063 146.6079, 203.2441 146.6079" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<rect x="242.87586275836617" y="155.6220472440945" width="35.823077632874" height="12.472440944881896" rx="2.2677165354330713" ry="2.2677165354330713" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.5; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="247.1278312623032" y="158.74015748031496" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,317) scale(1,-1)">plan hash</text>
+			<path d="M 119.055118,117.637795 L 147.401575,117.637795 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="147.4016 117.6378, 139.6913 122.4567, 139.6913 112.8189" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 249.448819,117.637795 L 277.795276,117.637795 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="277.7953 117.6378, 270.085 122.4567, 270.085 112.8189" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 368.503937,117.637795 L 388.346457,117.637795 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="388.3465 117.6378, 380.6362 122.4567, 380.6362 112.8189" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 433.700787,96.377953 L 433.700787,89.291339 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 433.700787,89.291339 L 68.031496,89.291339 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<path d="M 68.031496,89.291339 L 68.031496,65.19685 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="68.0315 65.19685, 63.2126 72.90709, 72.85039 72.90709" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 119.055118,43.937008 L 147.401575,43.937008 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="147.4016 43.93701, 139.6913 48.75591, 139.6913 39.11811" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 249.448819,43.937008 L 277.795276,43.937008 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9;"/>
+			<polygon points="277.7953 43.93701, 270.085 48.75591, 270.085 39.11811" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<path d="M 323.149606,65.19685 L 323.149606,77.952756 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 323.149606,77.952756 L 433.700787,77.952756 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<path d="M 433.700787,77.952756 L 433.700787,170.07874 Z" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 0.9; stroke-dasharray: 2, 2;"/>
+			<polygon points="433.7008 170.0787, 428.8819 162.3685, 438.5197 162.3685" style="stroke: rgb(35%,40%,44%); stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<rect x="17.007874015748033" y="243.77952755905514" width="102.0472440944882" height="42.5196850393701" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="17.007874015748033" y="243.77952755905514" width="3.118110236220474" height="42.5196850393701" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="56.21723825049213" y="269.0960184747225" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,538) scale(1,-1)">Intake</text>
+			<text x="35.32563668799213" y="261.38337831445983" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,522) scale(1,-1)">ticket · meeting · chat ·</text>
+			<text x="55.41919137549213" y="254.57221557552657" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,509) scale(1,-1)">webhook</text>
+			<circle cx="17.007874015748033" cy="286.29921259842524" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="15.059631828248033" y="282.33070866141736" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,564) scale(1,-1)">1</text>
+			<rect x="147.40157480314963" y="243.77952755905514" width="102.0472440944882" height="42.5196850393701" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="147.40157480314963" y="243.77952755905514" width="3.118110236220474" height="42.5196850393701" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="186.29995270976872" y="265.6904371052559" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,531) scale(1,-1)">Clarify</text>
+			<text x="165.78769685039373" y="257.9777969449932" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,515) scale(1,-1)">score intent, fail closed</text>
+			<circle cx="147.40157480314963" cy="286.29921259842524" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="145.45333261564963" y="282.33070866141736" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,564) scale(1,-1)">2</text>
+			<rect x="277.7952755905512" y="243.77952755905514" width="90.70866141732284" height="42.5196850393701" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,95%,94%); fill-rule: evenodd;"/>
+			<rect x="277.7952755905512" y="243.77952755905514" width="3.1181102362204456" height="42.5196850393701" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(63%,36%,0%); fill-rule: evenodd;"/>
+			<text x="310.0237273929626" y="265.6904371052559" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,531) scale(1,-1)">Human</text>
+			<text x="292.72695004921263" y="257.9777969449932" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,515) scale(1,-1)">answers or a meeting</text>
+			<circle cx="277.7952755905512" cy="286.29921259842524" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="275.8470334030512" y="282.33070866141736" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,564) scale(1,-1)">3</text>
+			<rect x="388.3464566929134" y="243.77952755905514" width="90.70866141732284" height="42.5196850393701" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="388.3464566929134" y="243.77952755905514" width="3.1181102362204456" height="42.5196850393701" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="424.7675842765749" y="265.6904371052559" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,531) scale(1,-1)">Spec</text>
+			<text x="408.81797490157487" y="257.9777969449932" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,515) scale(1,-1)">REQ ids + criteria</text>
+			<circle cx="388.3464566929134" cy="286.29921259842524" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="386.3982145054134" y="282.33070866141736" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,564) scale(1,-1)">4</text>
+			<rect x="17.007874015748033" y="170.07874015748033" width="102.0472440944882" height="42.519685039370074" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="17.007874015748033" y="170.07874015748033" width="3.118110236220474" height="42.519685039370074" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="37.282521453617136" y="191.98964970368104" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,383) scale(1,-1)">Repo knowledge</text>
+			<text x="30.43110543799213" y="184.27700954341842" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,368) scale(1,-1)">what exists · where it goes</text>
+			<rect x="147.40157480314963" y="170.07874015748033" width="102.0472440944882" height="42.519685039370074" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="147.40157480314963" y="170.07874015748033" width="3.118110236220474" height="42.519685039370074" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="190.2992691160187" y="191.98964970368104" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,383) scale(1,-1)">Plan</text>
+			<text x="162.14414216289373" y="184.27700954341842" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,368) scale(1,-1)">components + placement</text>
+			<circle cx="147.40157480314963" cy="212.59842519685043" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="145.45333261564963" y="208.62992125984255" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,417) scale(1,-1)">5</text>
+			<rect x="277.7952755905512" y="170.07874015748033" width="90.70866141732284" height="42.519685039370074" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="277.7952755905512" y="170.07874015748033" width="3.1181102362204456" height="42.519685039370074" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="305.36215512733764" y="191.98964970368104" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,383) scale(1,-1)">Task DAG</text>
+			<text x="300.1671844242126" y="184.27700954341842" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,368) scale(1,-1)">test before code</text>
+			<circle cx="277.7952755905512" cy="212.59842519685043" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="275.8470334030512" y="208.62992125984255" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,417) scale(1,-1)">6</text>
+			<rect x="388.3464566929134" y="170.07874015748033" width="90.70866141732284" height="42.519685039370074" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(93%,95%,98%); fill-rule: evenodd;"/>
+			<rect x="388.3464566929134" y="170.07874015748033" width="3.1181102362204456" height="42.519685039370074" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<text x="410.48477177657486" y="191.98964970368104" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,383) scale(1,-1)">Memory hub</text>
+			<text x="417.3916077140749" y="184.27700954341842" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,368) scale(1,-1)">past pitfalls</text>
+			<rect x="17.007874015748033" y="96.37795275590553" width="102.0472440944882" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="37.98506051611713" y="118.28886230210622" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,236) scale(1,-1)">Queue + worker</text>
+			<text x="33.060207000492134" y="110.57622214184356" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,221) scale(1,-1)">lease · retry · dead letter</text>
+			<circle cx="17.007874015748033" cy="138.8976377952756" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="15.059631828248033" y="134.92913385826773" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,269) scale(1,-1)">7</text>
+			<rect x="147.40157480314963" y="96.37795275590553" width="102.0472440944882" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="147.40157480314963" y="96.37795275590553" width="3.118110236220474" height="42.51968503937009" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(10%,49%,29%); fill-rule: evenodd;"/>
+			<text x="182.11855622539372" y="118.28886230210622" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,236) scale(1,-1)">Dispatch</text>
+			<text x="165.3132827878937" y="110.57622214184356" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,221) scale(1,-1)">agent + skill, explained</text>
+			<circle cx="147.40157480314963" cy="138.8976377952756" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="145.45333261564963" y="134.92913385826773" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,269) scale(1,-1)">8</text>
+			<rect x="277.7952755905512" y="96.37795275590553" width="90.70866141732284" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(99%,95%,94%); fill-rule: evenodd;"/>
+			<rect x="277.7952755905512" y="96.37795275590553" width="3.1181102362204456" height="42.51968503937009" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(70%,14%,11%); fill-rule: evenodd;"/>
+			<text x="309.9109344242126" y="121.69444367157287" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,243) scale(1,-1)">Guards</text>
+			<text x="296.8982391117126" y="113.9818035113102" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,227) scale(1,-1)">sandbox · budget ·</text>
+			<text x="312.2873016117126" y="107.17064077237694" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,214) scale(1,-1)">breaker</text>
+			<circle cx="277.7952755905512" cy="138.8976377952756" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="275.8470334030512" y="134.92913385826773" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,269) scale(1,-1)">9</text>
+			<rect x="388.3464566929134" y="96.37795275590553" width="90.70866141732284" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="388.3464566929134" y="96.37795275590553" width="3.1181102362204456" height="42.51968503937009" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(10%,49%,29%); fill-rule: evenodd;"/>
+			<text x="423.97158818282486" y="121.69444367157287" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,243) scale(1,-1)">Work</text>
+			<text x="397.79160771407487" y="113.9818035113102" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,227) scale(1,-1)">files changed, commands</text>
+			<text x="429.00039677657486" y="107.17064077237694" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,214) scale(1,-1)">run</text>
+			<circle cx="388.3464566929134" cy="138.8976377952756" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="384.4499723179134" y="134.92913385826773" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,269) scale(1,-1)">10</text>
+			<rect x="17.007874015748033" y="22.67716535433071" width="102.0472440944882" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="17.007874015748033" y="22.67716535433071" width="3.118110236220474" height="42.51968503937009" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(10%,49%,29%); fill-rule: evenodd;"/>
+			<text x="62.67221871924213" y="44.58807490053142" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,89) scale(1,-1)">QA</text>
+			<text x="39.084035125492136" y="36.875434740268744" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,73) scale(1,-1)">evidence, not claims</text>
+			<circle cx="17.007874015748033" cy="65.1968503937008" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="13.111389640748033" y="61.228346456692925" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,122) scale(1,-1)">11</text>
+			<rect x="147.40157480314963" y="22.67716535433071" width="102.0472440944882" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<rect x="147.40157480314963" y="22.67716535433071" width="3.118110236220474" height="42.51968503937009" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(10%,49%,29%); fill-rule: evenodd;"/>
+			<text x="183.01767731914373" y="44.58807490053142" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,89) scale(1,-1)">Delivery</text>
+			<text x="163.93515778789373" y="36.875434740268744" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,73) scale(1,-1)">accepted? assumptions?</text>
+			<circle cx="147.40157480314963" cy="65.1968503937008" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="143.50509042814963" y="61.228346456692925" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,122) scale(1,-1)">12</text>
+			<rect x="277.7952755905512" y="22.67716535433071" width="90.70866141732284" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(100%,100%,100%); fill-rule: evenodd;"/>
+			<text x="308.6025359867126" y="44.58807490053142" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,89) scale(1,-1)">Harvest</text>
+			<text x="293.1015594242126" y="36.875434740268744" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,73) scale(1,-1)">one case, pitfalls first</text>
+			<circle cx="277.7952755905512" cy="65.1968503937008" r="7.370078740157481" style="stroke: rgb(100%,100%,100%); stroke-linecap: butt; stroke-width: 0.8; fill: rgb(12%,43%,92%); fill-rule: evenodd;"/>
+			<text x="273.8987912155512" y="61.228346456692925" style="font-family: SDDSans-Bold; font-size: 5.6px;fill: rgb(100%,100%,100%); stroke:none;" transform="translate(0,122) scale(1,-1)">13</text>
+			<rect x="388.3464566929134" y="22.67716535433071" width="90.70866141732284" height="42.51968503937009" rx="4.535433070866143" ry="4.535433070866143" style="stroke: rgb(78%,81%,85%); stroke-linecap: butt; stroke-width: 0.7; fill: rgb(93%,95%,98%); fill-rule: evenodd;"/>
+			<rect x="388.3464566929134" y="22.67716535433071" width="3.1181102362204456" height="42.51968503937009" style="stroke: none; stroke-linecap: butt; stroke-width: 1; fill: rgb(35%,40%,44%); fill-rule: evenodd;"/>
+			<text x="410.73775029219985" y="44.58807490053142" style="font-family: SDDSans-Bold; font-size: 6.6px;fill: rgb(7%,8%,10%); stroke:none;" transform="translate(0,89) scale(1,-1)">Constitution</text>
+			<text x="398.74043583907485" y="36.875434740268744" style="font-family: SDDSans; font-size: 5.6px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,73) scale(1,-1)">gates every arrow above</text>
+			<text x="17.007874015748033" y="8.503937007874017" style="font-family: SDDSans; font-size: 5.8px;fill: rgb(35%,40%,44%); stroke:none;" transform="translate(0,17) scale(1,-1)">Solid: the flow — work carries evidence from step 10 into QA. Dashed: feedback — a human answering, a lesson constraining the next plan.</text>
+		</g>
+	</g>
+</svg>

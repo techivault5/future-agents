@@ -39,3 +39,6 @@ apps/finance_advisor/data/memory.db
 # Node / Turborepo workspace
 node_modules/
 .turbo/
+
+# Spec Kit run state (resumable scratch, not a review artifact)
+.spec-kit/
