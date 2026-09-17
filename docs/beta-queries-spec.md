@@ -1476,9 +1476,107 @@ materially.
 
 ---
 
-## 26 · Summary of the design decisions that matter
+## 26 · The agent definition
 
-If you keep only twelve things from this document:
+The spec above is the argument. `apps/beta_queries/agent.yaml` is the
+enforceable half of it: the runtime contract the model is actually given, in the
+repo's own `AgentDefinition` schema, loadable with `DefinitionLoader` and
+validated in CI by `tests/test_beta_queries_agent_definition.py`.
+
+```python
+from future_agents.definitions.loader import DefinitionLoader
+
+defn = DefinitionLoader().load_file("apps/beta_queries/agent.yaml")
+system = next(p for p in defn.prompts if p.name == "system")
+blocking = [c.name for c in defn.constraints if c.enforcement == "strict"]
+```
+
+It carries eight skills, seven prompts, twenty-two constraints, nine tools and
+six declared dependencies.
+
+### The skills — what the model is asked to do
+
+| Skill | Intent | When |
+|---|---|---|
+| `answer_question` | `beta_queries.ask` | the critical path — one structured call, 900 ms |
+| `resolve_followup` | `beta_queries.followup` | fast tier, only when the deterministic rewriter is unsure (§11.4) |
+| `answer_meta` | `beta_queries.meta` | "why is that lower?" — no SQL, no execution |
+| `clarify` | `beta_queries.clarify` | concrete labelled options with a default, never an open question |
+| `repair_sql` | `beta_queries.repair` | exactly one attempt after a guard rejection (§14) |
+| `explain_sql` | `beta_queries.explain` | plain English for whatever is in the editor |
+| `amend_plan` | `beta_queries.amend` | edit the previous plan rather than regenerate (§11.3) |
+| `propose_template` | `beta_queries.propose_template` | offline; certification stays a human decision (§16) |
+
+### The thirteen blocking rules
+
+`enforcement: strict`. Each is stated to the model **and** enforced outside it —
+the model being told a rule is never the mechanism that holds it.
+
+| Constraint | Also enforced by |
+|---|---|
+| `read_only_sql` | guard G02–G05 |
+| `single_statement` | guard G01 |
+| `entitled_objects_only` | retrieval pre-filter, guard G06 |
+| `never_invent_schema` | guard G06/G07 |
+| `never_invent_joins` | catalog graph supplies the paths; guard G13 |
+| `parameterise_all_literals` | guard G08 |
+| `never_compute_dates` | the resolver computes them; the model receives them |
+| `single_datasource` | one connection per plan |
+| `respect_masking` | policy compiler, guard G11 |
+| `no_credentials_in_output` | response filter |
+| `catalog_text_is_data` | adversarial suite (§21) |
+| `no_raw_rows_in_narrative` | rows never enter a prompt (§11.5) |
+| `structured_output_only` | response parse |
+
+The remaining nine are `enforcement: warn` — judgement calls that are reviewed
+rather than blocked: prefer certified metrics, apply declared defaults, prefer
+assumptions to questions, clarify with options, amend rather than regenerate,
+keep the query minimal, report confidence honestly, emit a deterministic
+narrative, include a row cap.
+
+**These two lists move together or they drift.** A rule removed from
+`agent.yaml` but left in the guard produces a model that keeps tripping a rule
+nobody told it about; a rule removed from the guard but left in the YAML
+produces a rule that is now advisory. The test asserts the blocking set by name
+for exactly this reason.
+
+### What the model is told is *not* its job
+
+Stated explicitly in the definition's `dependencies`, because a model that
+believes it is responsible for access control will try to implement it.
+
+| Not the model's | Owner |
+|---|---|
+| Deciding what the asker may see | `beta_queries.entitlements` — retrieval is pre-filtered (§10) |
+| Row filtering, column masking | the policy compiler, at the AST |
+| Choosing join paths | `beta_queries.catalog` — the graph resolves them (§7) |
+| Resolving dates | `beta_queries.retrieval` — calendar-aware, deterministic (§11.2) |
+| Executing anything | `beta_queries.executor`, read-only, under the asker's principal (§15) |
+| Certifying a template | a data owner (§16) |
+| Being the security boundary | nothing about the model is trusted |
+
+### Tools, and why there are almost none on the hot path
+
+An agentic tool loop cannot fit in 2 s, so the orchestrator gathers catalog,
+join paths, resolved values and dates **before** the call, and the model makes
+one pass with no tool use. The definition marks each tool accordingly:
+`[orchestrator]` for the eight it never calls itself, and `[model, escape path
+only]` for `catalog.describe`, which is read-only, entitlement-checked, and
+cannot widen the set of objects the model may reference in SQL.
+
+### Prompt layout
+
+`system` and `output_contract` are the stable half — byte-identical turn to turn
+so a provider can cache the prefix (§11.5). `generate`, `repair`, `rewrite`,
+`meta` and `explain` are the variable half, rebuilt per turn. Every declared
+placeholder is asserted to appear in its template, so a renamed variable fails
+CI rather than silently rendering as literal text.
+
+---
+
+## 27 · Summary of the design decisions that matter
+
+If you keep only thirteen things from this document:
 
 1. **Retrieval-time entitlement filtering** is the primary access control — the
    model cannot leak what it never saw.
@@ -1502,3 +1600,6 @@ If you keep only twelve things from this document:
     this is what makes the feature usable by a whole org rather than a demo.
 12. **The eval harness is a release gate**, and its two safety suites are 100 %
     or the deploy stops.
+13. **The rules are configuration, not prose.** `apps/beta_queries/agent.yaml`
+    is what the model is actually given, and CI asserts the blocking set by
+    name — so a guardrail cannot be quietly dropped from the contract.
