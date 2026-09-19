@@ -8,10 +8,9 @@ merely well-formed, so they are asserted concretely: a view is refused by name,
 from __future__ import annotations
 
 import pytest
-
 from beta_queries import dialects
-from beta_queries.catalog import crawler, models
 from beta_queries.agent.contract import QueryPlan
+from beta_queries.catalog import crawler, models
 from beta_queries.catalog.models import Column, Table, logical_type
 from beta_queries.catalog.semantics import (
     detect_default_filters,
@@ -591,3 +590,43 @@ def test_dbapi_runner_closes_its_cursor():
     conn = Conn()
     assert crawler.dbapi_runner(conn)("SELECT 1") == [(1,)]
     assert conn.cursors[0].closed
+
+
+# ── routing calibration ──────────────────────────────────────────────────────
+
+
+def _lake() -> SourceProfile:
+    return SourceProfile(
+        datasource_id="lakehouse",
+        dialect="databricks",
+        description="Clickstream events and sessions",
+        table_terms={"event", "session", "account"},
+    )
+
+
+def test_a_plural_question_matches_a_singular_table():
+    # The catalog says `session`; people say "sessions". Missing this reads to
+    # the user as "it doesn't know about my data" when in fact it does.
+    decision = route("how many sessions yesterday", [_lake()])
+    assert decision.chosen == "lakehouse" and decision.confident
+
+
+def test_one_table_name_match_is_enough_to_be_a_candidate():
+    decision = route("how many accounts", [_lake()])
+    assert decision.confident
+    assert decision.candidates[0].score >= 25.0
+
+
+def test_a_question_about_nothing_in_the_catalog_says_so():
+    decision = route("what is the weather in Paris", [_lake()])
+    assert decision.chosen is None
+    assert not decision.needs_clarification  # "nothing covers this", not "which?"
+
+
+def test_singularise_leaves_real_words_alone():
+    from beta_queries.routing.router import singularise
+
+    assert singularise("sessions") == "session"
+    assert singularise("countries") == "country"
+    assert singularise("status") == "status"
+    assert singularise("address") == "address"

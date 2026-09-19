@@ -110,9 +110,29 @@ class RouteDecision:
         return self.chosen is not None and not self.needs_clarification
 
 
+# Endings where a trailing "s" is part of the word, not a plural: `status`,
+# `address`, `analysis`, `alias`. Stripping it invents a term that matches
+# nothing, which is worse than not stripping at all.
+_SINGULAR_EXCEPTIONS = ("ss", "us", "is", "as", "os")
+
+
+def singularise(word: str) -> str:
+    """Crude English singular. A catalog says `session`; people say `sessions`."""
+    for suffix, repl in (("ies", "y"), ("ses", "s"), ("xes", "x"), ("zes", "z")):
+        if word.endswith(suffix) and len(word) > len(suffix) + 1:
+            return word[: -len(suffix)] + repl
+    if word.endswith("s") and len(word) > 3 and not word.endswith(_SINGULAR_EXCEPTIONS):
+        return word[:-1]
+    return word
+
+
 def score_source(question: str, profile: SourceProfile) -> RouteCandidate:
     tokens = tokenise(question)
-    token_set = set(tokens)
+    # Both forms are scored: the crawler indexes singular and plural, and the
+    # question side has to meet it. Without this, "how many sessions" scores
+    # zero against a table called `session` — a miss that reads to the user as
+    # "it doesn't know about my data" when in fact it does.
+    token_set = set(tokens) | {singularise(t) for t in tokens}
     expanded = {profile.synonyms[t] for t in token_set if t in profile.synonyms}
     if expanded:
         token_set |= expanded
@@ -133,9 +153,14 @@ def score_source(question: str, profile: SourceProfile) -> RouteCandidate:
     if expanded:
         reasons.append(f"synonyms: {', '.join(sorted(expanded))}")
 
+    # Weighted to clear `floor` on its own: a question naming a table this
+    # source actually has is a real candidate, even with nothing else to go on.
+    # At 18 it fell just under, and "how many sessions" against a catalog
+    # holding a `session` table answered "nothing covers this" — which reads as
+    # "it doesn't know about my data" when in fact it does.
     table_hits = token_set & profile.table_terms
     if table_hits:
-        score += 18 * len(table_hits)
+        score += 26 * len(table_hits)
         reasons.append(f"table names match: {', '.join(sorted(table_hits))}")
 
     column_hits = token_set & profile.column_terms
