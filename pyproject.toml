@@ -36,6 +36,15 @@ scanning = [
     "httpx>=0.27",
     "beautifulsoup4>=4.12",
 ]
+# Beta Queries text-to-SQL. sqlglot is the only hard requirement of the
+# planner; the stores and drivers are needed per deployment, not per import.
+beta_queries = [
+    "sqlglot~=30.0",
+    "redis~=5.0",
+    "neo4j~=5.20",
+    "fastapi~=0.111",
+    "uvicorn[standard]~=0.30",
+]
 dev = [
     "httpx~=0.27",
     "beautifulsoup4~=4.12",
@@ -52,7 +61,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["packages", "apps"]
-include = ["future_agents*", "guardrails*", "scanning*", "finance_advisor*"]
+include = ["future_agents*", "guardrails*", "scanning*", "finance_advisor*", "beta_queries*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
