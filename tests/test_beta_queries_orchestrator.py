@@ -152,3 +152,47 @@ def test_the_panel_shows_what_was_applied(ask):
     panel = ctx.to_panel()
     assert panel["source"] == "hrdb"
     assert any("ACTIVE" in f["label"] for f in panel["filters"])
+
+
+# ── two-layer errors ─────────────────────────────────────────────────────────
+
+
+def test_a_failure_carries_both_a_business_and_a_technical_explanation(system):
+    """A person who gets `Invalid column name 'x'` learns nothing actionable.
+    A person who gets "something went wrong" learns less."""
+    from beta_queries.agent.providers import EchoProvider
+
+    orchestrator, _ = system
+    orchestrator.provider = EchoProvider(
+        plans={
+            "broken": {
+                "datasource_id": "hrdb",
+                "dialect": "duckdb",
+                "intent": "lookup",
+                "confidence": 0.9,
+                "sql": "SELECT no_such_column FROM main.employee",
+                "referenced_tables": ["main.employee"],
+                "answer_template": "{{n}}",
+            }
+        }
+    )
+    answer = orchestrator.ask(
+        "broken question about employee status", demo.ME, ConversationContext(session_id=demo.ME)
+    )
+    assert answer.error is not None
+    assert answer.error["business"] and answer.error["technical"]
+    # Business language: no error codes, no raw identifiers.
+    assert "no_such_column" not in answer.error["business"]
+    # Technical: the engine's own words, verbatim.
+    assert "no_such_column" in answer.error["technical"]
+    assert answer.error["what_the_system_is_doing"]
+
+
+def test_a_rejection_before_execution_also_carries_both_layers(ask):
+    """Nothing threw, so the technical layer is our own reason — which is the
+    honest thing to say: this was our decision, not the database's."""
+    answer = ask("list every salary")
+    assert answer.error is not None
+    assert answer.error["stage"] == "guard"
+    assert "row by row" in answer.error["technical"]
+    assert answer.error["what_the_system_is_doing"] == "No query was executed."

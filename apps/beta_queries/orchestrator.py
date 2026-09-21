@@ -250,9 +250,7 @@ class Orchestrator:
         )
         if prepared.get("error"):
             machine.fail("guard", prepared["error"])
-            return self._reply(
-                answer, machine, ctx, started, "policy_blocked", detail=prepared["error"]
-            )
+            return self._on_rejection(answer, machine, ctx, started, prepared["error"], source)
         sql = prepared["sql"]
         answer.sql = sql
         for rationale in prepared.get("assumptions", []):
@@ -399,6 +397,45 @@ class Orchestrator:
             "assumptions": compiled.assumptions_applied,
         }
 
+    def _on_rejection(
+        self,
+        answer: Answer,
+        machine: StepMachine,
+        ctx: ConversationContext,
+        started: float,
+        problem: str,
+        source: Source,
+    ) -> Answer:
+        """A rejection before execution still deserves both layers.
+
+        Nothing threw, so there is no engine message — the technical layer is
+        our own reason, which is the honest thing to show: this was our
+        decision, not the database's, and nothing ran.
+        """
+        blocked = any(
+            marker in problem.lower() for marker in ("not readable", "row by row", "aggregate")
+        )
+        scenario = "policy_blocked" if blocked else "ambiguous_intent"
+        reply = self.policy.respond(scenario, {**self.facts, "detail": problem})
+
+        answer.text = reply.text or problem
+        answer.suggestions = reply.suggestions
+        answer.error = {
+            "kind": "rejected_before_execution",
+            "business": reply.text or problem,
+            "technical": problem + (f"\n\nSQL:\n{answer.sql}" if answer.sql else ""),
+            "what_now": "Nothing ran against the database.",
+            "stage": "guard",
+            "retryable": False,
+            "needs_user": True,
+            "incident_id": "",
+            "redacted": False,
+            "suggestions": list(reply.suggestions),
+            "what_the_system_is_doing": "No query was executed.",
+        }
+        answer.scenario = scenario
+        return self._reply(answer, machine, ctx, started, None)
+
     def _on_execution_error(
         self,
         answer: Answer,
@@ -427,18 +464,21 @@ class Orchestrator:
                 "filters": ", ".join(c.label for c in ctx.filters) or "none",
             },
         )
-        answer.text = reply.text
-        answer.suggestions = reply.suggestions
-        answer.error = {
-            # Two layers, deliberately. The business line is what happened; the
-            # technical line is the engine's own words, which is the only thing
-            # useful to whoever has to fix it.
-            "business": reply.text,
-            "technical": error.message,
-            "kind": diagnosis.kind,
-            "next": plan.detail or diagnosis.hint,
-            "retryable": "yes" if plan.diagnosis.retryable else "no",
-        }
+        report = self.messages.build(
+            diagnosis,
+            sql=answer.sql or "",
+            dialect=source.dialect,
+            # Only what this person may already see. A not-found naming
+            # anything else is redacted, because three of six engines merge
+            # "denied" into "not found" precisely so it cannot be probed.
+            entitled_objects=sorted(answer.tables),
+            incident_id=f"{source.id}:{diagnosis.kind}:{diagnosis.subject or '-'}",
+            suggestions=reply.suggestions,
+        )
+        answer.text = report.business
+        answer.suggestions = report.suggestions
+        answer.error = report.as_dict()
+        answer.error["what_the_system_is_doing"] = plan.detail or diagnosis.hint
         return self._reply(answer, machine, ctx, started, None)
 
     def _reply(
