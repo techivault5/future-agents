@@ -343,3 +343,59 @@ def test_the_stricter_expectation_wins_when_hazards_combine():
     for case in cases[:50]:
         strictest = max(order[corpus.HAZARDS_BY_ID[h].expected] for h in case.hazards)
         assert order[case.expected] == strictest
+
+
+# ── a re-crawl must not destroy what a crawl cannot know ─────────────────────
+
+
+def test_a_recrawl_keeps_curated_metadata():
+    """Certified metrics and BI usage come from lineage, not from the database.
+
+    A crawl leaves them empty. Overwriting with that emptiness silently
+    degrades ranking on every nightly run: a certified metric is worth +35 and
+    BI assets up to +15, against a staging penalty of 45 — enough to drop the
+    curated table below its own staging copy.
+    """
+    graph = InMemoryGraph()
+    graph.upsert_table(
+        TableNode(
+            fqn="d.s.t",
+            datasource="d",
+            schema="s",
+            name="t",
+            metrics={"revenue"},
+            bi_assets=5,
+            success_count=3,
+        )
+    )
+    graph.upsert_table(
+        TableNode(fqn="d.s.t", datasource="d", schema="s", name="t", columns=["a", "b"])
+    )
+    table = graph.table("d.s.t")
+    assert table.metrics == {"revenue"}
+    assert table.bi_assets == 5
+    assert table.success_count == 3
+    assert table.columns == ["a", "b"]  # the crawl's own facts still win
+
+
+def test_a_deliberate_metadata_update_still_wins():
+    graph = InMemoryGraph()
+    graph.upsert_table(
+        TableNode(fqn="d.s.t", datasource="d", schema="s", name="t", metrics={"revenue"})
+    )
+    graph.upsert_table(
+        TableNode(fqn="d.s.t", datasource="d", schema="s", name="t", metrics={"margin"})
+    )
+    assert graph.table("d.s.t").metrics == {"margin"}
+
+
+def test_the_cypher_removes_columns_that_vanished():
+    # Without the DETACH DELETE a dropped column lives in the graph forever —
+    # which is exactly the drift a refresh is supposed to correct.
+    from beta_queries.catalog.graph import UPSERT_TABLE
+
+    assert "DETACH DELETE gone" in UPSERT_TABLE
+    assert "NOT gone.name IN $columns" in UPSERT_TABLE
+    # And the curated fields must survive a crawl that does not know them.
+    assert "coalesce($bi_assets" in UPSERT_TABLE
+    assert "coalesce($metrics" in UPSERT_TABLE

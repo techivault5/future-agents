@@ -199,9 +199,23 @@ class InMemoryGraph:
 
     # ── writes ──────────────────────────────────────────────────────────────
 
+    # Fields a crawl cannot know and must never overwrite. A crawl reads the
+    # database; these come from BI lineage, the metric layer and from what
+    # people actually asked. Losing them on every re-crawl silently degrades
+    # ranking: a certified metric is worth +35 and BI assets up to +15, against
+    # a staging penalty of 45 — so a re-crawl could drop the curated table
+    # below its own staging copy.
+    _CURATED = ("metrics", "bi_assets", "success_count")
+
     def upsert_table(self, table: TableNode) -> None:
         existing = self._tables.get(table.fqn)
         if existing:
+            for field_name in self._CURATED:
+                incoming = getattr(table, field_name)
+                # A crawl leaves these at their empty default; anything the
+                # caller did set is a deliberate update and wins.
+                if not incoming:
+                    setattr(table, field_name, getattr(existing, field_name))
             table.success_count = max(table.success_count, existing.success_count)
         self._tables[table.fqn] = table
 
@@ -425,18 +439,28 @@ SCHEMA_STATEMENTS = (
     "FOR (t:Table) ON EACH [t.name, t.description]",
 )
 
+# `coalesce` on the curated fields is load-bearing: a crawl passes them as null
+# and must not erase what BI lineage and usage put there. The final DETACH
+# DELETE is the other half — without it a dropped column lives in the graph
+# forever, which is exactly the drift a refresh exists to correct.
 UPSERT_TABLE = """
 MERGE (d:Datasource {id: $datasource})
 MERGE (t:Table {fqn: $fqn})
   SET t.schema = $schema, t.name = $name, t.is_view = $is_view,
       t.row_estimate = $row_estimate, t.terms = $terms,
-      t.bi_assets = $bi_assets, t.crawled_at = datetime()
+      t.bi_assets = coalesce($bi_assets, t.bi_assets, 0),
+      t.metrics   = coalesce($metrics, t.metrics, []),
+      t.crawled_at = datetime()
 MERGE (d)-[:HAS_TABLE]->(t)
 WITH t
 UNWIND $columns AS col
   MERGE (c:Column {fqn: t.fqn + '.' + col})
-    SET c.name = col
+    SET c.name = col, c.seen_at = datetime()
   MERGE (t)-[:HAS_COLUMN]->(c)
+WITH DISTINCT t
+MATCH (t)-[:HAS_COLUMN]->(gone:Column)
+WHERE NOT gone.name IN $columns
+DETACH DELETE gone
 """
 
 UPSERT_EDGE = """
@@ -499,7 +523,10 @@ class Neo4jGraph:
                 "is_view": table.is_view,
                 "row_estimate": table.row_estimate,
                 "terms": sorted(table.terms),
-                "bi_assets": table.bi_assets,
+                # None, not 0/[] — the Cypher coalesces, so "the crawl does
+                # not know" is distinct from "the crawl says zero".
+                "bi_assets": table.bi_assets or None,
+                "metrics": sorted(table.metrics) or None,
                 "columns": list(table.columns),
             },
         )
