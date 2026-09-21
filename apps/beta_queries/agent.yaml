@@ -875,7 +875,6 @@ tools:
       principal, with a statement timeout and cost governor. Never callable by
       the model.
     endpoint: beta_queries.sql.executor:run
-    status: planned   # sql/executor.py is not built (spec §19)
     auth_required: true
     parameters:
       - name: sql

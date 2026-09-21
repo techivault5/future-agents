@@ -159,4 +159,4 @@ def test_planned_tools_shrink_as_the_system_is_built():
     # A canary, not a rule: when this number drops, update it deliberately so
     # nobody quietly adds a new unbuilt tool to the contract.
     planned = [t["name"] for t in _tools() if t.get("status") == "planned"]
-    assert len(planned) == 6, f"planned tools changed: {planned}"
+    assert len(planned) == 5, f"planned tools changed: {planned}"

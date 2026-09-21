@@ -232,6 +232,15 @@ class Dialect:
     identifier_case: str  # "upper" | "lower" | "preserve"
     sample_clause: str = ""
     views_sql: str | None = None
+    # How the *driver* wants placeholders. Strictly a driver property, not an
+    # engine one, but there is one obvious driver per engine and getting it
+    # wrong turns every bound literal into a syntax error — so it lives with
+    # the other per-engine facts rather than being rediscovered at each call.
+    param_style: str = "qmark"  # qmark (?) | pyformat (%s) | numeric (:1)
+    # Statements that make the session read-only and time-bounded. Run before
+    # the query, best-effort: an engine that rejects one is not a reason to
+    # refuse to answer, because permissions are the real boundary anyway.
+    session_sql: tuple[str, ...] = ()
     notes: str = ""
     forbidden_tokens: tuple[str, ...] = field(default_factory=tuple)
 
@@ -262,6 +271,11 @@ POSTGRES = Dialect(
     identifier_case="lower",
     sample_clause="TABLESAMPLE SYSTEM ({pct})",
     views_sql=_VIEWS_ANSI,
+    param_style="pyformat",
+    session_sql=(
+        "SET TRANSACTION READ ONLY",
+        "SET statement_timeout = {timeout_ms}",
+    ),
 )
 
 SQLSERVER = Dialect(
@@ -277,6 +291,11 @@ SQLSERVER = Dialect(
     sample_clause="TABLESAMPLE ({pct} PERCENT)",
     views_sql=_VIEWS_TSQL,
     forbidden_tokens=("xp_", "sp_", "openrowset", "openquery", "opendatasource"),
+    param_style="qmark",
+    session_sql=(
+        "SET LOCK_TIMEOUT {timeout_ms}",
+        "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED",
+    ),
 )
 
 SNOWFLAKE = Dialect(
@@ -293,6 +312,8 @@ SNOWFLAKE = Dialect(
     views_sql=_VIEWS_ANSI,
     notes="FKs are declarative only and rarely populated; joins come from "
     "inference plus learned co-occurrence.",
+    param_style="pyformat",
+    session_sql=("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = {timeout_s}",),
 )
 
 DATABRICKS = Dialect(
@@ -309,6 +330,8 @@ DATABRICKS = Dialect(
     views_sql=_VIEWS_DATABRICKS,
     notes="Unity Catalog constraints are informational; same inference "
     "fallback as Snowflake. table_type is MANAGED/EXTERNAL/VIEW.",
+    param_style="pyformat",
+    session_sql=(),
 )
 
 MYSQL = Dialect(
@@ -322,6 +345,11 @@ MYSQL = Dialect(
     max_identifier_len=64,
     identifier_case="preserve",
     views_sql=_VIEWS_ANSI,
+    param_style="pyformat",
+    session_sql=(
+        "SET SESSION TRANSACTION READ ONLY",
+        "SET SESSION max_execution_time = {timeout_ms}",
+    ),
 )
 
 DUCKDB = Dialect(
@@ -339,6 +367,8 @@ DUCKDB = Dialect(
     sample_clause="USING SAMPLE {pct}%",
     views_sql=_VIEWS_ANSI,
     notes="Embedded; often the local test target for the other five.",
+    param_style="qmark",
+    session_sql=(),
 )
 
 REGISTRY: dict[str, Dialect] = {
