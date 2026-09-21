@@ -630,3 +630,46 @@ def test_singularise_leaves_real_words_alone():
     assert singularise("countries") == "country"
     assert singularise("status") == "status"
     assert singularise("address") == "address"
+
+
+# ── the catalog's own words ──────────────────────────────────────────────────
+
+
+def test_a_dba_comment_makes_an_unreadable_table_routable():
+    """`dim_wrkr_curr` is unroutable by name; its comment says what it is.
+
+    The crawler already read these comments from the engine and then dropped
+    them on the floor. They are the best free description a catalog gets.
+    """
+    from beta_queries.catalog.crawler import build_source_profile, crawl_structure
+
+    d = dialects.get("sqlserver")
+    rows = [
+        (
+            "dbo",
+            "dim_wrkr_curr",
+            "id",
+            1,
+            "int",
+            0,
+            "Authoritative headcount for employees",
+            "the worker key",
+        ),
+    ]
+    ds = crawl_structure("hr", "sqlserver", lambda sql: rows if sql == d.columns_sql else [])
+    profile = build_source_profile(ds)
+
+    assert {"headcount", "employee", "employees"} <= profile.table_terms
+    assert "worker" in profile.column_terms
+
+
+def test_comments_route_a_question_that_names_nothing_in_the_schema():
+    from beta_queries.catalog.crawler import build_source_profile, crawl_structure
+
+    d = dialects.get("sqlserver")
+    rows = [
+        ("dbo", "dim_wrkr_curr", "id", 1, "int", 0, "Authoritative headcount for employees", None),
+    ]
+    ds = crawl_structure("hr", "sqlserver", lambda sql: rows if sql == d.columns_sql else [])
+    decision = route("how many employees are there", [build_source_profile(ds)])
+    assert decision.chosen == "hr"

@@ -793,6 +793,7 @@ tools:
       and value-index probes fused by reciprocal rank. Pre-filtered to the
       asker's entitlements.
     endpoint: beta_queries.retrieval.hybrid:search
+    status: planned   # retrieval/hybrid.py is not built (spec §19)
     auth_required: true
     parameters:
       - name: question
@@ -822,6 +823,7 @@ tools:
       "India" → dbo.location.country_code = 'IN'. Trigram-tolerant, so
       "Banglore" resolves. Never indexes PII columns.
     endpoint: beta_queries.retrieval.values:resolve
+    status: planned   # retrieval/values.py is not built (spec §19)
     auth_required: true
     parameters:
       - name: terms
@@ -845,6 +847,7 @@ tools:
   - name: context.get
     description: "[orchestrator] The session context object for this chat."
     endpoint: beta_queries.context.store:get
+    status: planned   # context/store.py is not built (spec §19)
     auth_required: true
     parameters:
       - name: session_id
@@ -872,6 +875,7 @@ tools:
       principal, with a statement timeout and cost governor. Never callable by
       the model.
     endpoint: beta_queries.sql.executor:run
+    status: planned   # sql/executor.py is not built (spec §19)
     auth_required: true
     parameters:
       - name: sql
@@ -884,6 +888,7 @@ tools:
   - name: memory.lookup
     description: "[orchestrator] Template, exact-plan and semantic cache probes."
     endpoint: beta_queries.memory.cache:lookup
+    status: planned   # memory/cache.py is not built (spec §19)
     auth_required: true
     parameters:
       - name: question_hash
@@ -897,6 +902,7 @@ tools:
       was pruned from the prompt. Read-only and entitlement-checked; it cannot
       widen the catalog the model may reference in SQL.
     endpoint: beta_queries.catalog.cards:describe
+    status: planned   # catalog/cards.py is not built (spec §19)
     auth_required: true
     parameters:
       - name: table_fqn

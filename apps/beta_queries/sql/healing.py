@@ -49,6 +49,9 @@ KIND_STRATEGY = {
     "division_by_zero": "model",
     "syntax": "model",
     "too_many_rows": "user",
+    # Raised by the planner or the router, never by `diagnose` — no engine
+    # emits it, so it deliberately has no pattern below. It is in this table
+    # because it flows through the same repair plan as a real error.
     "ambiguous_intent": "user",
     "permission_denied": "terminal",
     "timeout": "terminal",

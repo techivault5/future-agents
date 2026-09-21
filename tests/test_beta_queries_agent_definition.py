@@ -112,3 +112,51 @@ def test_execution_is_never_offered_to_the_model(definition: AgentDefinition) ->
     model_callable = [t for t in definition.tools if "[model" in t.description]
     for tool in model_callable:
         assert "read-only" in tool.description.lower()
+
+
+# ── the contract must not lie about its own tools ────────────────────────────
+
+
+def _tools() -> list[dict]:
+    import yaml
+
+    data = yaml.safe_load(Path("apps/beta_queries/agent.yaml").read_text())
+    return data.get("tools") or []
+
+
+def test_every_available_tool_endpoint_actually_resolves():
+    """A tool the model is told it has must be callable.
+
+    Seven of the nine endpoints once pointed at modules that did not exist, so
+    the model was being offered tools that could not run. Anything not built
+    yet must carry `status: planned`; everything else has to import.
+    """
+    import importlib
+
+    unresolved: list[str] = []
+    for tool in _tools():
+        if tool.get("status") == "planned":
+            continue
+        module_path, _, function = tool["endpoint"].partition(":")
+        try:
+            module = importlib.import_module(module_path)
+        except ImportError as exc:
+            unresolved.append(f"{tool['name']}: cannot import {module_path} ({exc})")
+            continue
+        target = getattr(module, function, None)
+        if not callable(target):
+            unresolved.append(f"{tool['name']}: {module_path} has no callable {function!r}")
+    assert not unresolved, "tools declared but not callable:\n  " + "\n  ".join(unresolved)
+
+
+def test_a_planned_tool_says_why_it_is_planned():
+    for tool in _tools():
+        if tool.get("status") == "planned":
+            assert tool.get("endpoint"), f"{tool['name']} is planned with no target"
+
+
+def test_planned_tools_shrink_as_the_system_is_built():
+    # A canary, not a rule: when this number drops, update it deliberately so
+    # nobody quietly adds a new unbuilt tool to the contract.
+    planned = [t["name"] for t in _tools() if t.get("status") == "planned"]
+    assert len(planned) == 6, f"planned tools changed: {planned}"

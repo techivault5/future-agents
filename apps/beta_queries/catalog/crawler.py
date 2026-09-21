@@ -341,9 +341,17 @@ def build_source_profile(
         for term in tokenise(_strip_prefix(table.name).replace("_", " ")):
             profile.table_terms.add(term)
             profile.table_terms.add(_singular(term))
+        # A DBA-written comment is the best description this catalog will ever
+        # get for free, and it was being read from the engine and then thrown
+        # away. "Authoritative for headcount" on a table called `dim_wrkr_curr`
+        # is the difference between routing and not.
+        for term in tokenise(table.comment or ""):
+            profile.table_terms.add(term)
+            profile.table_terms.add(_singular(term))
         for column in table.columns:
             for term in tokenise(column.name.replace("_", " ")):
                 profile.column_terms.add(term)
+            profile.column_terms.update(tokenise(column.comment or ""))
             if column.logical in ("integer", "decimal"):
                 profile.metric_names.add(column.name.lower())
             for value in column.sample_values:

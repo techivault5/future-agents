@@ -529,3 +529,38 @@ class Neo4jGraph:
         row = rows[0]
         hops = row["hops"] if isinstance(row, dict) else row[0]
         return list(hops)
+
+
+# ── module-level entry points ────────────────────────────────────────────────
+#
+# `agent.yaml` declares tools as `module:function`, so the orchestrator-facing
+# surface has to be module-level. These are thin wrappers over the graph's own
+# methods; the graph is passed in rather than reached for, because there is no
+# global one and a request's graph is scoped to what the asker may see.
+
+
+def join_paths(tables: Sequence[str], graph: InMemoryGraph) -> dict[str, Any]:
+    """The `catalog.join_path` tool: how do these tables connect?
+
+    Returns the plan as plain data — the tool surface is JSON, not objects.
+    `unreachable` being non-empty is the honest answer that no relationship
+    exists, and the caller must not join those tables anyway.
+    """
+    plan = graph.join_plan(tables)
+    return {
+        "tables": plan.tables,
+        "steps": [
+            {
+                "left": step.left,
+                "left_column": step.left_column,
+                "right": step.right,
+                "right_column": step.right_column,
+                "source": step.source,
+                "cardinality": step.cardinality,
+            }
+            for step in plan.steps
+        ],
+        "weight": plan.weight,
+        "unreachable": plan.unreachable,
+        "only_inferred": plan.only_inferred,
+    }
