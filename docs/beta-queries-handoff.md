@@ -11,7 +11,7 @@ what must never change.
 | 2 | `apps/beta_queries/agent.yaml` — the runtime contract given to the model |
 | 3 | `apps/beta_queries/README.md` — what runs today, how to run it |
 
-## Built and tested (223 tests, no database needed)
+## Built and tested (377 tests, no database needed)
 
 | Module | Answers |
 |---|---|
@@ -25,36 +25,60 @@ what must never change.
 | `routing/router.py` | which datasource, and whether to ask |
 | `memory/profile.py` | what this user means, 7-day sliding TTL, email never stored |
 | `nlp/` + `context/` + `dialogue/` | 30 conversational scenarios, one response shape each |
-| `sync/plan.py` | crawl diffing, with a partial-crawl quarantine |
+| `sync/plan.py` — and `catalog/readiness.py` | four crawl phases; answer, caveat or queue while a source is still syncing |
+| `entitlements/resolver.py` | deny beats allow; `ent_hash` keys the cache; 60s snapshot |
+| `agent/` (`contract` · `prompts` · `planner` · `providers`) | **one** model call; catalog text and chat history fenced as data; offline `EchoProvider` |
+| `sql/compiler.py` | RLS predicates and masks injected into **every** SELECT scope |
+| `sql/executor.py` | read-only, as the asker, bounded — and the source of every real engine error |
+| `errors/report.py` | two layers, technical one redacted where it would leak an object |
+| `orchestrator.py` | **the eleven stages — it answers a question end to end** |
 | `eval/corpus.py` | 204 282 generated business questions · 44 hazards · 264-case gate |
 | `airflow/dags/beta_queries_catalog_sync.py` | one config-driven DAG |
 
+## It runs
+
+```bash
+pip install -e ".[beta_queries,dev]"
+python scripts/beta_queries_demo.py
+```
+
+No Redis, no Neo4j, no model key. DuckDB is the engine, `DictKV` stands in for
+Redis, `InMemoryGraph` for Neo4j, `EchoProvider` for the LLM. The fixture
+schema is hostile on purpose — a column called `report id`, one called `user`,
+a case-sensitive `Status`, a view that looks like the obvious answer, and a
+staging twin of the real table. It answers, refuses and explains all of them.
+
 ## Not built
 
-`app.py` / `orchestrator.py` (HTTP + SSE) · `entitlements/` · the GPT Luna
-client · `sql/compiler.py` (RLS + masks) · `sql/executor.py` · `retrieval/` ·
-the Monaco UI. Spec §19 has the map.
+`app.py` + SSE (HTTP surface) · `incidents/` · `sync/targeted.py` ·
+`remediation/worker.py` · `notify/` · `catalog/profiler.py` +
+`catalog/describe.py` · `retrieval/` · the Monaco UI. Spec §19 has the map;
+`DESIGN.md` carries the reasoning for each, which matters more than the code
+for three of them:
 
-**Next vertical slice:** `orchestrator.py` → `agent/planner.py` →
-`providers.py` → `sql/compiler.py` → `sql/executor.py` → `app.py`, with
-in-memory stubs behind the Redis/Neo4j interfaces. That turns the library into
-a working `/ask`.
+| Piece | The one thing that must not be lost |
+|---|---|
+| `incidents/` | Key on **`(datasource, kind, object)`**, never on the healing signature — `signature()` strips quoted literals by design, so two different broken columns hash identically |
+| `sync/targeted.py` | A read-only **probe**, never a re-crawl. `diff_catalog` always quarantines a one-table refresh (1 in 4,000), and `infer_joins` inverts its own safety check on a single-table datasource — it would invent exactly the joins it exists to suppress |
+| `remediation/worker.py` | Ship it **last**. Snowflake, SQL Server and MySQL merge "you may not see it" into "it does not exist", so a permission denial classifies as `unknown_table`, auto-remediates as the *catalog* principal, resolves, and tells every waiter it is fixed — and every one of them fails again identically. Never auto-resolve a not-found on those three; never probe on `permission_denied`; never say "fixed" |
 
 ## The pipeline, in order
 
 ```
 question
   -> dialogue/turn.handle_turn      classify · resolve follow-up · pick response shape
-  -> entitlements                   [not built] three-layer enforcement
+  -> catalog/readiness.decide       ready · wait · partial · queue · failed
+  -> entitlements/resolver          three-layer enforcement, deny beats allow
   -> routing/router.route           which datasource
   -> catalog/graph.candidate_tables which tables (views excluded, staging demoted)
   -> catalog/graph.join_plan        how they join (declared > learned > inferred)
-  -> agent/planner                  [not built] ONE model call -> QueryPlan
+  -> agent/planner                  ONE model call -> QueryPlan
   -> sql/identifiers.rewrite        exact spelling, correct quoting     <-- do not skip
   -> sql/guard.check                read-only, entitled, capped
-  -> sql/compiler                   [not built] RLS + masks
-  -> execute                        as the asker, never the app account
+  -> sql/compiler                   RLS + masks, into every scope
+  -> sql/executor                   as the asker, never the app account
   -> sql/healing.heal               on failure: classify, repair once, learn
+  -> errors/report.build            two layers; technical one redacted if it leaks
 ```
 
 `rewrite_identifiers` runs **before** the guard and **after** generation. That
