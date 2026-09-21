@@ -12,6 +12,7 @@ explains a 70 ms answer, and it is the most convincing thing in the UI.
 
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -82,24 +83,59 @@ class StepMachine:
         self.sink(step.as_event()) if self.sink else None
         return step
 
+    def progress(self, step_id: str, **fmt: Any) -> Step:
+        """Re-emit a step that is still running, with new detail.
+
+        A step normally goes running -> done once. A metadata sync that takes
+        four minutes needs to say "412 of ~900 tables" while it is still
+        going, or the chat looks frozen at exactly the moment the user most
+        needs to know something is happening.
+        """
+        spec = self.config.get(step_id, {})
+        step = Step(
+            id=step_id,
+            label=self._format(spec.get("running", step_id), fmt),
+            state="running",
+            detail=self._format(spec.get("progress", ""), fmt),
+        )
+        for existing in self.steps:
+            if existing.id == step_id:
+                existing.detail = step.detail
+                break
+        else:
+            self.steps.append(step)
+        return self._emit(step)
+
+    @staticmethod
+    def _format(template: str, fmt: dict[str, Any]) -> str:
+        """Fill a step's wording, degrading rather than failing.
+
+        A missing placeholder must never break a response, and it must never
+        reach the user as a literal `{datasource}` either — which is what the
+        old "format only if any args were passed" rule produced.
+        """
+        if not template:
+            return ""
+        try:
+            return template.format(**fmt)
+        except (KeyError, IndexError):
+            return re.sub(r"\s*\{[^}]*\}", "", template).strip() or template
+
     def start(self, step_id: str, **fmt: Any) -> Step:
         spec = self.config.get(step_id, {})
-        label = spec.get("running", step_id).format(**fmt) if fmt else spec.get("running", step_id)
-        step = Step(id=step_id, label=label, state="running")
+        step = Step(
+            id=step_id, label=self._format(spec.get("running", step_id), fmt), state="running"
+        )
         self.steps.append(step)
         self._t0[step_id] = time.perf_counter()
         return self._emit(step)
 
     def done(self, step_id: str, **fmt: Any) -> Step:
         spec = self.config.get(step_id, {})
-        template = spec.get("done", "")
-        try:
-            detail = template.format(**fmt) if template else ""
-        except (KeyError, IndexError):
-            # A missing placeholder must never break the response — the step
-            # simply renders without its detail line.
-            detail = template
-        step = self._find(step_id) or Step(id=step_id, label=spec.get("running", step_id))
+        detail = self._format(spec.get("done", ""), fmt)
+        step = self._find(step_id) or Step(
+            id=step_id, label=self._format(spec.get("running", step_id), fmt)
+        )
         step.state = "done"
         step.detail = detail
         if step_id in self._t0:

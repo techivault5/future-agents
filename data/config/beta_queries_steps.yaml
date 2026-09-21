@@ -5,6 +5,16 @@
 # orchestrator; an unknown placeholder degrades to no detail line rather than
 # failing the response.
 steps:
+  # Shown only when a datasource is still being read. `progress` re-renders
+  # while the step is running, so a four-minute crawl does not look frozen.
+  - id: sync
+    running: "Syncing metadata for {datasource}…"
+    progress: "{seen} of ~{total} tables"
+    done: "Metadata ready — {tables} tables, {joins} joins"
+  - id: sync_wait
+    running: "Waiting for {datasource} to finish — about {eta}s…"
+    done: "Ready"
+
   - id: entitlements
     running: "Checking what you can access…"
     done: "{n} data sources available to you"

@@ -33,10 +33,12 @@ from beta_queries import dialects
 from beta_queries.agent.planner import plan_query
 from beta_queries.agent.prompts import SchemaCard, prune_columns
 from beta_queries.agent.providers import Provider
+from beta_queries.catalog import readiness as readiness_mod
 from beta_queries.context.model import ConversationContext, FilterChip
 from beta_queries.dialogue.policy import DialoguePolicy
 from beta_queries.dialogue.turn import handle_turn
 from beta_queries.entitlements.resolver import EntitlementResolver, GrantSet
+from beta_queries.errors.report import ErrorMessages
 from beta_queries.progress import StepMachine
 from beta_queries.routing.router import SourceProfile, route
 from beta_queries.sql import healing
@@ -97,6 +99,8 @@ class Orchestrator:
         policy: DialoguePolicy | None = None,
         healing_memory: healing.HealingMemory | None = None,
         steps_config: str | None = None,
+        errors_config: str | None = None,
+        readiness: Any = None,
         row_limit: int = DEFAULT_ROW_LIMIT,
         facts: dict[str, Any] | None = None,
     ) -> None:
@@ -107,6 +111,10 @@ class Orchestrator:
         self.policy = policy or DialoguePolicy()
         self.healing = healing_memory or healing.HealingMemory()
         self.steps_config = steps_config
+        self.messages = ErrorMessages.from_file(errors_config) if errors_config else ErrorMessages()
+        # Optional. Without it every source is assumed ready, which is correct
+        # for a catalog crawled before this process started.
+        self.readiness = readiness
         self.row_limit = row_limit
         self.facts = facts or {}
 
@@ -164,6 +172,14 @@ class Orchestrator:
         machine.done("route", datasource=source.id, why=why)
         answer.datasource = source.id
         ctx.datasource = source.id
+
+        # 3b. Is that database actually readable yet? A question asked while
+        # the metadata is still landing gets narration, a caveat, or a queue
+        # slot — never a silent wait, because the user cannot tell a slow
+        # system from a broken one.
+        caveat = self._check_readiness(answer, machine, source)
+        if caveat is not None and answer.error is not None:
+            return self._reply(answer, machine, ctx, started, None)
 
         # 4 and 5. Which tables, and how they connect — both from the graph.
         machine.start("schema")
@@ -237,7 +253,10 @@ class Orchestrator:
             answer.text = plan.clarification.question
             return self._reply(answer, machine, ctx, started, None)
 
-        answer.assumptions = [a.model_dump() for a in plan.assumptions]
+        # Extend, never replace: a sync caveat added earlier in this turn is an
+        # assumption too, and overwriting it is how "I answered from a partial
+        # catalog" silently stops being said.
+        answer.assumptions.extend(a.model_dump() for a in plan.assumptions)
 
         # 8, 9, 10. Resolve, guard, apply policy — in that order, always.
         machine.start("guard")
@@ -334,6 +353,69 @@ class Orchestrator:
         for fqn in fqns:
             out.extend(source.default_filters.get(fqn, []))
         return out
+
+    def _check_readiness(self, answer: Answer, machine: StepMachine, source: Source) -> str | None:
+        """Narrate the sync, add a caveat, or queue. Returns the caveat if any."""
+        if self.readiness is None:
+            return None
+
+        state = self.readiness.get(source.id)
+        verdict = readiness_mod.decide(state)
+
+        if verdict.action == "ready":
+            return None
+
+        if verdict.action == "failed":
+            answer.error = {
+                "kind": "connection",
+                "business": f"I couldn't read {source.id} — {state.error}",
+                "technical": state.error,
+                "what_now": "This is an infrastructure problem, not your question.",
+                "stage": "sync",
+                "retryable": True,
+                "needs_user": False,
+                "incident_id": f"{source.id}:sync",
+                "redacted": False,
+                "suggestions": [],
+                "what_the_system_is_doing": "Retrying the crawl.",
+            }
+            answer.text = answer.error["business"]
+            machine.fail("sync", state.error)
+            return ""
+
+        machine.start("sync", datasource=source.id)
+        machine.progress("sync", seen=state.tables_seen, total=state.tables_total or "?")
+
+        if verdict.action == "queue":
+            # Taking the question is the honest option: we cannot answer it
+            # yet and we know who to tell when we can.
+            answer.error = {
+                "kind": "not_ready",
+                "business": (
+                    f"I'm still reading {source.id} — {verdict.reason}. "
+                    "I'll let you know the moment I can answer this."
+                ),
+                "technical": state.describe(),
+                "what_now": "Your question is queued against that sync.",
+                "stage": "sync",
+                "retryable": True,
+                "needs_user": False,
+                "incident_id": f"{source.id}:sync",
+                "redacted": False,
+                "suggestions": [],
+                "what_the_system_is_doing": "Reading the metadata now.",
+            }
+            answer.text = answer.error["business"]
+            machine.fail("sync", verdict.reason)
+            return ""
+
+        if verdict.action == "wait":
+            machine.done("sync_wait", eta=int(verdict.eta_seconds or 0))
+
+        machine.done("sync", tables=state.tables_seen, joins="?")
+        if verdict.caveat:
+            answer.assumptions.append({"text": verdict.caveat, "editable": False, "source": "sync"})
+        return verdict.caveat
 
     def _view_named_in(self, problem: str, source: Source) -> str:
         """Is the object this complaint names a view we crawled?"""
