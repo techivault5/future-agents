@@ -24,6 +24,7 @@ the system.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 try:
@@ -53,6 +54,7 @@ class CompileResult:
     sql: str
     filters_applied: list[str] = field(default_factory=list)
     masks_applied: list[str] = field(default_factory=list)
+    assumptions_applied: list[str] = field(default_factory=list)
     rejections: list[str] = field(default_factory=list)
 
     @property
@@ -99,8 +101,17 @@ def compile_policies(
     grants: GrantSet,
     datasource: str,
     dialect: str,
+    assumptions: Sequence[tuple[str, str, str]] = (),
 ) -> CompileResult:
-    """Inject row filters and apply masks. Rejects rather than running unfiltered."""
+    """Inject row filters, apply masks, and enforce catalog defaults.
+
+    `assumptions` are the catalog's default filters — "active employees only",
+    "not soft-deleted". They are injected here rather than left to the model
+    for the same reason row filters are: a model that forgets one produces a
+    number that is plausible, confidently delivered, and wrong. The difference
+    is that an assumption is *removable* — it is reported so the UI can show it
+    as a dismissible chip, where a policy filter never is.
+    """
     if not HAS_SQLGLOT:  # pragma: no cover
         return CompileResult(sql, rejections=["sqlglot is not installed"])
 
@@ -128,14 +139,17 @@ def compile_policies(
 
         for alias, fqn in bindings.items():
             for row_filter in grants.filters_for(fqn):
-                expression = row_filter.expression.replace("{alias}", alias)
-                try:
-                    predicate = sqlglot.parse_one(expression, read=d.sqlglot)
-                except Exception as exc:  # noqa: BLE001
-                    result.rejections.append(f"row filter for {fqn} is not valid {d.name}: {exc}")
+                if not _inject(scope, row_filter.expression, alias, d, fqn, result):
                     continue
-                scope.where(predicate, copy=False)
-                result.filters_applied.append(f"{fqn}: {expression}")
+                result.filters_applied.append(
+                    f"{fqn}: {row_filter.expression.replace('{alias}', alias)}"
+                )
+            for target, expression, rationale in assumptions:
+                if target != fqn:
+                    continue
+                if not _inject(scope, expression, alias, d, fqn, result):
+                    continue
+                result.assumptions_applied.append(rationale or expression.replace("{alias}", alias))
 
     # Masks are applied across the whole tree: a masked column is masked
     # wherever it appears, not only in the scope that joined its table.
@@ -173,6 +187,50 @@ def compile_policies(
 
     result.sql = tree.sql(dialect=d.sqlglot, pretty=False)
     return result
+
+
+def _inject(
+    scope: "exp.Select",
+    expression: str,
+    alias: str,
+    d: dialects.Dialect,
+    fqn: str,
+    result: CompileResult,
+) -> bool:
+    """AND one predicate into one scope. A predicate that will not parse is a
+    rejection, never a silent omission — omitting it is how the filter stops
+    applying without anyone noticing."""
+    rendered = expression.replace("{alias}", alias)
+    try:
+        predicate = sqlglot.parse_one(rendered, read=d.sqlglot)
+    except Exception as exc:  # noqa: BLE001
+        result.rejections.append(f"filter for {fqn} is not valid {d.name}: {exc}")
+        return False
+    scope.where(predicate, copy=False)
+    return True
+
+
+def _inject(
+    scope: "exp.Select",
+    expression: str,
+    alias: str,
+    d: dialects.Dialect,
+    fqn: str,
+    result: CompileResult,
+) -> bool:
+    """AND one predicate into one scope.
+
+    A predicate that will not parse is a rejection, never a silent omission —
+    omitting it is how a filter stops applying without anybody noticing.
+    """
+    rendered = expression.replace("{alias}", alias)
+    try:
+        predicate = sqlglot.parse_one(rendered, read=d.sqlglot)
+    except Exception as exc:  # noqa: BLE001
+        result.rejections.append(f"filter for {fqn} is not valid {d.name}: {exc}")
+        return False
+    scope.where(predicate, copy=False)
+    return True
 
 
 def _apply_mask(

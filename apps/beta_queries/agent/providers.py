@@ -114,8 +114,12 @@ class EchoProvider:
         timeout: float = DEFAULT_TIMEOUT,
     ) -> Completion:
         self.calls.append((system, user))
+        # Match on the question line only. The prompt also carries the
+        # conversation history, so matching the whole thing means a previous
+        # turn's question silently selects this turn's plan.
+        asked = _field_line(user, "question")
         for fragment, plan in self.plans.items():
-            if fragment.lower() in user.lower():
+            if fragment.lower() in asked.lower():
                 return Completion(text=json.dumps(plan), model="echo", ms=1)
 
         payload = _plan_from_prompt(user)
@@ -164,6 +168,12 @@ def _plan_from_prompt(user: str) -> dict[str, Any]:
 
 def _field(text: str, name: str) -> str:
     match = re.search(rf"^{name}:\s*(\S+)", text, re.M | re.I)
+    return match.group(1).strip() if match else ""
+
+
+def _field_line(text: str, name: str) -> str:
+    """The whole rest of the line, not just the first token."""
+    match = re.search(rf"^{name}:\s*(.+)$", text, re.M | re.I)
     return match.group(1).strip() if match else ""
 
 

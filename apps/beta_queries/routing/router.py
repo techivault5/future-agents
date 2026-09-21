@@ -222,6 +222,17 @@ def route(
     )
     best = ranked[0]
 
+    # With one entitled source there is nothing to route between. A question
+    # that matches it at all is for it; "which did you mean?" has one answer
+    # and "nothing covers this" is wrong whenever the score is non-zero.
+    # Ambiguity needs two candidates, by definition.
+    if len(ranked) == 1 and 0 < best.score < floor:
+        return RouteDecision(
+            chosen=best.datasource_id,
+            candidates=ranked,
+            reason="the only source you can see, and it matches",
+        )
+
     if best.score < floor:
         return RouteDecision(
             chosen=None,

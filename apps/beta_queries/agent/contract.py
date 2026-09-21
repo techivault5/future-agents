@@ -13,12 +13,24 @@ cached plan re-render against fresh rows with no model call at all.
 
 from __future__ import annotations
 
+import re
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 Intent = Literal["aggregate_count", "aggregate_sum", "list", "rank", "trend", "compare", "lookup"]
 TurnType = Literal["new_topic", "pivot", "refine", "drill", "compare", "meta"]
+
+
+def _loose(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", (name or "").lower())
+
+
+def _humanise(value: object) -> str:
+    """Thousands separators, because a headcount of 4812 reads as a typo."""
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return f"{value:,}"
+    return str(value)
 
 
 class Param(BaseModel):
@@ -99,11 +111,20 @@ class QueryPlan(BaseModel):
             values.setdefault(f"{p.name}_label", p.label or p.value)
             values.setdefault(p.name, p.value)
         for key, val in values.items():
-            if isinstance(val, (int, float)) and not isinstance(val, bool):
-                rendered = f"{val:,}"
-            else:
-                rendered = str(val)
-            text = text.replace("{{" + key + "}}", rendered)
+            text = text.replace("{{" + key + "}}", _humanise(val))
+
+        # The identifier layer may have renamed a column between the plan and
+        # the result — the model wrote `report_id`, the catalog holds
+        # `report id`. Match what is left loosely rather than leaving a raw
+        # {{placeholder}} in the sentence the user reads.
+        remaining = re.findall(r"\{\{([^}]+)\}\}", text)
+        if remaining:
+            by_loose = {_loose(k): v for k, v in values.items()}
+            for name in remaining:
+                match = by_loose.get(_loose(name))
+                if match is not None:
+                    text = text.replace("{{" + name + "}}", _humanise(match))
+
         return text
 
 

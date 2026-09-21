@@ -68,6 +68,11 @@ DEFAULT_SCENARIOS: dict[str, dict[str, Any]] = {
     "gibberish": {"mode": "repair", "text": "I couldn't read that as a question."},
     "out_of_scope": {"mode": "refuse", "text": "Nothing you can access covers that."},
     "ambiguous_source": {"mode": "clarify", "text": "Which source do you mean?"},
+    "ambiguous_intent": {"mode": "clarify", "text": "I couldn't turn that into a query."},
+    "view_not_queryable": {
+        "mode": "answer_from_state",
+        "text": "{view} is a view; I query the tables underneath it.",
+    },
     "ambiguous_column": {"mode": "clarify", "text": "Which column do you mean?"},
     "no_rows": {"mode": "answer_from_state", "text": "No rows matched."},
     "policy_blocked": {"mode": "refuse", "text": "You can see aggregates, not rows."},

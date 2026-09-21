@@ -313,6 +313,19 @@ def _alias_map(tree: "exp.Expression", catalog: Catalog) -> tuple[dict[str, str]
     return mapping, errors
 
 
+def _placeholder_names(sql: str) -> set[str]:
+    """Names that are bound parameters, not columns.
+
+    `:p0` parses as a placeholder on all six engines, which is exactly why it
+    is the style the prompt asks for — `@p0` is DuckDB's absolute-value
+    operator and becomes `ABS(p0)`, and `$p0` is a column on T-SQL and MySQL.
+    This reads the original text because the AST has already thrown the sigil
+    away, and it exists so that a plan using the wrong style fails as a bad
+    plan rather than as a missing column.
+    """
+    return {m.group(1).lower() for m in re.finditer(r"[@:$]([a-zA-Z_]\w*)", sql or "")}
+
+
 def _local_names(tree: "exp.Expression") -> set[str]:
     """Names the statement defines for itself: aliases, CTEs, derived columns.
 
@@ -376,6 +389,10 @@ def rewrite_identifiers(sql: str, catalog: Catalog) -> RewriteResult:
     derived = _cte_names(tree) | {
         sub.alias.lower() for sub in tree.find_all(exp.Subquery) if sub.alias
     }
+    # Bound parameters. Several dialects parse `@p0` as a column node, so
+    # without this every placeholder is looked up in the catalog and the
+    # statement is rejected for a column that was never meant to be one.
+    placeholders = _placeholder_names(sql)
     fixes: list[str] = []
     ambiguities: list[Resolution] = []
 
@@ -406,6 +423,8 @@ def rewrite_identifiers(sql: str, catalog: Catalog) -> RewriteResult:
         if not qualifier and written.lower() in local:
             continue
         if qualifier and qualifier.lower() in derived:
+            continue
+        if not qualifier and written.lower() in placeholders:
             continue
         table = aliases.get(qualifier.lower()) if qualifier else single_table
         resolved = catalog.resolve_column(written, table)

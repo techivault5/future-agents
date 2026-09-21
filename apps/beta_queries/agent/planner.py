@@ -70,8 +70,20 @@ def _reject(plan: QueryPlan, entitled: set[str], datasource: str) -> list[str]:
         # Every literal bound: a plan carrying its values inline has already
         # lost, whatever the SQL looks like.
         for param in plan.params:
-            if f"@{param.name}" not in plan.sql and f":{param.name}" not in plan.sql:
-                problems.append(f"parameter {param.name} is never referenced in the SQL")
+            if f":{param.name}" in plan.sql:
+                continue
+            if f"@{param.name}" in plan.sql or f"${param.name}" in plan.sql:
+                # A real trap rather than a style preference: `@p0` is DuckDB's
+                # absolute-value operator and parses as ABS(p0); `$p0` is a
+                # column on T-SQL and MySQL. Only `:p0` is a placeholder on all
+                # six, so the wrong sigil fails here as a bad plan rather than
+                # much later as a missing column.
+                problems.append(
+                    f"parameter {param.name} must be written :{param.name} — "
+                    "@ and $ collide with operators on some engines"
+                )
+                continue
+            problems.append(f"parameter {param.name} is never referenced in the SQL")
 
     return problems
 

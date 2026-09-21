@@ -43,8 +43,9 @@ Rules that are enforced outside you, so breaking them wastes a turn:
   spelling, never reference a view.
 - Only the join path given. If two tables are not connected there, say so in a
   clarification instead of joining them.
-- Every literal goes in `params` and appears in the SQL as @p0, @p1, ... Never
-  inline a value.
+- Every literal goes in `params` and appears in the SQL as :p0, :p1, ... Never
+  inline a value. Use a colon, not @ or $ — those collide with real operators
+  on some engines.
 - Never compute a date. Use the resolved ranges given to you.
 - Set `answer_template` to a sentence with {{column}} placeholders, so the same
   question renders the same words tomorrow against fresh rows.

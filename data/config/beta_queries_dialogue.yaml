@@ -164,6 +164,20 @@ scenarios:
     mode: clarify
     text: "Two sources could answer that. Which do you mean?"
     suggestions_from: candidates
+  ambiguous_intent:
+    mode: clarify
+    text: >
+      I couldn't turn that into a query I'd trust. Tell me which of these you
+      meant, or say it a different way.
+    suggestions_from: examples
+  view_not_queryable:
+    mode: answer_from_state
+    text: >
+      {view} is a view, so I don't query it directly — it hides its filters and
+      its grain, and a number from it can't be explained. I can answer the same
+      question from the tables underneath it: {tables}.
+    suggestions_from: examples
+
   ambiguous_column:
     mode: clarify
     text: "\"{term}\" matches more than one column. Which one?"

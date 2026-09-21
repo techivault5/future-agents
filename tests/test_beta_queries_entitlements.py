@@ -195,7 +195,26 @@ def test_a_canned_plan_can_be_pinned_for_a_test():
         "answer_template": "{{n}}",
     }
     provider = EchoProvider(plans={"headcount": canned})
-    assert parse_plan(provider.complete("s", "what is headcount").text).sql == "SELECT 1 AS n"
+    # Matched against the `question:` line only: the prompt also carries the
+    # conversation history, and matching the whole thing lets a previous
+    # turn's question silently select this turn's plan.
+    prompt = "datasource: d\ndialect: duckdb\n\nquestion: what is headcount"
+    assert parse_plan(provider.complete("s", prompt).text).sql == "SELECT 1 AS n"
+
+
+def test_a_previous_turns_question_does_not_select_this_turns_plan():
+    canned = {
+        "datasource_id": "d", "dialect": "duckdb", "intent": "lookup",
+        "confidence": 0.9, "sql": "SELECT 1 AS n", "referenced_tables": ["t"],
+        "answer_template": "{{n}}",
+    }
+    provider = EchoProvider(plans={"headcount": canned})
+    prompt = (
+        "datasource: d\ndialect: duckdb\n"
+        "conversation so far:\n what is headcount\n\n"
+        "question: something else entirely"
+    )
+    assert parse_plan(provider.complete("s", prompt).text).sql != "SELECT 1 AS n"
 
 
 def test_code_fences_do_not_break_the_parse():
