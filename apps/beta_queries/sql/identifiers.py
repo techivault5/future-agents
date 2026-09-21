@@ -280,11 +280,19 @@ class RewriteResult:
         return not self.errors and not self.ambiguities
 
 
+def _cte_names(tree: "exp.Expression") -> set[str]:
+    """CTE names are tables the statement defines for itself, not catalog ones."""
+    return {cte.alias.lower() for cte in tree.find_all(exp.CTE) if cte.alias}
+
+
 def _alias_map(tree: "exp.Expression", catalog: Catalog) -> tuple[dict[str, str], list[str]]:
     """alias (and bare table name) -> catalog relname, for qualifying columns."""
     mapping: dict[str, str] = {}
     errors: list[str] = []
+    ctes = _cte_names(tree)
     for node in tree.find_all(exp.Table):
+        if node.name.lower() in ctes and not node.args.get("db"):
+            continue
         parts = [p.name for p in (node.args.get("db"), node.this) if p is not None]
         written = ".".join(parts)
         resolved = catalog.resolve_table(written)
@@ -303,6 +311,32 @@ def _alias_map(tree: "exp.Expression", catalog: Catalog) -> tuple[dict[str, str]
         if alias:
             mapping[alias.lower()] = target
     return mapping, errors
+
+
+def _local_names(tree: "exp.Expression") -> set[str]:
+    """Names the statement defines for itself: aliases, CTEs, derived columns.
+
+    These are legitimate references that no catalog contains. Resolving them
+    against the catalog turns correct SQL into a rejection, which is worse than
+    the bug it was meant to catch.
+    """
+    names: set[str] = set()
+    for node in tree.find_all(exp.Alias):
+        if node.alias:
+            names.add(node.alias.lower())
+    for node in tree.find_all(exp.CTE):
+        if node.alias:
+            names.add(node.alias.lower())
+            for projection in node.this.selects if node.this else []:
+                if projection.alias_or_name:
+                    names.add(projection.alias_or_name.lower())
+        # A CTE may name its output columns explicitly: WITH c(a, b) AS (...)
+        for column in node.args.get("columns") or []:
+            names.add(column.name.lower())
+    for node in tree.find_all(exp.Subquery):
+        if node.alias:
+            names.add(node.alias.lower())
+    return names
 
 
 def _set_identifier(node: "exp.Expression", key: str, name: str, catalog: Catalog) -> None:
@@ -335,6 +369,13 @@ def rewrite_identifiers(sql: str, catalog: Catalog) -> RewriteResult:
         return result
 
     aliases, errors = _alias_map(tree, catalog)
+    local = _local_names(tree)
+    # Columns qualified by a CTE or derived-table alias belong to that
+    # subquery's projection, not to any catalog table. There is nothing to
+    # resolve them against and nothing to correct.
+    derived = _cte_names(tree) | {
+        sub.alias.lower() for sub in tree.find_all(exp.Subquery) if sub.alias
+    }
     fixes: list[str] = []
     ambiguities: list[Resolution] = []
 
@@ -343,7 +384,7 @@ def rewrite_identifiers(sql: str, catalog: Catalog) -> RewriteResult:
         written = ".".join(parts)
         target = aliases.get(written.lower())
         if not target:
-            continue
+            continue  # a CTE, or a name already reported as an error
         schema, _, name = target.rpartition(".")
         if name != node.name:
             fixes.append(f"table {written} -> {target}")
@@ -358,6 +399,14 @@ def rewrite_identifiers(sql: str, catalog: Catalog) -> RewriteResult:
         if not written or written == "*":
             continue
         qualifier = node.table
+        # A SELECT alias, a CTE column or a derived-table output is a valid
+        # reference that is not in the catalog. `ORDER BY headcount` where the
+        # projection said `COUNT(*) AS headcount` is correct SQL, and rejecting
+        # it because no table has a `headcount` column fails good queries.
+        if not qualifier and written.lower() in local:
+            continue
+        if qualifier and qualifier.lower() in derived:
+            continue
         table = aliases.get(qualifier.lower()) if qualifier else single_table
         resolved = catalog.resolve_column(written, table)
         if resolved.how == "ambiguous":

@@ -195,3 +195,29 @@ def test_the_same_question_produces_valid_sql_on_every_engine(dialect):
     # Whatever the engine, the emitted identifier round-trips through its parser.
     reparsed = sqlglot.parse_one(result.sql, read=dialect if dialect != "sqlserver" else "tsql")
     assert reparsed is not None
+
+
+# ── names the statement defines for itself ───────────────────────────────────
+
+
+def test_a_select_alias_is_not_looked_up_in_the_catalog():
+    # `ORDER BY headcount` after `COUNT(*) AS headcount` is correct SQL.
+    # Rejecting it because no table has a `headcount` column fails good queries.
+    sql = "SELECT COUNT(*) AS headcount FROM dbo.reports GROUP BY Status ORDER BY headcount DESC"
+    assert rewrite_identifiers(sql, _cat()).ok
+
+
+def test_a_cte_name_is_not_a_missing_table():
+    sql = "WITH recent AS (SELECT report_id AS rid FROM dbo.reports) SELECT rid FROM recent"
+    assert rewrite_identifiers(sql, _cat()).ok
+
+
+def test_a_column_qualified_by_a_derived_table_is_left_alone():
+    sql = "SELECT t.n FROM (SELECT COUNT(*) AS n FROM dbo.reports) AS t"
+    assert rewrite_identifiers(sql, _cat()).ok
+
+
+def test_a_genuinely_missing_column_is_still_caught_alongside_aliases():
+    sql = "SELECT COUNT(*) AS headcount, nope FROM dbo.reports"
+    result = rewrite_identifiers(sql, _cat())
+    assert not result.ok and "nope" in result.errors[0]
