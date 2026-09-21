@@ -1737,3 +1737,241 @@ this? Everything else never leaves this layer.
 Every `refuse`, `deflect` and `repair` carries suggestions. A turn that cannot
 be answered still has to end somewhere useful, or the user's next move is to
 close the tab.
+
+---
+
+## 29 · Redis or Neo4j — which store answers which question
+
+You have both. They are not alternatives; they answer different questions, and
+using the wrong one for a question is the most common way these systems end up
+slow *and* wrong.
+
+### 29.1 The two questions that decide everything
+
+| Question | Shape | Store |
+|---|---|---|
+| "Which of my 40 000 tables answer this?" | ranked lookup over terms | **Neo4j**, Redis in front |
+| "How do those four tables join?" | **graph traversal** | **Neo4j** — nothing else can |
+| "What did I answer last time?" | key → value | **Redis** |
+| "What does this user usually mean?" | key → value, expiring | **Redis** |
+| "What is this table's exact column spelling?" | key → value | **Redis**, sourced from Neo4j |
+
+The dividing line is the second row. A join path is *"what is the cheapest
+route from `absence` to `department`"*, and that is a shortest-path problem. A
+cache can only answer "what did I store under this key" — to serve join paths
+from Redis you would have to pre-compute every pair, which is O(n²) on 40 000
+tables, and re-compute it on every schema change. Neo4j does it in one traversal
+and stays correct when the schema moves.
+
+So: **Neo4j is the source of truth for structure. Redis is the copy you read.**
+
+### 29.2 What each one holds
+
+**Neo4j — structure. Correct, traversable, rebuilt by the crawler.**
+
+```
+(:Datasource)-[:HAS_TABLE]->(:Table)-[:HAS_COLUMN]->(:Column)
+(:Table)-[:JOINS {left_column, right_column, source, weight}]->(:Table)
+(:Table)<-[:READS]-(:BiAsset {platform, views, owner})
+(:Metric {certified})-[:MEASURED_BY]->(:Table)
+(:Term)-[:MEANS]->(:Table|:Column)
+(:User)-[:MEMBER_OF]->(:Group)-[:GRANTED]->(:Table)
+```
+
+Join weight is on the relationship, so `shortestPath` prefers a declared key
+over an inferred one without any post-filtering. Entitlement is the same
+traversal — "can this user reach this table" is a path query, which is why the
+grant closure lives here and not in application code.
+
+**Redis — speed. Derived, expiring, rebuildable at any time.**
+
+| Key | Holds | TTL |
+|---|---|---|
+| `bq:profile:source:{id}` | the routing profile for one datasource | until next crawl |
+| `bq:ident:{datasource}` | exact column spellings for the identifier resolver | until next crawl |
+| `bq:joins:{hash}` | a join path Neo4j already computed | 1 h |
+| `bq:plan:{ent_hash}:{q_hash}` | a validated plan | 24 h |
+| `bq:profile:{sha256(email)}` | **what this user means** | 7 days, sliding |
+| `bq:session:{id}` | the conversation context object | 1 h |
+| `bq:lock:{q_hash}` | single-flight, so ten people asking at once cost one plan | 30 s |
+
+Nothing in Redis is authoritative. If you flush it, the next question is slow
+and still correct — which is the test of whether something belongs there.
+
+### 29.3 Why not put the graph in Redis, or the cache in Neo4j
+
+- **Graph in Redis.** RedisGraph is gone (deprecated 2023); RediSearch can rank
+  tables but cannot traverse join paths. You would pre-compute pairs, and pay
+  for it on every DDL change.
+- **Cache in Neo4j.** A 1–5 ms read becomes 10–40 ms, on the one path where the
+  budget is tightest, for no correctness gain.
+- **Vectors.** They belong in SQL Server, where you already have them, and they
+  answer a third question: "which table is *semantically* like this phrase",
+  for the case where no term matches at all. Retrieval fuses all three signals —
+  keyword, vector and the value index — which is the part QueryWeaver leaves to
+  the model.
+
+### 29.4 What this borrows from QueryWeaver, and where it differs
+
+QueryWeaver (FalkorDB) validates the core bet: **put the schema in a graph and
+the model stops inventing joins.** Same bet here.
+
+Three deliberate differences, each from a failure this estate will hit:
+
+| | QueryWeaver | Here |
+|---|---|---|
+| Dialects | Postgres and MySQL; the LLM handles dialect conventions | six engines, with the differences **encoded and tested** — because "let the model handle quoting" is exactly what fails on a column called `report id` |
+| Views | queried like tables | **refused by name** — a view hides grain, filters and joins from the planner |
+| Ambiguity | the model picks | two paths of equal weight ⇒ **ask**, once, and remember the answer against that user |
+
+The identifier layer (§30) is the largest addition, and it exists because no
+amount of prompting makes a model reliably guess how a column was spelled at
+DDL time.
+
+---
+
+## 30 · Identifiers — the failure that looks like working SQL
+
+A model writes `report_id`. The column is `"report id"`, created quoted on
+Snowflake, so it exists only in that spelling. The SQL parses. The guard passes.
+The database throws. Or worse, on a case-insensitive engine, it silently binds
+to a *different* column.
+
+This is not a prompting problem, and it is not the model's fault. It is
+resolved deterministically, after generation and before the guard:
+
+```
+written identifier  ->  catalog identifier  ->  quoted for this engine
+```
+
+### 30.1 The rules, per engine
+
+| Engine | Unquoted folds to | Quoted | Table names |
+|---|---|---|---|
+| Snowflake | **UPPER** | case-sensitive | case-insensitive |
+| Postgres | **lower** | case-sensitive | case-insensitive |
+| Databricks | lower | case-insensitive | case-insensitive |
+| SQL Server | preserved | depends on **collation** (`_CS_` changes it) | case-insensitive |
+| MySQL | preserved | case-insensitive | **case-sensitive on Linux** |
+| DuckDB | preserved | case-insensitive | case-insensitive |
+
+Two of these bite hardest. On Snowflake a lower-case column created quoted is
+**unreachable unquoted, ever**. On MySQL a query written on a developer's Mac
+breaks in a Linux production pod, because table names come from the filesystem.
+
+### 30.2 The resolution ladder
+
+1. **Exact** — the only thing a quoted identifier can legitimately be.
+2. **Folded** — by this engine's own rule.
+3. **Loose** — spacing, punctuation and case ignored, so `report id`,
+   `Report_ID`, `REPORTID` and `report-id` all reach the same column.
+4. **Ambiguous** → ask. Two columns matching loosely is not a coin flip.
+5. **Missing** → a precise error naming the closest candidates, which is
+   exactly what the repair loop consumes.
+
+### 30.3 Quoting
+
+Quote when — and only when — it is needed: a space or special character, a
+reserved word, or a case that would not survive folding. Quoting everything is
+safe and makes generated SQL look machine-written; quoting nothing is what
+breaks. The reserved-word list deliberately excludes `status`, `region` and
+friends, which no engine reserves.
+
+`SELECT report id FROM ...` does not parse in any engine, so it never reaches
+the guard. If a run of bare words matches a real column, quoting it is not a
+guess — the catalog says that column exists and nothing else could have been
+meant.
+
+### 30.4 Where it sits
+
+```
+plan -> rewrite_identifiers -> guard -> policy compile -> execute
+              ^                                              |
+              +------------------ heal (§31) ----------------+
+```
+
+---
+
+## 31 · Auto-healing — classify, repair, and never fail that way again
+
+Retrying by asking the model to "try again" produces a different wrong answer
+and spends the latency budget doing it. A retry is only worth making if
+something was learned.
+
+**Classify.** Six engines phrase one failure six ways. `invalid column name`,
+`does not exist`, `unknown column`, `invalid identifier`, `cannot resolve`,
+`referenced column not found` are all `unknown_column`.
+
+**Repair, by strategy — not by retrying blindly:**
+
+| Strategy | Kinds | What happens |
+|---|---|---|
+| `deterministic` | unknown column/table, ambiguous column, missing GROUP BY, case, quoting | the catalog or the AST already knows — **no model call** |
+| `model` | type mismatch, date format, aggregate misuse, syntax | **exactly one** attempt |
+| `user` | too many rows, ambiguous intent | only the asker can resolve it |
+| `terminal` | permission denied, timeout, connection | retrying cannot help — say so |
+
+**Remember.** A repair that executed is stored against the failure's
+*signature* — the error text with literals and line numbers stripped, so
+`employee_i` and `custome_id` on the same table share one lesson. After a
+lesson works twice it is replayed into the prompt **before** generation, so the
+mistake stops being made rather than being corrected.
+
+Lessons are short text, deliberately: a learned behaviour nobody can read is a
+learned behaviour nobody can correct or delete.
+
+---
+
+## 32 · Catalog sync — Airflow, one DAG, config-driven
+
+Adding a database is a pull request against
+`data/config/beta_queries_sources.yaml`. No DAG code changes: the person
+onboarding a warehouse is not the person who maintains Airflow.
+
+```
+crawl -> diff -> publish_graph (Neo4j) -> publish_profile (Redis)
+```
+
+Three properties earn their keep:
+
+- **Diff, don't rewrite.** A re-crawl of 40 000 tables writes 40 000 nodes if
+  you rewrite and a few dozen if you diff.
+- **Quarantine a shrunken crawl.** A run returning less than 70 % of the
+  previous run's tables is treated as a partial crawl, not a mass drop, and
+  writes *nothing* — half-applying it is how a catalog quietly loses a schema.
+  It fails the task loudly, because that is an incident.
+- **Stagger the schedules.** A warehouse running its nightly load at 02:00
+  should not be crawled at 02:00.
+
+Credentials never appear in the DAG. Each source names an environment variable;
+the worker reads it at run time. Crawl as a **read-only catalog principal** —
+it reads metadata and samples values. Execution uses the asker's own principal,
+so row-level security applies.
+
+---
+
+## 33 · The eval corpus — generated, because a hand-written list rots
+
+Nobody maintains a hundred thousand hand-written test questions. The estate
+changes, the list rots, and a rotted eval goes green while the system
+regresses.
+
+So the corpus is a product of dimensions: **8 business domains × real questions
+× dimensions × periods × 9 phrasings × 6 dialects = 204 282 cases**, each
+derived from the catalog rather than frozen against it.
+
+The questions are the ones people actually type — *"how does attrition compare
+to last year excluding contractors"*, *"which dashboards would break if we
+dropped this column"* — across workforce, orders, finance, operations,
+customer, **the BI estate** (Tableau, Power BI, BusinessObjects, MicroStrategy,
+Domo), supply and risk.
+
+**44 hazards across 8 families** carry the real weight, each from a failure
+that happened: identifier, semantic, structural, value, temporal, linguistic,
+access, adversarial. Every hazard declares the behaviour the system must
+produce — `answer`, `clarify`, `refuse` or `assume` — and **a case that should
+clarify and instead answers is a worse failure than one that errors**, because
+nobody finds out.
+
+The 264-case hazard suite is the release gate: small enough for every commit,
+and it is the set that actually catches regressions.

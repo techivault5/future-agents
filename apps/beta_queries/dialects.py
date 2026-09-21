@@ -126,6 +126,29 @@ SELECT c.table_schema                                      AS schema_name,
  ORDER BY c.table_schema, c.table_name, c.ordinal_position
 """
 
+# DuckDB ships information_schema and follows the ANSI shape. Comments live in
+# duckdb_columns(), which is joined in rather than guessed at.
+_COLUMNS_DUCKDB = """
+SELECT c.table_schema                                      AS schema_name,
+       c.table_name                                        AS table_name,
+       c.column_name                                       AS column_name,
+       c.ordinal_position                                  AS ordinal,
+       c.data_type                                         AS data_type,
+       CASE WHEN c.is_nullable = 'YES' THEN 1 ELSE 0 END   AS is_nullable,
+       NULL                                                AS table_comment,
+       dc.comment                                          AS column_comment
+  FROM information_schema.columns c
+  JOIN information_schema.tables  t
+    ON t.table_schema = c.table_schema AND t.table_name = c.table_name
+  LEFT JOIN duckdb_columns() dc
+    ON dc.schema_name = c.table_schema
+   AND dc.table_name  = c.table_name
+   AND dc.column_name = c.column_name
+ WHERE t.table_type = 'BASE TABLE'
+   AND c.table_schema NOT IN ('information_schema', 'pg_catalog')
+ ORDER BY c.table_schema, c.table_name, c.ordinal_position
+"""
+
 # ── foreign keys ─────────────────────────────────────────────────────────────
 
 _FK_ANSI = """
@@ -301,8 +324,25 @@ MYSQL = Dialect(
     views_sql=_VIEWS_ANSI,
 )
 
+DUCKDB = Dialect(
+    name="duckdb",
+    sqlglot="duckdb",
+    quote='"',
+    limit_style="limit",
+    columns_sql=_COLUMNS_DUCKDB,
+    fk_sql=_FK_ANSI,
+    supports_declared_fks=True,
+    max_identifier_len=255,
+    # Case-insensitive but case-preserving: a column created `Report ID` keeps
+    # that spelling and is reachable however you type it. The odd one out.
+    identifier_case="preserve",
+    sample_clause="USING SAMPLE {pct}%",
+    views_sql=_VIEWS_ANSI,
+    notes="Embedded; often the local test target for the other five.",
+)
+
 REGISTRY: dict[str, Dialect] = {
-    d.name: d for d in (POSTGRES, SQLSERVER, SNOWFLAKE, DATABRICKS, MYSQL)
+    d.name: d for d in (POSTGRES, SQLSERVER, SNOWFLAKE, DATABRICKS, MYSQL, DUCKDB)
 }
 
 # Accept the spellings people actually type in config files.
@@ -317,6 +357,8 @@ _ALIASES = {
     "spark": "databricks",
     "sparksql": "databricks",
     "mariadb": "mysql",
+    "duck": "duckdb",
+    "duckdb_local": "duckdb",
 }
 
 

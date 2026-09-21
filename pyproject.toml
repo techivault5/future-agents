@@ -40,6 +40,7 @@ scanning = [
 # planner; the stores and drivers are needed per deployment, not per import.
 beta_queries = [
     "sqlglot~=30.0",
+    "duckdb~=1.1",
     "redis~=5.0",
     "neo4j~=5.20",
     "fastapi~=0.111",
