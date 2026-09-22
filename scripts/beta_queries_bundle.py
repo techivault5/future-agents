@@ -33,6 +33,7 @@ INCLUDE = (
     "docs/beta-queries-spec.md",
     "docs/beta-queries-handoff.md",
     "docs/beta-queries-design.md",
+    "docs/beta-queries-setup.md",
     "apps/beta_queries/**/*.py",
     "apps/beta_queries/agent.yaml",
     "apps/beta_queries/README.md",
@@ -188,6 +189,8 @@ def build(out: Path) -> Path:
         rel = path.relative_to(ROOT).as_posix()
         if rel == "docs/beta-queries-design.md":
             rel = "DESIGN.md"
+        elif rel == "docs/beta-queries-setup.md":
+            rel = "SETUP.md"
         members.append((rel, path.read_text()))
 
     leaks = [hit for rel, text in members for hit in _scan(rel, text)]
