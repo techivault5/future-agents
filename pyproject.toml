@@ -41,11 +41,18 @@ scanning = [
 beta_queries = [
     "sqlglot~=30.0",
     "duckdb~=1.1",
-    "pyodbc~=5.1",
     "redis~=5.0",
     "neo4j~=5.20",
     "fastapi~=0.111",
     "uvicorn[standard]~=0.30",
+]
+# SQL Server only. Separate because pyodbc installs from a wheel and then fails
+# to import without unixODBC on the machine (libodbc.so.2), which turns a
+# working install into a broken one for everyone not using SQL Server. The
+# crawler imports it lazily, inside the connect function, so nothing else
+# notices it is absent.
+beta_queries_sqlserver = [
+    "pyodbc~=5.1",
 ]
 dev = [
     "httpx~=0.27",

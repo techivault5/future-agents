@@ -10,8 +10,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from future_agents.definitions.loader import DefinitionLoader
-from future_agents.definitions.schema import AgentDefinition, InteractionMode
+
+# Beta Queries itself never imports the framework — only this file does, to
+# prove agent.yaml still loads through the loader that serves it at runtime.
+# Skip rather than error where Beta Queries is installed on its own.
+pytest.importorskip("future_agents", reason="framework not installed alongside Beta Queries")
+
+from future_agents.definitions.loader import DefinitionLoader  # noqa: E402
+from future_agents.definitions.schema import AgentDefinition, InteractionMode  # noqa: E402
 
 DEFINITION_PATH = Path(__file__).resolve().parents[1] / "apps" / "beta_queries" / "agent.yaml"
 

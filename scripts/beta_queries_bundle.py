@@ -82,14 +82,25 @@ answer, and a staging twin of the real table. Watch it answer, refuse and
 explain each one, printing every stage as it goes.
 
 ```bash
-pytest tests/ -k beta_queries -q      # 377 tests, no database needed
+pytest tests/ -q          # 364 passed, 1 skipped — no database needed
 ```
+
+The skip is deliberate: one test file (13 assertions) checks `agent.yaml`
+against the loader in the wider `future_agents` framework, which is not part of
+this bundle. Beta Queries itself never imports that framework. In the full
+repository the same file runs and the count is 377.
 
 ## Then point it at a real database
 
 1. `cp .env.example .env` and fill it in. Connection strings only — the
    crawler wants a **read-only** principal; query execution uses the *asker's*
    principal, never this one.
+1. For **SQL Server**, also `pip install -e ".[beta_queries_sqlserver]"`. It is
+   a separate extra because `pyodbc` installs from a wheel and then fails to
+   import without unixODBC on the machine (`libodbc.so.2` on Linux,
+   `brew install unixodbc` on macOS) — bundling it into the core extra turns a
+   working install into a broken one for everyone not using SQL Server. The
+   crawler imports it lazily, so nothing else notices it is absent.
 2. Declare the datasource in `data/config/beta_queries_sources.yaml` (name,
    dialect, schemas to crawl).
 3. `python scripts/beta_queries_crawl.py --source <name>` — or let the Airflow
