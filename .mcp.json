@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "tapo": {
+      "type": "http",
+      "url": "http://localhost:${TAPO_MCP_PORT:-3000}/",
+      "headers": {
+        "Authorization": "Bearer ${TAPO_MCP_API_KEY}"
+      }
+    }
+  }
+}

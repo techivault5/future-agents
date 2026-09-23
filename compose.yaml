@@ -101,6 +101,28 @@ services:
       retries: 3
       start_period: 10s
 
+  # ── Tapo MCP server (cameras, plugs, bulbs) ───────────────────
+  # Opt-in: podman-compose --profile tapo up -d tapo-mcp
+  # Endpoint: http://localhost:3000/  (Bearer ${TAPO_MCP_API_KEY})
+  # Setup: docs/TAPO-MCP-SETUP.md
+  tapo-mcp:
+    image: ghcr.io/mihai-dinculescu/tapo-mcp:${TAPO_MCP_IMAGE_TAG:-latest}
+    container_name: tapo-mcp
+    profiles: ["tapo"]
+    # host network needed for UDP broadcast discovery (Linux only)
+    network_mode: host
+    environment:
+      TAPO_MCP_USERNAME: ${TAPO_MCP_USERNAME:-}
+      TAPO_MCP_PASSWORD: ${TAPO_MCP_PASSWORD:-}
+      TAPO_MCP_CAMERA_USERNAME: ${TAPO_MCP_CAMERA_USERNAME:-}
+      TAPO_MCP_CAMERA_PASSWORD: ${TAPO_MCP_CAMERA_PASSWORD:-}
+      TAPO_MCP_DISCOVERY_TARGET: ${TAPO_MCP_DISCOVERY_TARGET:-}
+      TAPO_MCP_API_KEY: ${TAPO_MCP_API_KEY:-}
+      TAPO_MCP_HTTP_ADDR: 0.0.0.0:${TAPO_MCP_PORT:-3000}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
 volumes:
   guardrails-cache:
     driver: local
