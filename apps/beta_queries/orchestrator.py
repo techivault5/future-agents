@@ -34,6 +34,7 @@ from beta_queries.agent.planner import plan_query
 from beta_queries.agent.prompts import SchemaCard, prune_columns
 from beta_queries.agent.providers import Provider
 from beta_queries.catalog import readiness as readiness_mod
+from beta_queries.context.harvest import harvest
 from beta_queries.context.model import ConversationContext, FilterChip
 from beta_queries.dialogue.policy import DialoguePolicy
 from beta_queries.dialogue.turn import handle_turn
@@ -316,11 +317,36 @@ class Orchestrator:
         ctx.last_sql = sql
         ctx.last_plan_id = f"{source.id}:{ctx.fingerprint()}"
         ctx.last_answer = answer.text
-        for expression in defaults:
+
+        # What the turn actually asked, so the next one can say "and in
+        # Germany?" and still know what "and" refers to. Without this the
+        # context has a last_plan_id and nothing else, and the rewrite
+        # rebuilds a question with no subject in it.
+        state = harvest(prepared.get("user_sql", ""), source.dialect, params)
+        if state.metric:
+            ctx.metric = state.metric
+        if state.grain:
+            ctx.grain = state.grain
+        for column, value in state.filters:
             ctx.add_filter(
                 FilterChip(
-                    id=expression,
+                    id=column,
+                    label=f"{column} = {value}",
+                    column=column,
+                    value=value,
+                    source="question",
+                )
+            )
+
+        for expression in defaults:
+            default_state = harvest(f"SELECT 1 FROM t WHERE {expression}", source.dialect, params)
+            column, value = (default_state.filters or [(None, None)])[0]
+            ctx.add_filter(
+                FilterChip(
+                    id=column or expression,
                     label=expression,
+                    column=column,
+                    value=value,
                     source="catalog_default",
                     rationale="catalog default",
                 )
@@ -475,6 +501,10 @@ class Orchestrator:
 
         return {
             "sql": compiled.sql,
+            # The model's own SQL, before policy injected anything. This is
+            # what the context harvests: an RLS predicate must never become a
+            # removable chip the asker can see, or ask to drop.
+            "user_sql": verdict.sql,
             "checks": 12 + len(compiled.filters_applied),
             "assumptions": compiled.assumptions_applied,
         }

@@ -34,6 +34,7 @@ INCLUDE = (
     "docs/beta-queries-handoff.md",
     "docs/beta-queries-design.md",
     "docs/beta-queries-setup.md",
+    "docs/beta-queries-qa-agent.md",
     "apps/beta_queries/**/*.py",
     "apps/beta_queries/agent.yaml",
     "apps/beta_queries/README.md",
@@ -83,13 +84,13 @@ answer, and a staging twin of the real table. Watch it answer, refuse and
 explain each one, printing every stage as it goes.
 
 ```bash
-pytest tests/ -q          # 364 passed, 1 skipped — no database needed
+pytest tests/ -q          # 370 passed, 3 skipped — no database needed
 ```
 
-The skip is deliberate: one test file (13 assertions) checks `agent.yaml`
-against the loader in the wider `future_agents` framework, which is not part of
-this bundle. Beta Queries itself never imports that framework. In the full
-repository the same file runs and the count is 377.
+The skips are deliberate. One test file checks `agent.yaml` against the loader
+in the wider `future_agents` framework, which is not part of this bundle; Beta
+Queries itself never imports that framework. In the full repository that file
+runs and the count is 385.
 
 ## Then point it at a real database
 
@@ -191,6 +192,8 @@ def build(out: Path) -> Path:
             rel = "DESIGN.md"
         elif rel == "docs/beta-queries-setup.md":
             rel = "SETUP.md"
+        elif rel == "docs/beta-queries-qa-agent.md":
+            rel = "QA-AGENT.md"
         members.append((rel, path.read_text()))
 
     leaks = [hit for rel, text in members for hit in _scan(rel, text)]

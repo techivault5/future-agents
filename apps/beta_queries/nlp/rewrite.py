@@ -99,7 +99,28 @@ class Rewrite:
         )
 
 
+# "add a filter for X", "just X", "only X" — the imperative wrapper people put
+# around a value. Stripped before extraction, or the verb becomes the value.
+_FILTER_LEAD = re.compile(
+    r"^\s*(?:please\s+)?(?:can you\s+)?"
+    r"(?:(?:add|apply|include|set|put|restrict|limit|narrow)\b\s*"
+    r"(?:a|an|the)?\s*(?:filter|condition|clause)?\s*(?:for|on|by|to|where)?"
+    r"|only|just|filter(?:\s+(?:for|on|by|to|where))?)\s+",
+    re.I,
+)
+# "active ones", "active only" — filler that is not part of the value.
+_VALUE_TAIL = re.compile(r"\s*\b(?:ones?|only|please)\b\s*$", re.I)
+
+
+def _strip_command(text: str) -> str:
+    """Peel the imperative off a narrowing phrase, leaving the value itself."""
+    out = _FILTER_LEAD.sub("", text.strip(), count=1)
+    out = _VALUE_TAIL.sub("", out).strip("?,.! ")
+    return out or text.strip()
+
+
 def _candidate_value(text: str) -> str | None:
+    text = _strip_command(text)
     quoted = _QUOTED_VALUE.search(text)
     if quoted:
         return quoted.group(1).strip()
@@ -178,6 +199,17 @@ def rewrite(
         )
 
     if turn.scenario == "pivot":
+        # A resolved date is a period change, never a value swap. The
+        # preprocessor already turned "last year" into a range; without this
+        # it lands in the last filtered column as the literal "last year".
+        if pre is not None and pre.dates:
+            span = pre.dates[0]
+            label = getattr(span, "label", "") or f"{span.start} to {span.end}"
+            return Rewrite(
+                question=_describe(ctx, {"period": label}),
+                edits=[PlanEdit("set_period", value=label, label=f"period {label}")],
+                reason=f"period → {label}",
+            )
         value = _candidate_value(raw)
         column = _pivot_column(ctx)
         if value and column:

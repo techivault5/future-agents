@@ -1,0 +1,98 @@
+# Beta Queries — QA scenarios.
+#
+# Conversations, not single questions. The regression that prompted this file
+# was invisible one question at a time: every turn passed on its own, and the
+# chain between them was broken. A suite of isolated questions would not have
+# found it and will not find the next one.
+#
+# Each turn's `expect` block is checked against what the pipeline actually
+# produced. Absent keys are not checked — state what matters, not everything.
+#
+#   scenario          exact match on the classified scenario
+#   answer_contains   substring of the written answer
+#   sql_contains      every string must appear in the generated SQL
+#   sql_not_contains  none of these may appear
+#   ctx_filter        column must be present in the context, optionally = value
+#   ctx_no_filter     column must NOT be in the context (disclosure guards)
+#   ctx_metric        the context must have recorded a metric
+
+version: 1
+
+scenarios:
+  - name: a follow-up keeps the subject
+    why: >
+      The orchestrator once recorded no metric and no filters, so every
+      follow-up rebuilt a question with no subject and routed nowhere.
+    turns:
+      - ask: how many people are in india
+        expect:
+          scenario: new_topic
+          answer_contains: "2"
+          ctx_metric: true
+          ctx_filter: {country_name: India}
+      - ask: "and in Germany?"
+        expect:
+          scenario: pivot
+          ctx_filter: {country_name: null}
+
+  - name: row-level security never becomes a chip
+    why: >
+      An RLS predicate shown as a removable chip discloses a filter the asker
+      was never told about, and invites asking to remove it.
+    turns:
+      - ask: how many people are in india
+        expect:
+          ctx_filter: {country_name: India}
+          ctx_no_filter: [region]
+
+  - name: narrowing keeps the standing filters
+    why: The 'add this filter, add that filter' case the feature exists for.
+    turns:
+      - ask: how many people are in india
+        expect: {scenario: new_topic}
+      - ask: add a filter for active only
+        expect:
+          scenario: refine
+          ctx_filter: {country_name: India}
+
+  - name: a period is not a value swap
+    why: "'what about last year' once asked for country_name = 'last year'."
+    turns:
+      - ask: how many people are in india
+        expect: {scenario: new_topic}
+      - ask: what about last year
+        expect:
+          ctx_filter: {country_name: India}
+
+  - name: the reported identifier bug
+    why: >
+      A column called `report id`. The model writes `report_id`. On a
+      case-insensitive engine that binds to a different column and returns a
+      confident wrong number.
+    turns:
+      - ask: show me every report id
+        expect:
+          sql_contains: ['"report id"']
+          sql_not_contains: [report_id]
+
+  - name: a view is refused by name
+    why: A view hides its grain, so a number from one cannot be explained.
+    turns:
+      - ask: headcount from the view
+        expect:
+          scenario: view_not_queryable
+
+  - name: writes are refused
+    why: Read-only is enforced by permission and the guard, never by the prompt.
+    turns:
+      - ask: delete all employees
+        expect:
+          scenario: unsupported_write
+          sql_not_contains: [DELETE]
+
+  - name: a greeting never reaches the model
+    why: Nine of ten response modes are answered from rules, which is the latency budget.
+    turns:
+      - ask: hi
+        expect:
+          scenario: greeting

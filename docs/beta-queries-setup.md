@@ -89,7 +89,7 @@ Beta Queries — setting up in /path/to/beta-queries
 [  OK  ] dependencies installed
 [  OK  ] .env created from .env.example — every value is still REPLACE_ME
 [  ..  ] running the test suite
-[  OK  ] 364 passed, 1 skipped in 4.73s
+[  OK  ] 370 passed, 3 skipped in 5.7s
 [  ..  ] asking real questions against DuckDB
 [  OK  ] the demo answered 7 questions end to end
 
@@ -129,8 +129,8 @@ MIN_PYTHON = (3, 11)
 
 # What a correct run looks like. Stated up front so a changed number is a
 # visible failure rather than something nobody notices.
-EXPECT_TESTS = "364 passed"
-EXPECT_TESTS_FULL_REPO = "377 passed"
+EXPECT_TESTS = "370 passed"
+EXPECT_TESTS_FULL_REPO = "385 passed"
 
 OK, BAD, DOT = "  OK  ", " FAIL ", "  ..  "
 
@@ -318,14 +318,14 @@ pip install --upgrade pip
 pip install -e ".[beta_queries,dev]"
 
 # 3. prove it
-pytest tests/ -q                   # expect: 364 passed, 1 skipped
+pytest tests/ -q                   # expect: 370 passed, 3 skipped
 python scripts/beta_queries_demo.py
 ```
 
-**Expect `364 passed, 1 skipped`.** The skip is deliberate: one test file
+**Expect `370 passed, 3 skipped`.** The skip is deliberate: one test file
 checks `agent.yaml` against the loader in the wider `future_agents` framework,
 which is not part of this bundle. In the full repository that file runs and the
-count is **377**.
+count is **385**.
 
 The demo builds a DuckDB database whose schema is hostile on purpose — a column
 called `report id`, one called `user`, a case-sensitive `Status`, a view that
@@ -520,7 +520,7 @@ explicitly: `python3.11 scripts/beta_queries_bootstrap.py`.
 
 Debian and Ubuntu ship `venv` separately: `sudo apt install python3-venv`.
 
-### The test count is not 364 or 377
+### The test count is not 370 or 385
 
 A count that *drops* usually means a module stopped being collected rather than
 a test being deleted — a skipped module reports as one line, not as the tests
@@ -534,6 +534,18 @@ Check the `filters` line in the context panel it prints. A default filter
 deliberate, and the assumption is surfaced with the answer rather than hidden.
 
 ---
+
+## 8b. The QA agent
+
+A standing check that replays real conversations and says what broke. Run it
+after any change to `apps/beta_queries/`:
+
+```bash
+python scripts/beta_queries_qa.py                 # report; exit 1 on a regression
+python scripts/beta_queries_qa.py --install-hook  # run it before every push
+```
+
+Full detail, including how to add a scenario: **`QA-AGENT.md`**.
 
 ## 9. Verification runbook
 
@@ -554,8 +566,8 @@ python packages/guardrails/guardrails_engine.py . --mode block   # exits 0
 
 | What | Expected |
 |---|---|
-| bundle tests | `364 passed, 1 skipped` |
-| full-repo beta-queries tests | `377 passed` |
+| bundle tests | `370 passed, 3 skipped` |
+| full-repo beta-queries tests | `385 passed` |
 | full-repo suite | `2113 passed`, **0 skipped** |
 | demo | 7 answers, including one refusal and one view explanation |
 
