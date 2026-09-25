@@ -12,7 +12,10 @@ version: 1
 
 defaults:
   profile_values: true
-  max_distinct: 200      # columns with more groups than this are not indexed
+  # Columns with more distinct values than this are not indexed. It was 200,
+  # which silently dropped a country column (~250 values): questions naming
+  # a country then routed on nothing. Free text still exceeds 500.
+  max_distinct: 500
   sample_limit: 25       # values kept per column
   max_value_len: 64
 
@@ -33,6 +36,12 @@ sources:
       org: department
       joiner: hire
       leaver: termination
+    # Decide what the crawl could not. `beta_queries_ask.py --check` lists
+    # status columns it left undecided ("~" lines); the answer goes here,
+    # keyed by schema.table. Applied to every question unless the user
+    # says otherwise, and shown to them as an assumption.
+    # default_filters:
+    #   dbo.employee: "employment_status = 'ACTIVE'"
 
   - id: salesdb
     dialect: snowflake

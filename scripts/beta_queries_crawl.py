@@ -27,31 +27,7 @@ sys.path[:0] = [str(Path(__file__).resolve().parents[1] / p) for p in ("apps", "
 
 import yaml  # noqa: E402
 from beta_queries.catalog import crawler  # noqa: E402
-
-
-def connect(dialect: str, dsn: str) -> Any:
-    """Open a PEP-249 connection for a dialect, importing its driver lazily."""
-    if dialect in ("sqlserver", "mssql"):
-        import pyodbc
-
-        return pyodbc.connect(dsn, readonly=True)
-    if dialect in ("postgres", "postgresql"):
-        import psycopg
-
-        return psycopg.connect(dsn)
-    if dialect == "snowflake":
-        import snowflake.connector as sf
-
-        return sf.connect(**json.loads(dsn))
-    if dialect == "databricks":
-        from databricks import sql as dbsql
-
-        return dbsql.connect(**json.loads(dsn))
-    if dialect in ("mysql", "mariadb"):
-        import mysql.connector as mc
-
-        return mc.connect(**json.loads(dsn))
-    raise SystemExit(f"no driver mapping for dialect {dialect!r}")
+from beta_queries.sql.connect import connect  # noqa: E402
 
 
 def _encode(obj: Any) -> Any:
@@ -99,7 +75,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
 
         options = crawler.ProfileOptions(
-            max_distinct=defaults.get("max_distinct", 200),
+            max_distinct=defaults.get("max_distinct", 500),
             sample_limit=defaults.get("sample_limit", 25),
             max_value_len=defaults.get("max_value_len", 64),
         )

@@ -27,10 +27,21 @@ from typing import Any, Protocol
 
 from beta_queries.agent.contract import QueryPlan
 
-DEFAULT_TIMEOUT = 8.0
-# The budget allows one call at ~900 ms. Anything slower has already lost, so
-# fail fast and let the orchestrator degrade rather than blocking the turn.
-DEFAULT_MAX_TOKENS = 1500
+
+def _env_number(name: str, default: float) -> float:
+    try:
+        return float(os.environ.get(name, "") or default)
+    except ValueError:
+        return default
+
+
+# These were 8 s and 1500 tokens, set to fit a p95 latency target. That is a
+# latency *policy*, and it was enforced as if it were a correctness rule: a
+# cold call to an internal endpoint over a large schema routinely exceeds 8 s,
+# and a long statement plus its answer template truncates at 1500. Both failed
+# as "the model stopped responding". Tighten these only against a measured p95.
+DEFAULT_TIMEOUT = _env_number("BQ_LLM_TIMEOUT_SECONDS", 45.0)
+DEFAULT_MAX_TOKENS = int(_env_number("BQ_LLM_MAX_TOKENS", 4000))
 
 
 @dataclass
@@ -189,11 +200,11 @@ class LunaProvider:
 
     name = "luna"
 
-    def __init__(
-        self, base_url: str = "", model: str = "gpt-luna", key_env: str = "LUNA_API_KEY"
-    ) -> None:
+    def __init__(self, base_url: str = "", model: str = "", key_env: str = "LUNA_API_KEY") -> None:
         self.base_url = base_url or os.environ.get("LUNA_BASE_URL", "")
-        self.model = model
+        # The model id differs per deployment; a wrong one is a 404, which
+        # reaches the user as "the model is unavailable" and hides the cause.
+        self.model = model or os.environ.get("LUNA_MODEL", "gpt-luna")
         self.key_env = key_env
 
     def complete(

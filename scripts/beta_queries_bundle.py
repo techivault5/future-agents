@@ -36,6 +36,7 @@ INCLUDE = (
     "docs/beta-queries-setup.md",
     "docs/beta-queries-qa-agent.md",
     "docs/beta-queries-minimum.md",
+    "docs/beta-queries-runbook.md",
     "apps/beta_queries/**/*.py",
     "apps/beta_queries/agent.yaml",
     "apps/beta_queries/README.md",
@@ -85,13 +86,13 @@ answer, and a staging twin of the real table. Watch it answer, refuse and
 explain each one, printing every stage as it goes.
 
 ```bash
-pytest tests/ -q          # 370 passed, 3 skipped — no database needed
+pytest tests/ -q          # 398 passed, 1 skipped — no database needed
 ```
 
-The skips are deliberate. One test file checks `agent.yaml` against the loader
+The skip is deliberate. One test file checks `agent.yaml` against the loader
 in the wider `future_agents` framework, which is not part of this bundle; Beta
 Queries itself never imports that framework. In the full repository that file
-runs and the count is 385.
+runs and the count is 411.
 
 ## Then point it at a real database
 
@@ -116,6 +117,7 @@ runs and the count is 385.
 | | |
 |---|---|
 | 1 | `QUICKSTART.md` — this file |
+| → | **`RUNBOOK.md` — connecting your real databases. Start here if it is not working** |
 | 2 | `docs/beta-queries-handoff.md` — what exists, what is true, what must never change |
 | 3 | `DESIGN.md` — **why** it is shaped this way, and four flaws caught before they shipped |
 | 4 | `docs/beta-queries-spec.md` — the full specification, 33 sections |
@@ -197,6 +199,8 @@ def build(out: Path) -> Path:
             rel = "QA-AGENT.md"
         elif rel == "docs/beta-queries-minimum.md":
             rel = "MINIMUM.md"
+        elif rel == "docs/beta-queries-runbook.md":
+            rel = "RUNBOOK.md"
         members.append((rel, path.read_text()))
 
     leaks = [hit for rel, text in members for hit in _scan(rel, text)]

@@ -25,8 +25,8 @@ MIN_PYTHON = (3, 11)
 
 # What a correct run looks like. Stated up front so a changed number is a
 # visible failure rather than something nobody notices.
-EXPECT_TESTS = "370 passed"
-EXPECT_TESTS_FULL_REPO = "385 passed"
+EXPECT_TESTS = "398 passed"
+EXPECT_TESTS_FULL_REPO = "411 passed"
 
 OK, BAD, DOT = "  OK  ", " FAIL ", "  ..  "
 

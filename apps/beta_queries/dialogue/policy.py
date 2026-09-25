@@ -67,6 +67,10 @@ DEFAULT_SCENARIOS: dict[str, dict[str, Any]] = {
     "empty": {"mode": "repair", "text": "Nothing came through."},
     "gibberish": {"mode": "repair", "text": "I couldn't read that as a question."},
     "out_of_scope": {"mode": "refuse", "text": "Nothing you can access covers that."},
+    "model_unavailable": {
+        "mode": "refuse",
+        "text": "I couldn't get an answer from the model — {reason}.",
+    },
     "ambiguous_source": {"mode": "clarify", "text": "Which source do you mean?"},
     "ambiguous_intent": {"mode": "clarify", "text": "I couldn't turn that into a query."},
     "view_not_queryable": {

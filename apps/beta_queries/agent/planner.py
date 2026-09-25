@@ -25,9 +25,14 @@ from beta_queries.agent.prompts import (
     build_system,
     build_user,
 )
-from beta_queries.agent.providers import Completion, Provider, parse_plan
+from beta_queries.agent.providers import DEFAULT_TIMEOUT, Completion, Provider, parse_plan
 
 MAX_REPAIRS = 1
+# A transport failure — timeout, reset, 502 — is not the model's fault and is
+# often gone a second later, so it earns one retry. A parse failure is the
+# model's, and has its own repair pass with the error fed back.
+TRANSPORT_RETRIES = 1
+TRANSPORT_BACKOFF_SECONDS = 1.5
 
 
 @dataclass
@@ -36,6 +41,10 @@ class PlanResult:
     completions: list[Completion] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     repaired: bool = False
+    # Why there is no plan, in a word the user can act on:
+    # timeout | truncated | auth | unavailable | invalid | rejected.
+    # Every one of these used to surface as "ambiguous_intent".
+    failure: str = ""
 
     @property
     def ok(self) -> bool:
@@ -101,7 +110,7 @@ def plan_query(
     profile_hints: dict[str, Any] | None = None,
     guidance: Sequence[str] = (),
     unreachable: Sequence[str] = (),
-    timeout: float = 8.0,
+    timeout: float = DEFAULT_TIMEOUT,
 ) -> PlanResult:
     """Plan once, repair once, then stop."""
     system = build_system(dialect)
@@ -123,17 +132,28 @@ def plan_query(
 
     for attempt in range(MAX_REPAIRS + 1):
         started = time.perf_counter()
-        try:
-            completion = provider.complete(system, prompt, timeout=timeout)
-        except Exception as exc:  # noqa: BLE001 — a provider failure is a result
-            result.errors.append(f"model call failed: {exc}")
+        completion = None
+        for transport_try in range(TRANSPORT_RETRIES + 1):
+            try:
+                completion = provider.complete(system, prompt, timeout=timeout)
+                break
+            except Exception as exc:  # noqa: BLE001 — a provider failure is a result
+                result.errors.append(f"model call failed: {exc}")
+                result.failure = _classify_transport(exc)
+                # Auth and configuration will not fix themselves in 1.5 s.
+                if result.failure == "auth" or transport_try >= TRANSPORT_RETRIES:
+                    return result
+                time.sleep(TRANSPORT_BACKOFF_SECONDS)
+        if completion is None:
             return result
+        result.failure = ""
         completion.ms = completion.ms or int((time.perf_counter() - started) * 1000)
         result.completions.append(completion)
 
         if completion.truncated:
             # Half a statement that happens to parse is worse than none.
             result.errors.append("model response was truncated")
+            result.failure = "truncated"
             return result
 
         try:
@@ -141,6 +161,7 @@ def plan_query(
         except Exception as exc:  # noqa: BLE001 — pydantic and json both land here
             result.errors.append(str(exc))
             if attempt >= MAX_REPAIRS:
+                result.failure = "invalid"
                 return result
             result.repaired = True
             prompt = (
@@ -157,6 +178,7 @@ def plan_query(
 
         result.errors.extend(problems)
         if attempt >= MAX_REPAIRS:
+            result.failure = "rejected"
             return result
         result.repaired = True
         prompt = (
@@ -175,3 +197,13 @@ def clarification_from(result: PlanResult, question: str) -> dict[str, Any]:
         "detail": result.errors[0] if result.errors else "",
         "asked": question,
     }
+
+
+def _classify_transport(exc: BaseException) -> str:
+    """Name a transport failure the way the person fixing it would."""
+    text = f"{type(exc).__name__} {exc}".lower()
+    if "timeout" in text or "timed out" in text:
+        return "timeout"
+    if any(m in text for m in ("401", "403", "unauthor", "forbidden", "api_key", "is not set")):
+        return "auth"
+    return "unavailable"

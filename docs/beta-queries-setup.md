@@ -89,7 +89,7 @@ Beta Queries — setting up in /path/to/beta-queries
 [  OK  ] dependencies installed
 [  OK  ] .env created from .env.example — every value is still REPLACE_ME
 [  ..  ] running the test suite
-[  OK  ] 370 passed, 3 skipped in 5.7s
+[  OK  ] 398 passed, 1 skipped in 12s
 [  ..  ] asking real questions against DuckDB
 [  OK  ] the demo answered 7 questions end to end
 
@@ -129,8 +129,8 @@ MIN_PYTHON = (3, 11)
 
 # What a correct run looks like. Stated up front so a changed number is a
 # visible failure rather than something nobody notices.
-EXPECT_TESTS = "370 passed"
-EXPECT_TESTS_FULL_REPO = "385 passed"
+EXPECT_TESTS = "398 passed"
+EXPECT_TESTS_FULL_REPO = "411 passed"
 
 OK, BAD, DOT = "  OK  ", " FAIL ", "  ..  "
 
@@ -318,14 +318,14 @@ pip install --upgrade pip
 pip install -e ".[beta_queries,dev]"
 
 # 3. prove it
-pytest tests/ -q                   # expect: 370 passed, 3 skipped
+pytest tests/ -q                   # expect: 398 passed, 1 skipped
 python scripts/beta_queries_demo.py
 ```
 
-**Expect `370 passed, 3 skipped`.** The skip is deliberate: one test file
+**Expect `398 passed, 1 skipped`.** The skip is deliberate: one test file
 checks `agent.yaml` against the loader in the wider `future_agents` framework,
 which is not part of this bundle. In the full repository that file runs and the
-count is **385**.
+count is **411**.
 
 The demo builds a DuckDB database whose schema is hostile on purpose — a column
 called `report id`, one called `user`, a case-sensitive `Status`, a view that
@@ -520,7 +520,7 @@ explicitly: `python3.11 scripts/beta_queries_bootstrap.py`.
 
 Debian and Ubuntu ship `venv` separately: `sudo apt install python3-venv`.
 
-### The test count is not 370 or 385
+### The test count is not 398 or 411
 
 A count that *drops* usually means a module stopped being collected rather than
 a test being deleted — a skipped module reports as one line, not as the tests
@@ -558,7 +558,7 @@ python scripts/beta_queries_demo.py                 # 7 questions answered
 In the full repository, additionally:
 
 ```bash
-pytest -q                                                        # 2113 passed
+pytest -q                                                        # 2147 passed
 ruff check packages/future_agents/ apps/ scripts/
 ruff format --check packages/future_agents/ apps/ scripts/
 python packages/guardrails/guardrails_engine.py . --mode block   # exits 0
@@ -566,9 +566,9 @@ python packages/guardrails/guardrails_engine.py . --mode block   # exits 0
 
 | What | Expected |
 |---|---|
-| bundle tests | `370 passed, 3 skipped` |
-| full-repo beta-queries tests | `385 passed` |
-| full-repo suite | `2113 passed`, **0 skipped** |
+| bundle tests | `398 passed, 1 skipped` |
+| full-repo beta-queries tests | `411 passed` |
+| full-repo suite | `2147 passed`, **0 skipped** |
 | demo | 7 answers, including one refusal and one view explanation |
 
 CI installs `.[beta_queries,dev]`, not `.[dev]` — without the extra, six test

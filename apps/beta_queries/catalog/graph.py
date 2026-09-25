@@ -284,8 +284,17 @@ class InMemoryGraph:
         entitled: set[str] | None = None,
         datasource: str | None = None,
         limit: int = 8,
+        synonyms: dict[str, str] | None = None,
+        value_hits: dict[str, str] | None = None,
     ) -> list[TableCandidate]:
         """Rank tables against a question. Views never rank.
+
+        `synonyms` is the source's business-word map ("people" -> "emp").
+        `value_hits` is routing's finding that a word in the question is a
+        known value — `{"india": "main.t_emp_m.country_name"}`. Routing used to
+        discover exactly which table holds the value and then drop it, so a
+        question naming "India" against a table called `t_emp_m` ranked it at
+        zero and answered "nothing covers that".
 
         The ordering is deliberately not pure text similarity. A table with a
         certified metric on it, or one three dashboards read, is a better
@@ -293,7 +302,15 @@ class InMemoryGraph:
         already decided that table is the one that counts.
         """
         asked = set(terms_of(question))
-        asked |= {self._synonyms[t] for t in asked if t in self._synonyms}
+        words = {**self._synonyms, **(synonyms or {})}
+        asked |= {words[t] for t in asked if t in words}
+
+        # relname -> the columns in it that hold a value the question named
+        holds: dict[str, set[str]] = {}
+        for target in (value_hits or {}).values():
+            relname, _, column = target.rpartition(".")
+            if relname:
+                holds.setdefault(relname, set()).add(column)
 
         out: list[TableCandidate] = []
         for node in self._tables.values():
@@ -306,6 +323,13 @@ class InMemoryGraph:
 
             score = 0.0
             reasons: list[str] = []
+
+            # The strongest signal there is: the question names a value this
+            # table actually contains. Weighted like routing's value hit.
+            held = holds.get(node.relname)
+            if held:
+                score += 40 * len(held)
+                reasons.append(f"holds the value in: {', '.join(sorted(held))}")
 
             name_hits = asked & set(terms_of(node.name))
             if name_hits:

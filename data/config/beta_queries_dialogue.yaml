@@ -170,6 +170,14 @@ scenarios:
       I couldn't turn that into a query I'd trust. Tell me which of these you
       meant, or say it a different way.
     suggestions_from: examples
+  model_unavailable:
+    # Not ambiguity: the question was fine and the model call failed. Telling
+    # someone to rephrase a question that was never the problem wastes their
+    # time and hides the real fault.
+    mode: refuse
+    text: >
+      I couldn't get an answer from the model — {reason}. Your question was
+      fine; it does not need rephrasing.
   view_not_queryable:
     mode: answer_from_state
     text: >

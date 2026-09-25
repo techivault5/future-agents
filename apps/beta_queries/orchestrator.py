@@ -41,7 +41,7 @@ from beta_queries.dialogue.turn import handle_turn
 from beta_queries.entitlements.resolver import EntitlementResolver, GrantSet
 from beta_queries.errors.report import ErrorMessages
 from beta_queries.progress import StepMachine
-from beta_queries.routing.router import SourceProfile, route
+from beta_queries.routing.router import SourceProfile, route, score_source
 from beta_queries.sql import healing
 from beta_queries.sql.compiler import compile_policies
 from beta_queries.sql.executor import DbapiExecutor, ExecutionError, ExecutionRequest
@@ -88,6 +88,25 @@ class Source:
     connect: Callable[[], Any]
     column_types: dict[str, dict[str, str]] = field(default_factory=dict)
     default_filters: dict[str, list[str]] = field(default_factory=dict)
+    # fqn -> column -> distinct example values, PII columns excluded. The
+    # largest measured lever on accuracy: without them the model sees column
+    # names and types and has to guess what the columns hold.
+    column_values: dict[str, dict[str, list[str]]] = field(default_factory=dict)
+    # fqn -> the table comment a DBA wrote, when one exists.
+    comments: dict[str, str] = field(default_factory=dict)
+
+
+# Why a model call produced no plan, in words the person fixing it can act on.
+MODEL_FAILURE_REASONS = {
+    "timeout": "the model took longer than BQ_LLM_TIMEOUT_SECONDS to reply; try again in a moment",
+    "truncated": "the model's reply was cut off at BQ_LLM_MAX_TOKENS; raise it and ask again",
+    # Not "try again": a missing or wrong key fails identically every time.
+    "auth": (
+        "the model credentials are missing or were rejected — check LUNA_API_KEY, "
+        "LUNA_BASE_URL and LUNA_MODEL"
+    ),
+    "unavailable": "the model endpoint could not be reached; try again in a moment",
+}
 
 
 class Orchestrator:
@@ -128,7 +147,16 @@ class Orchestrator:
         ctx: ConversationContext | None = None,
         sink: Callable[[dict[str, Any]], None] | None = None,
         today: date | None = None,
+        datasource: str | None = None,
     ) -> Answer:
+        """Answer one turn.
+
+        `datasource` pins the question to one source and skips routing. With
+        several sources and thin routing signals — no synonyms, no value index
+        — auto-routing picks wrong or asks "which database?", and both read as
+        an inaccurate answer. Pin first; unpin once `--debug` shows the route
+        scores separating cleanly.
+        """
         started = time.perf_counter()
         ctx = ctx or ConversationContext(session_id=principal)
         machine = (
@@ -159,17 +187,38 @@ class Orchestrator:
         if not usable:
             return self._reply(answer, machine, ctx, started, "out_of_scope")
 
-        # 3. Which database.
+        # 3. Which database — pinned by the caller, or routed.
         machine.start("route")
-        decision = route(resolved_question, [s.profile for s in usable])
-        if not decision.confident:
-            scenario = "ambiguous_source" if decision.needs_clarification else "out_of_scope"
-            machine.fail("route", decision.reason)
-            return self._reply(
-                answer, machine, ctx, started, scenario, sources=", ".join(s.id for s in usable)
-            )
-        source = self.sources[decision.chosen]
-        why = decision.candidates[0].reasons[0] if decision.candidates[0].reasons else ""
+        if datasource is not None:
+            pinned = next((s for s in usable if s.id == datasource), None)
+            if pinned is None:
+                # Unknown and not-entitled read the same on purpose: saying
+                # which one it is would tell the asker the source exists.
+                machine.fail("route", f"{datasource} is not available")
+                return self._reply(
+                    answer,
+                    machine,
+                    ctx,
+                    started,
+                    "out_of_scope",
+                    sources=", ".join(s.id for s in usable),
+                )
+            source, why = pinned, "pinned by the caller"
+        else:
+            decision = route(resolved_question, [s.profile for s in usable])
+            if not decision.confident:
+                scenario = "ambiguous_source" if decision.needs_clarification else "out_of_scope"
+                machine.fail("route", decision.reason)
+                return self._reply(
+                    answer,
+                    machine,
+                    ctx,
+                    started,
+                    scenario,
+                    sources=", ".join(s.id for s in usable),
+                )
+            source = self.sources[decision.chosen]
+            why = decision.candidates[0].reasons[0] if decision.candidates[0].reasons else ""
         machine.done("route", datasource=source.id, why=why)
         answer.datasource = source.id
         ctx.datasource = source.id
@@ -185,9 +234,7 @@ class Orchestrator:
         # 4 and 5. Which tables, and how they connect — both from the graph.
         machine.start("schema")
         entitled_fqns = {t for t in grants.tables if t.startswith(f"{source.id}.")}
-        candidates = self.graph.candidate_tables(
-            resolved_question, entitled=entitled_fqns, datasource=source.id
-        )
+        candidates = self.candidates_for(resolved_question, source, entitled_fqns)
         if not candidates:
             machine.fail("schema", "nothing in the entitled catalog matches")
             return self._reply(answer, machine, ctx, started, "out_of_scope", sources=source.id)
@@ -244,6 +291,15 @@ class Orchestrator:
                     view=view,
                     tables=", ".join(t.split(".")[-1] for t in join_plan.tables)
                     or "the base tables",
+                )
+            # A timeout, a truncated reply and a rejected key are not
+            # ambiguity, and saying they are sends the user off rephrasing a
+            # question that was fine.
+            reason = MODEL_FAILURE_REASONS.get(result.failure)
+            if reason:
+                answer.error = {"stage": "generate", "kind": result.failure, "technical": problem}
+                return self._reply(
+                    answer, machine, ctx, started, "model_unavailable", reason=reason
                 )
             return self._reply(answer, machine, ctx, started, "ambiguous_intent")
         plan = result.plan
@@ -356,6 +412,22 @@ class Orchestrator:
 
     # ── stages ──────────────────────────────────────────────────────────────
 
+    def candidates_for(
+        self, question: str, source: Source, entitled: set[str] | None = None
+    ) -> list[Any]:
+        """The tables a question could be about, ranked — exactly as ask() ranks them.
+
+        Public so the diagnostic shows what was actually used rather than a
+        re-derivation that could drift from it.
+        """
+        return self.graph.candidate_tables(
+            question,
+            entitled=entitled,
+            datasource=source.id,
+            synonyms=source.profile.synonyms,
+            value_hits=score_source(question, source.profile).matched_values,
+        )
+
     def _cards(self, source: Source, fqns: Sequence[str], question: str) -> list[SchemaCard]:
         cards: list[SchemaCard] = []
         for fqn in fqns:
@@ -364,12 +436,25 @@ class Orchestrator:
                 continue
             types = source.column_types.get(fqn, {})
             columns = [(name, types.get(name, "")) for name in node.columns]
+            kept = prune_columns(columns, question)
+            values = source.column_values.get(fqn, {})
             cards.append(
                 SchemaCard(
                     fqn=fqn,
-                    columns=prune_columns(columns, question),
-                    description=" ".join(sorted(node.terms))[:160],
-                    default_filters=source.default_filters.get(fqn, []),
+                    columns=kept,
+                    # A DBA's comment when there is one. The old fallback — the
+                    # table's sorted search terms — reads to a model as noise.
+                    description=(source.comments.get(fqn) or "")[:200],
+                    # The crawl stores these with an `{alias}` placeholder for
+                    # the compiler to fill. Shown raw, a model can copy the
+                    # literal `{alias}` into its SQL.
+                    default_filters=[
+                        e.replace("{alias}", fqn.rsplit(".", 1)[-1])
+                        for e in source.default_filters.get(fqn, [])
+                    ],
+                    # SchemaCard has always rendered these as "e.g. …"; nothing
+                    # filled them, so the model never saw what a column holds.
+                    sample_values={name: values[name] for name, _ in kept if values.get(name)},
                 )
             )
         return cards
