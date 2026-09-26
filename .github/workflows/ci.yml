@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - run: pip install -e ".[dev]"
+      - run: pip install -e ".[beta_queries,dev]"
       - run: ruff check packages/future_agents/ apps/ scripts/
       - run: ruff format --check packages/future_agents/ apps/ scripts/
 
@@ -34,5 +34,9 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - run: pip install -e ".[dev]"
+      # Without the beta_queries extra, six test modules importorskip
+      # themselves on sqlglot/duckdb and 177 tests silently vanish:
+      # identifiers, compiler, executor, orchestrator, engine, readiness.
+      # A green run has to mean they ran.
+      - run: pip install -e ".[beta_queries,dev]"
       - run: pytest --tb=short -q

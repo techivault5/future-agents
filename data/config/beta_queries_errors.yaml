@@ -1,0 +1,89 @@
+# Beta Queries — what a failure sounds like.
+#
+# Two layers for every failure, always:
+#   business  — what happened, in the words of the job. Never an error code,
+#               never a table name the asker may not be entitled to know about.
+#   technical — the engine's own message, verbatim, for whoever fixes it.
+#
+# Editing this file changes what people read. It cannot change what a query
+# does, what is retried, or what anyone is allowed to see.
+#
+# Three engines — Snowflake, SQL Server and MySQL — deliberately merge "you may
+# not see it" into "it does not exist" so that nobody can probe for object
+# existence. The technical layer is therefore redacted automatically for
+# permission failures and for not-found on objects outside the asker's catalog.
+# That redaction is code, not configuration, and is not overridable here.
+
+version: 1
+
+kinds:
+  unknown_column:
+    business: >
+      One of the fields this question needs isn't in that table any more — it
+      looks like the table changed since I last read it.
+    what_now: >
+      I've raised this and I'm re-reading that database now. I'll let you know
+      the moment it's ready to try again.
+
+  unknown_table:
+    business: >
+      I couldn't find the table this question needs. Either it has moved, or it
+      isn't part of what you have access to.
+    what_now: I've raised this with whoever looks after that database.
+
+  permission_denied:
+    business: You don't have access to the data needed to answer that.
+    what_now: >
+      Your data owner has to grant it — I can't work around it, and I wouldn't
+      want to.
+
+  timeout:
+    business: >
+      That question covers more data than we can read in one go, so it was
+      stopped rather than left running.
+    what_now: Narrowing the period or adding a filter usually fixes it.
+
+  too_many_rows:
+    business: That would return more rows than this can show at once.
+    what_now: Add a filter, or ask for a total instead of a list.
+
+  connection:
+    business: >
+      I couldn't reach that database just now. This is an infrastructure
+      problem, not a problem with your question.
+    what_now: It's usually brief — try again shortly.
+
+  missing_group_by:
+    business: >
+      I wrote the query in a way the database rejected — every column has to be
+      either grouped or summarised.
+    what_now: I'm correcting it now.
+
+  type_mismatch:
+    business: >
+      I compared two fields the database considers different types, so it
+      refused to run it.
+    what_now: I'm correcting it now.
+
+  date_format:
+    business: A date in that question wasn't in a form the database accepted.
+    what_now: I'm correcting it now.
+
+  division_by_zero:
+    business: >
+      The calculation divided by zero — usually because the group being divided
+      by had no rows at all.
+    what_now: I'm correcting it to guard the denominator.
+
+  syntax:
+    business: I wrote a query the database couldn't parse.
+    what_now: >
+      I'm rewriting it once. If it fails again I'll show you what I tried rather
+      than keep guessing.
+
+  unknown:
+    business: >
+      The database refused that query and the reason isn't one I recognise.
+    what_now: >
+      I've recorded it. The exact message is below for whoever looks after this
+      database.

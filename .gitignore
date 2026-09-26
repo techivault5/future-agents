@@ -39,3 +39,11 @@ apps/finance_advisor/data/memory.db
 # Node / Turborepo workspace
 node_modules/
 .turbo/
+
+# Beta Queries crawl output (catalog snapshots — regenerate, never commit)
+.bq-catalog/
+
+# Beta Queries download bundle and the docs extracted from it for reading.
+# Both regenerate: python scripts/beta_queries_bundle.py
+output/beta-queries.zip
+output/beta-queries-files/

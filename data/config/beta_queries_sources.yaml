@@ -1,0 +1,68 @@
+# Beta Queries — the datasources the crawler visits.
+#
+# No credentials here. `dsn_env` names an environment variable; the crawler
+# reads it at run time and never logs it. Use a read-only catalog principal:
+# this crawl reads metadata and samples values, it never answers questions.
+#
+# `synonyms` is the highest-leverage field in this file. It maps the words
+# people say to the words the catalog uses, and it is the difference between
+# "how many people" routing to the HR warehouse and routing nowhere.
+
+version: 1
+
+defaults:
+  profile_values: true
+  # Columns with more distinct values than this are not indexed. It was 200,
+  # which silently dropped a country column (~250 values): questions naming
+  # a country then routed on nothing. Free text still exceeds 500.
+  max_distinct: 500
+  sample_limit: 25       # values kept per column
+  max_value_len: 64
+
+sources:
+  - id: hrdb
+    dialect: sqlserver
+    dsn_env: BQ_DSN_HRDB
+    description: >
+      HR warehouse. Employees, assignments, departments, locations, absence.
+      Authoritative for headcount.
+    subject_areas: [people, headcount, org, payroll]
+    synonyms:
+      people: employee
+      person: employee
+      staff: employee
+      headcount: employee
+      team: department
+      org: department
+      joiner: hire
+      leaver: termination
+    # Decide what the crawl could not. `beta_queries_ask.py --check` lists
+    # status columns it left undecided ("~" lines); the answer goes here,
+    # keyed by schema.table. Applied to every question unless the user
+    # says otherwise, and shown to them as an assumption.
+    # default_filters:
+    #   dbo.employee: "employment_status = 'ACTIVE'"
+
+  - id: salesdb
+    dialect: snowflake
+    dsn_env: BQ_DSN_SALESDB
+    description: >
+      Commercial warehouse. Orders, order lines, invoices, customers, products.
+    subject_areas: [revenue, orders, customers, products]
+    synonyms:
+      revenue: amount
+      sales: order
+      client: customer
+      sku: product
+
+  # Declared FKs are informational on Databricks — joins here come from name
+  # inference plus learned co-occurrence, so keep table naming conventional.
+  - id: lakehouse
+    dialect: databricks
+    dsn_env: BQ_DSN_LAKEHOUSE
+    description: >
+      Event lakehouse. Clickstream, sessions, feature usage.
+    subject_areas: [events, usage, telemetry]
+    synonyms:
+      visit: session
+      user: account
